@@ -54,7 +54,7 @@ jobs:
     needs: build
     steps:
     - name: Restart service
-      uses: MyJetMarketingBox/kube-restart-pods@master
+      uses: Myjetwallet/kube-restart-pods@master
       env:
         KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA__ST_TEST }}
         NAMESPACE: marketing-box
