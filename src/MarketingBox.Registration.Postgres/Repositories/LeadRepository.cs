@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Registration.Postgres.Entities.Lead;
 using MarketingBox.Registration.Postgres.Extensions;
@@ -61,7 +62,7 @@ namespace MarketingBox.Registration.Postgres.Repositories
                 throw new Exception($"Lead with customerId {customerId} can't be found");
             }
 
-            return existingLeadEntity.CreateLead();
+            return existingLeadEntity.RestoreLead();
         }
 
         public async Task<Lead> GetLeadByLeadIdAsync(string tenantId, long leadId)
@@ -75,7 +76,26 @@ namespace MarketingBox.Registration.Postgres.Repositories
                 throw new Exception($"Lead with leadId {leadId} can't be found");
             }
 
-            return existingLeadEntity.CreateLead();
+            return existingLeadEntity.RestoreLead();
+        }
+
+        public async Task<int> GetCountForLeads(DateTime date, LeadStatus leadStatus)
+        {
+            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            var count = await ctx.Leads.Where(x => x.RouteInfoStatus == leadStatus && 
+                                                   x.CreatedAt.Date == date.Date).CountAsync();
+
+            return count;
+        }
+
+        public async Task<int> GetCountForDeposits(DateTime date, LeadStatus leadStatus)
+        {
+            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            var count = await ctx.Leads.Where(x => x.RouteInfoStatus == leadStatus &&
+                                                   x.RouteInfoDepositDate != null && 
+                                                   x.RouteInfoDepositDate.Value.Date == date.Date).CountAsync();
+
+            return count;
         }
     }
 }

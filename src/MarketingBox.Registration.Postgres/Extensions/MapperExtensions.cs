@@ -52,7 +52,7 @@ namespace MarketingBox.Registration.Postgres.Extensions
             };
         }
 
-        public static Lead CreateLead(this LeadEntity leadEntity)
+        public static Lead RestoreLead(this LeadEntity leadEntity)
         {
             var leadBrandRegistrationInfo = new LeadRouteInfo()
             {
@@ -106,8 +106,13 @@ namespace MarketingBox.Registration.Postgres.Extensions
                 UpdatedAt = leadEntity.UpdatedAt,
             };
 
-            var lead = Lead.Create(leadEntity.TenantId, leadEntity.Sequence, leadGeneralInfo,
-                leadBrandRegistrationInfo, leadAdditionalInfo);
+            var lead = Lead.Restore(
+                leadEntity.TenantId, 
+                leadEntity.Sequence, 
+                leadGeneralInfo,
+                leadBrandRegistrationInfo, 
+                leadAdditionalInfo);
+
             return lead;
         }
     }

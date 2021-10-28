@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using MarketingBox.Registration.Service.Domain.Leads;
 
 namespace MarketingBox.Registration.Service.Domain.Repositories
@@ -10,5 +11,7 @@ namespace MarketingBox.Registration.Service.Domain.Repositories
         Task<Lead> RestoreAsync(long leadId);
         Task<Lead> GetLeadByCustomerIdAsync(string tenantId, string customerId);
         Task<Lead> GetLeadByLeadIdAsync(string tenantId, long leadId);
+        Task<int> GetCountForLeads(DateTime date, LeadStatus leadStatus);
+        Task<int> GetCountForDeposits(DateTime date, LeadStatus leadStatus);
     }
 }

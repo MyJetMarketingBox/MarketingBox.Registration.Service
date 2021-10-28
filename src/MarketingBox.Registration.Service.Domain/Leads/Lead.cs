@@ -50,10 +50,9 @@ namespace MarketingBox.Registration.Service.Domain.Leads
             RouteInfo.ConversionDate = depositDate;
         }
 
-        public static Lead Create(string tenantId, long sequence, LeadGeneralInfo leadGeneralInfo, 
+        public static Lead Restore(string tenantId, long sequence, LeadGeneralInfo leadGeneralInfo, 
             LeadRouteInfo routeInfo, LeadAdditionalInfo additionalInfo)
         {
-            var currentDate = DateTimeOffset.UtcNow;
             return new Lead(
                 tenantId,
                 sequence,

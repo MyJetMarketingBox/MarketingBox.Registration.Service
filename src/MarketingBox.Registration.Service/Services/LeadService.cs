@@ -46,7 +46,8 @@ namespace MarketingBox.Registration.Service.Services
             IMyNoSqlServerDataReader<CampaignNoSql> campaignNoSqlServerDataReader,
             IMyNoSqlServerDataReader<CampaignBoxNoSql> campaignBoxNoSqlServerDataReader,
             IMyNoSqlServerDataReader<PartnerNoSql> partnerNoSqlServerDataReader,
-            IIntegrationService integrationService, ILeadRepository repository)
+            IIntegrationService integrationService, 
+            ILeadRepository repository)
         {
             _logger = logger;
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
@@ -56,7 +57,7 @@ namespace MarketingBox.Registration.Service.Services
             _boxNoSqlServerDataReader = boxNoSqlServerDataReader;
             _campaignNoSqlServerDataReader = campaignNoSqlServerDataReader;
             _campaignBoxNoSqlServerDataReader = campaignBoxNoSqlServerDataReader;
-            _partnerNoSqlServerDataReader = partnerNoSqlServerDataReader; 
+            _partnerNoSqlServerDataReader = partnerNoSqlServerDataReader;
             _integrationService = integrationService;
             _repository = repository;
         }
@@ -119,7 +120,7 @@ namespace MarketingBox.Registration.Service.Services
                     UpdatedAt = currentDate,
                 };
 
-                var lead = Lead.Create(tenantId, 0, leadGeneralInfo, leadBrandRegistrationInfo, leadAdditionalInfo);
+                var lead = Lead.Restore(tenantId, 0, leadGeneralInfo, leadBrandRegistrationInfo, leadAdditionalInfo);
 
                 await _repository.SaveAsync(lead);
 
@@ -158,7 +159,15 @@ namespace MarketingBox.Registration.Service.Services
                 await _myNoSqlServerDataWriter.InsertOrReplaceAsync(lead.MapToNoSql());
                 _logger.LogInformation("Sent original update to MyNoSql {@context}", request);
 
-                return SuccessfullMapToGrpc(lead);
+
+                return brandResponse.Status == ResultCode.CompletedSuccessfully ?
+                    SuccessfullMapToGrpc(lead) : FailedMapToGrpc(new Error()
+                    {
+                        Message = "Can't register on brand",
+                        Type = ErrorType.InvalidPersonalData
+                    },
+                    request.GeneralInfo);
+                ;
             }
             catch (Exception e)
             {
@@ -168,8 +177,12 @@ namespace MarketingBox.Registration.Service.Services
             }
         }
 
-        private bool TryGetRouteInfo(LeadCreateRequest leadCreateRequest, out string outTenantId,
-            out string outBrandName, out long outCampaignId, out long outBrandId)
+        private bool TryGetPartnerInfo(LeadCreateRequest leadCreateRequest,
+            out string outTenantId,
+            out string outBrandName,
+            out long outCampaignId,
+            out string outPartnerApiKey,
+            out long outBrandId)
         {
             string tenantId = string.Empty;
             string brandName = string.Empty;
@@ -288,7 +301,7 @@ namespace MarketingBox.Registration.Service.Services
         }
 
 
-        private static LeadCreateResponse FailedMapToGrpc(Error error, 
+        private static LeadCreateResponse FailedMapToGrpc(Error error,
             MarketingBox.Registration.Service.Grpc.Models.Leads.LeadGeneralInfo original)
         {
             return new LeadCreateResponse()
