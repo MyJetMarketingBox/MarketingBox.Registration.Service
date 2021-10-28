@@ -32,10 +32,10 @@ jobs:
       run: dotnet nuget push src/MarketingBox.Registration.Service.Client/bin/Release/*.nupkg -s "https://api.nuget.org/v3/index.json" -k ${{ secrets.NUGET_TOCKEN }}
 
     - name: Publish the package to GitHub
-      uses: MyJetMarketingBox/nuget-publish-to-github-packages-action@v2.1
+      uses: Myjetwallet/nuget-publish-to-github-packages-action@v2.1
       with:
         nupkg-path:  './src/MarketingBox.Registration.Service.Client/bin/Release/*.nupkg'
-        repo-owner:  'myjetmarketigbox'
+        repo-owner:  'myjetmarketingbox'
         gh-user:  ${{ github.actor }}
         token:  ${{ secrets.GITHUB_TOKEN }}  
 
