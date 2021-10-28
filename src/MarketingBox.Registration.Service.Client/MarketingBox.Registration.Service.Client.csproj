@@ -30,8 +30,8 @@
     <Authors>MyJetWallet</Authors>
     <Company>MyJetWallet</Company>
     <Product>MarketingBox</Product>
-    <PackageProjectUrl>https://github.com/MyJetWallet/MarketingBox.Registration.Service</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/MyJetWallet/MarketingBox.Registration.Service</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/MyJetMarketingBox/MarketingBox.Registration.Service</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/MyJetMarketingBox/MarketingBox.Registration.Service</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup>
