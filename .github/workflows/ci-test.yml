@@ -37,17 +37,6 @@ jobs:
     - name: Check Service dir
       run: ls ./publish-api
       
-    - name: Publish image
-      uses: docker/build-push-action@v1
-      with:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-        path: ./publish-api
-        registry: docker.pkg.github.com
-        repository: ${{ secrets.ORG_NAME }}/marketingbox/marketingbox.registration-service-test
-        tags: latest
-        build_args: app_version=marketingbox.registration-service-test:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
-
     - name: Publish image ST
       uses: docker/build-push-action@v1
       with:
