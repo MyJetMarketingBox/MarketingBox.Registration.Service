@@ -41,17 +41,6 @@ jobs:
       run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/tags/})"
       id: extract_branch
 
-    - name: Publish image
-      uses: docker/build-push-action@v1
-      with:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-        path: ./publish-api
-        registry: docker.pkg.github.com
-        repository: ${{ secrets.ORG_NAME }}/marketingbox/marketingbox.registration-service
-        tag_with_ref: true
-        build_args: app_version=marketingbox.registration-service:${{ steps.extract_branch.outputs.branch }},app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
-
     - name: Publish image ST
       uses: docker/build-push-action@v1
       with:
@@ -70,7 +59,7 @@ jobs:
     - name: get uat kube yamls
       uses: actions/checkout@v2
       with:
-        repository: MyJetMarketingBox/kubernates-infrastructure
+        repository: MyJetMarketingBox/marketing-box-kubernates-infrastructure
         ref: uat        
         token: ${{ secrets.UAT_GIT_TOKEN }}
     - run: |
