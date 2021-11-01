@@ -50,7 +50,7 @@ namespace MarketingBox.Registration.Service.Services
                         Error = new Error()
                         {
                             Message = $"Required '{request.AuthInfo.AffiliateId}' authentication",
-                            Type = ErrorType.InvalidAffiliateApiInfo
+                            Type = ErrorType.InvalidAffiliateInfo
                         }
                     });
                 }
