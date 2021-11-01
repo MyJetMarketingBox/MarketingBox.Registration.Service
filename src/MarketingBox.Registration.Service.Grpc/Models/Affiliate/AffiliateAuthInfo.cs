@@ -1,9 +1,9 @@
 ﻿using System.Runtime.Serialization;
 
-namespace MarketingBox.Registration.Service.Grpc.Models.Leads
+namespace MarketingBox.Registration.Service.Grpc.Models.Affiliate
 {
     [DataContract]
-    public class LeadAuthInfo
+    public class AffiliateAuthInfo
     {
         [DataMember(Order = 1)]
         public long AffiliateId { get; set; }

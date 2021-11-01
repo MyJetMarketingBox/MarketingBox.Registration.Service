@@ -9,6 +9,7 @@
         InvalidUserNameOrPassword = 4,
         InvalidCountry = 5,
         InvalidPersonalData = 6,
-        AlreadyUpdated = 7
+        AlreadyUpdated = 7,
+        InvalidAffiliateInfo = 8,
     }
 }

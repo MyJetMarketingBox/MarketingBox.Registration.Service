@@ -13,6 +13,7 @@ namespace MarketingBox.Registration.Service.Client
 
             builder.RegisterInstance(factory.GetRegistrationService()).As<ILeadService>().SingleInstance();
             builder.RegisterInstance(factory.GetDepositService()).As<IDepositService>().SingleInstance();
+            builder.RegisterInstance(factory.GetAffiliateAuthServiceService()).As<IAffiliateAuthService>().SingleInstance();
         }
     }
 }

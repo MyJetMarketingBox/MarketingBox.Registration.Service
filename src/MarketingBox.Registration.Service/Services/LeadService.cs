@@ -1,27 +1,23 @@
-﻿using MarketingBox.Registration.Service.Grpc;
-using MarketingBox.Registration.Service.MyNoSql.Leads;
-using Microsoft.Extensions.Logging;
-using MyNoSqlServer.Abstractions;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using MarketingBox.Affiliate.Service.MyNoSql.Boxes;
+﻿using MarketingBox.Affiliate.Service.MyNoSql.Boxes;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Partners;
 using MarketingBox.Integration.Service.Grpc;
-using MarketingBox.Registration.Service.Domain.Extensions;
 using MarketingBox.Registration.Service.Domain.Leads;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Extensions;
+using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Models.Common;
 using MarketingBox.Registration.Service.Grpc.Models.Leads.Contracts;
 using MarketingBox.Registration.Service.Messages.Leads;
+using MarketingBox.Registration.Service.MyNoSql.Leads;
+using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
-using LeadAdditionalInfoMessage = MarketingBox.Registration.Service.Messages.Leads.LeadAdditionalInfo;
-using LeadGeneralInfoMessage = MarketingBox.Registration.Service.Messages.Leads.LeadGeneralInfo;
-using LeadRouteInfoMessage = MarketingBox.Registration.Service.Messages.Leads.LeadRouteInfo;
+using MyNoSqlServer.Abstractions;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using LeadGeneralInfo = MarketingBox.Registration.Service.Grpc.Models.Leads.LeadGeneralInfo;
 
 
@@ -69,15 +65,10 @@ namespace MarketingBox.Registration.Service.Services
         {
             _logger.LogInformation("Creating new Lead {@context}", request);
 
-            if (!TryGetPartnerInfo(request, out var tenantId, out var brandName,
-                out var campaignId, out var apiKey, out var brandId))
+            if (!TryGetRouteInfo(request, out var tenantId, out var brandName,
+                out var campaignId, out var brandId))
             {
                 return RegisterFailedMapToGrpc(request.GeneralInfo);
-            }
-
-            if (IsPartnerRequestInvalid(apiKey, request.AuthInfo.ApiKey))
-            {
-                return InvalidFailedMapToGrpc(request.GeneralInfo);
             }
 
             try
@@ -177,14 +168,13 @@ namespace MarketingBox.Registration.Service.Services
             }
         }
 
-        private bool TryGetPartnerInfo(LeadCreateRequest leadCreateRequest, out string outTenantId,
-            out string outBrandName, out long outCampaignId, out string outPartnerApiKey, out long outBrandId)
+        private bool TryGetRouteInfo(LeadCreateRequest leadCreateRequest, out string outTenantId,
+            out string outBrandName, out long outCampaignId, out long outBrandId)
         {
             string tenantId = string.Empty;
             string brandName = string.Empty;
             long campaignId = 0;
             long brandId = 0;
-            string partnerApiKey = string.Empty;
             bool retValue = true;
 
             try
@@ -207,23 +197,16 @@ namespace MarketingBox.Registration.Service.Services
 
                 brandName = brandNoSql.Name;
                 brandId = brandNoSql.BrandId;
-
-                var partner =
-                    _partnerNoSqlServerDataReader.Get(PartnerNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
-                        PartnerNoSql.GenerateRowKey(leadCreateRequest.AuthInfo.AffiliateId));
-
-                partnerApiKey = partner.GeneralInfo.ApiKey;
             }
             catch (Exception e)
             {
-                _logger.LogWarning("Can't TryGetPartnerInfo {@Context} {@Erroe}", leadCreateRequest, e.Message);
+                _logger.LogWarning("Can't TryGetRouteInfo {@Context} {@Error}", leadCreateRequest, e.Message);
                 retValue = false;
             }
 
             outTenantId = tenantId;
             outBrandName = brandName;
             outCampaignId = campaignId;
-            outPartnerApiKey = partnerApiKey;
             outBrandId = brandId;
             return retValue;
         }
@@ -304,18 +287,6 @@ namespace MarketingBox.Registration.Service.Services
             );
         }
 
-        private static LeadCreateResponse InvalidFailedMapToGrpc(
-            MarketingBox.Registration.Service.Grpc.Models.Leads.LeadGeneralInfo reneralInfo)
-        {
-            return FailedMapToGrpc(
-                new Error()
-                {
-                    Message = "Invalid partner data",
-                    Type = ErrorType.InvalidParameter
-                },
-                reneralInfo
-            );
-        }
 
         private static LeadCreateResponse FailedMapToGrpc(Error error, 
             MarketingBox.Registration.Service.Grpc.Models.Leads.LeadGeneralInfo original)

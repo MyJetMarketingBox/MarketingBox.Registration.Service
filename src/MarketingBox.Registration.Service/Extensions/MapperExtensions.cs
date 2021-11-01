@@ -132,7 +132,6 @@ namespace MarketingBox.Registration.Service.Extensions
                         UpdatedAt = lead.LeadInfo.UpdatedAt.UtcDateTime,
                         Country = lead.LeadInfo.Country,
                         Ip = lead.LeadInfo.Ip,
-
                         FirstName = lead.LeadInfo.FirstName,
                         LastName = lead.LeadInfo.LastName,
                         Password = lead.LeadInfo.Password,
