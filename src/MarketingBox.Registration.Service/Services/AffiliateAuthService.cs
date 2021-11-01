@@ -49,7 +49,7 @@ namespace MarketingBox.Registration.Service.Services
                         Status = ResultCode.RequiredAuthentication,
                         Error = new Error()
                         {
-                            Message = $"Required '{request.AuthInfo.AffiliateId}' authentication",
+                            Message = $"Require '{request.AuthInfo.AffiliateId}' authentication",
                             Type = ErrorType.InvalidAffiliateInfo
                         }
                     });
@@ -69,17 +69,16 @@ namespace MarketingBox.Registration.Service.Services
                     Status = ResultCode.Failed,
                     Error = new Error()
                     {
-                        Message = "Internal authentication error", 
+                        Message = "Affiliate authentication error", 
                         Type = ErrorType.Unknown
                     }
                 });
             }
         }
 
-
         private bool IsAffiliateApiKeyValid(string requestApiKey, string apiKey)
         {
-            return !apiKey.Equals(requestApiKey, StringComparison.OrdinalIgnoreCase);
+            return apiKey.Equals(requestApiKey, StringComparison.OrdinalIgnoreCase);
         }
 
     }
