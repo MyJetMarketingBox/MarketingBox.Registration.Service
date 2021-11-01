@@ -7,6 +7,7 @@ using MarketingBox.Affiliate.Service.MyNoSql.Partners;
 using MarketingBox.Integration.Service.Client;
 using MarketingBox.Registration.Service.Messages;
 using MarketingBox.Registration.Service.Messages.Leads;
+using MarketingBox.Registration.Service.MyNoSql.LeadRouter;
 using MarketingBox.Registration.Service.MyNoSql.Leads;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
@@ -50,6 +51,14 @@ namespace MarketingBox.Registration.Service.Modules
             builder.RegisterInstance(partner)
                 .As<IMyNoSqlServerDataReader<PartnerNoSql>>();
 
+            var leadRouter = new MyNoSqlReadRepository<LeadRouterNoSqlEntity>(noSqlClient, LeadRouterNoSqlEntity.TableName);
+            builder.RegisterInstance(leadRouter)
+                .As<IMyNoSqlServerDataReader<LeadRouterNoSqlEntity>>();
+
+            var leadRouterCapacitor = new MyNoSqlReadRepository<LeadRouterCapacitorBoxNoSqlEntity>(noSqlClient, LeadRouterCapacitorBoxNoSqlEntity.TableName);
+            builder.RegisterInstance(leadRouter)
+                .As<IMyNoSqlServerDataReader<LeadRouterCapacitorBoxNoSqlEntity>>();
+
             builder.RegisterIntegrationServiceClient(Program.Settings.IntegrationServiceUrl);
 
             #region Leads
@@ -59,7 +68,13 @@ namespace MarketingBox.Registration.Service.Modules
 
             // register writer (IMyNoSqlServerDataWriter<LeadNoSqlEntity>)
             builder.RegisterMyNoSqlWriter<LeadNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), LeadNoSqlEntity.TableName);
-            
+
+            // register writer (IMyNoSqlServerDataWriter<LeadRouterNoSqlEntity>)
+            builder.RegisterMyNoSqlWriter<LeadRouterNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), LeadRouterNoSqlEntity.TableName);
+
+            // register writer (IMyNoSqlServerDataWriter<LeadRouterCapacitorBoxNoSqlEntity>)
+            builder.RegisterMyNoSqlWriter<LeadRouterCapacitorBoxNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), LeadRouterCapacitorBoxNoSqlEntity.TableName);
+
             #endregion
         }
     }

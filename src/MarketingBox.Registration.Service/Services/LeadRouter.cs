@@ -6,40 +6,74 @@ using MarketingBox.Affiliate.Service.Domain.Models.CampaignBoxes;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes;
 using MarketingBox.Registration.Service.Domain.Leads;
 using MarketingBox.Registration.Service.Domain.Repositories;
+using MarketingBox.Registration.Service.MyNoSql.LeadRouter;
+using MyNoSqlServer.Abstractions;
 
 namespace MarketingBox.Registration.Service.Services
 {
     public class LeadRouter
     {
-        // NOSQL
-        private int _leadsRouted;
+        private readonly string _tenantId;
         private readonly ILeadRepository _leadRepository;
+        private readonly IMyNoSqlServerDataReader<LeadRouterNoSqlEntity> _dataReader;
+        private readonly IMyNoSqlServerDataWriter<LeadRouterNoSqlEntity> _dataWriter;
+        private readonly IMyNoSqlServerDataReader<LeadRouterCapacitorBoxNoSqlEntity> _capacitorReader;
+        private readonly IMyNoSqlServerDataWriter<LeadRouterCapacitorBoxNoSqlEntity> _capacitorWriter;
+
         private readonly CampaignBoxNoSql[] _campaignBoxes;
-        // NOSQL
-        private readonly Dictionary<CampaignBoxNoSql, int> _countDict;
         public long BoxId { get; }
 
-        public LeadRouter(long boxId,
-            int leadsRouted,
+        public LeadRouter(
+            string tenantId,
+            long boxId,
             IReadOnlyCollection<CampaignBoxNoSql> campaignBoxes,
-            ILeadRepository leadRepository)
+            ILeadRepository leadRepository,
+            IMyNoSqlServerDataReader<LeadRouterNoSqlEntity> dataReader,
+            IMyNoSqlServerDataWriter<LeadRouterNoSqlEntity> dataWriter,
+            IMyNoSqlServerDataReader<LeadRouterCapacitorBoxNoSqlEntity> capacitorReader,
+            IMyNoSqlServerDataWriter<LeadRouterCapacitorBoxNoSqlEntity> capacitorWriter)
         {
-            _leadsRouted = leadsRouted;
+            _tenantId = tenantId;
             _leadRepository = leadRepository;
+            _dataReader = dataReader;
+            _dataWriter = dataWriter;
+            _capacitorReader = capacitorReader;
+            _capacitorWriter = capacitorWriter;
             _campaignBoxes = campaignBoxes.ToArray();
-            _countDict = new Dictionary<CampaignBoxNoSql, int>();
             BoxId = boxId;
-
-            foreach (var campaignBoxNoSql in campaignBoxes)
-            {
-                _countDict[campaignBoxNoSql] = 0;
-            }
         }
 
         //todo: cap daily cap
         public async Task<CampaignBoxNoSql> GetCampaignBox(string country)
         {
             var date = DateTime.UtcNow;
+
+            var leadRouter = _dataReader.Get(LeadRouterNoSqlEntity.GeneratePartitionKey(_tenantId),
+                LeadRouterNoSqlEntity.GenerateRowKey(BoxId));
+
+            var leadsRouted = leadRouter?.NoSqlInfo.LeadsRoutedCount ?? 0;
+
+            var capacitors = _capacitorReader.Get(LeadRouterCapacitorBoxNoSqlEntity.GeneratePartitionKey(BoxId));
+
+            Dictionary<long, LeadRouterCapacitorBoxNoSqlEntity> countDict =
+                new Dictionary<long, LeadRouterCapacitorBoxNoSqlEntity>();
+
+            bool saveAll = false;
+
+            if (capacitors == null || !capacitors.Any())
+            {
+                saveAll = true;
+                countDict = _campaignBoxes.ToDictionary(x => x.CampaignBoxId, y => LeadRouterCapacitorBoxNoSqlEntity.Create(new LeadRouteCapacitorNoSqlInfo()
+                {
+                    BoxId = BoxId,
+                    CampaignBoxId = y.CampaignBoxId,
+                    ProcessedLeads = 0
+                }));
+            }
+            else
+            {
+                countDict = capacitors.ToDictionary(x => x.NoSqlInfo.CampaignBoxId);
+            }
 
             List<CampaignBoxNoSql> filtered = new List<CampaignBoxNoSql>(_campaignBoxes.Length);
 
@@ -58,12 +92,12 @@ namespace MarketingBox.Registration.Service.Services
                 long currentCap = 0;
                 if (currentCampaign.CapType == CapType.Lead)
                 {
-                    currentCap = await _leadRepository.GetCountForLeads(date, 
+                    currentCap = await _leadRepository.GetCountForLeads(date,
                         currentCampaign.CampaignId, LeadStatus.Registered);
                 }
                 else if (currentCampaign.CapType == CapType.Ftds)
                 {
-                    currentCap = await _leadRepository.GetCountForDeposits(date, 
+                    currentCap = await _leadRepository.GetCountForDeposits(date,
                         currentCampaign.CampaignId, LeadStatus.Approved);
                 }
 
@@ -96,7 +130,6 @@ namespace MarketingBox.Registration.Service.Services
                 .Distinct()
                 .OrderBy(x => x)
                 .ToArray();
-            var sumWeight = filtered.Sum(x => x.Weight);
             var ordered = filtered.ToLookup(x => x.Priority);
 
             //todo finish this routing algo
@@ -113,24 +146,46 @@ namespace MarketingBox.Registration.Service.Services
 
                     do
                     {
-                        var index = _leadsRouted % length;
-                        
-                        var campaign = campaigns[index];
+                        var index = leadsRouted % length;
 
-                        if (_countDict[campaign] == campaign.Weight)
+                        var campaign = campaigns[index];
+                        var capacitor = countDict[campaign.CampaignBoxId];
+                        if (capacitor.NoSqlInfo.ProcessedLeads == campaign.Weight)
                         {
                             length--;
                             continue;
                         }
 
-                        _leadsRouted++;
-                        _countDict[campaign]++;
+                        leadsRouted++;
+                        capacitor.NoSqlInfo.ProcessedLeads++;
+
+                        await _dataWriter.InsertOrReplaceAsync(LeadRouterNoSqlEntity.Create(
+                            new LeadRouterNoSqlInfo()
+                            {
+                                LeadsRoutedCount = leadsRouted,
+                                BoxId = BoxId,
+                                TenantId = _tenantId
+                            }));
+                        if (!saveAll)
+                        {
+                            await _capacitorWriter.InsertOrReplaceAsync(capacitor);
+                        }
+                        else
+                        {
+                            foreach (var keyVal in countDict)
+                            {
+                                await _capacitorWriter.InsertOrReplaceAsync(keyVal.Value);
+                            }
+                        }
+
                         return campaign;
                     } while (0 < length);
 
-                    foreach (var keyVal in _countDict)
+                    //Reset all 
+                    foreach (var keyVal in countDict)
                     {
-                        _countDict[keyVal.Key] = 0;
+                        keyVal.Value.NoSqlInfo.ProcessedLeads = 0;
+                        await _capacitorWriter.InsertOrReplaceAsync(keyVal.Value);
                     }
 
                 } while (true);
