@@ -11,17 +11,29 @@ namespace MarketingBox.Registration.Service.Services
 {
     public class LeadRouter
     {
+        // NOSQL
+        private int _leadsRouted;
         private readonly ILeadRepository _leadRepository;
         private readonly CampaignBoxNoSql[] _campaignBoxes;
-        private long AffiliateId;
-        private long CampaignId;
+        // NOSQL
+        private readonly Dictionary<CampaignBoxNoSql, int> _countDict;
         public long BoxId { get; }
 
-        public LeadRouter(long boxId, IReadOnlyCollection<CampaignBoxNoSql> campaignBoxes, ILeadRepository leadRepository)
+        public LeadRouter(long boxId,
+            int leadsRouted,
+            IReadOnlyCollection<CampaignBoxNoSql> campaignBoxes,
+            ILeadRepository leadRepository)
         {
+            _leadsRouted = leadsRouted;
             _leadRepository = leadRepository;
             _campaignBoxes = campaignBoxes.ToArray();
+            _countDict = new Dictionary<CampaignBoxNoSql, int>();
             BoxId = boxId;
+
+            foreach (var campaignBoxNoSql in campaignBoxes)
+            {
+                _countDict[campaignBoxNoSql] = 0;
+            }
         }
 
         //todo: cap daily cap
@@ -46,11 +58,13 @@ namespace MarketingBox.Registration.Service.Services
                 long currentCap = 0;
                 if (currentCampaign.CapType == CapType.Lead)
                 {
-                    currentCap = await _leadRepository.GetCountForLeads(date, LeadStatus.Registered);
+                    currentCap = await _leadRepository.GetCountForLeads(date, 
+                        currentCampaign.CampaignId, LeadStatus.Registered);
                 }
                 else if (currentCampaign.CapType == CapType.Ftds)
                 {
-                    currentCap = await _leadRepository.GetCountForDeposits(date, LeadStatus.Approved);
+                    currentCap = await _leadRepository.GetCountForDeposits(date, 
+                        currentCampaign.CampaignId, LeadStatus.Approved);
                 }
 
                 if (currentCampaign.DailyCapValue <= currentCap)
@@ -77,14 +91,49 @@ namespace MarketingBox.Registration.Service.Services
                 filtered.Add(currentCampaign);
             }
 
-            var priorities = filtered.Select(x => x.Priority).Distinct().OrderBy(x => x).ToArray();
+            var priorities = filtered
+                .Select(x => x.Priority)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToArray();
+            var sumWeight = filtered.Sum(x => x.Weight);
             var ordered = filtered.ToLookup(x => x.Priority);
 
             //todo finish this routing algo
             foreach (var priority in priorities)
             {
-                var samePriority = ordered[priority].OrderByDescending(x => x.Weight).ToArray();
-                return samePriority.First();
+                do
+                {
+                    //first loop;
+                    var campaigns = ordered[priority]
+                        .OrderByDescending(x => x.Weight)
+                        .ToArray();
+
+                    var length = campaigns.Length;
+
+                    do
+                    {
+                        var index = _leadsRouted % length;
+                        
+                        var campaign = campaigns[index];
+
+                        if (_countDict[campaign] == campaign.Weight)
+                        {
+                            length--;
+                            continue;
+                        }
+
+                        _leadsRouted++;
+                        _countDict[campaign]++;
+                        return campaign;
+                    } while (0 < length);
+
+                    foreach (var keyVal in _countDict)
+                    {
+                        _countDict[keyVal.Key] = 0;
+                    }
+
+                } while (true);
             }
 
             return null;

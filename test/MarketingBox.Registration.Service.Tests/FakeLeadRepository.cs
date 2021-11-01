@@ -41,12 +41,12 @@ namespace MarketingBox.Registration.Service.Tests
             throw new NotImplementedException();
         }
 
-        public Task<int> GetCountForLeads(DateTime date, LeadStatus leadStatus)
+        public Task<int> GetCountForLeads(DateTime date, long campaignId, LeadStatus leadStatus)
         {
             return Task.FromResult(LeadCount);
         }
 
-        public Task<int> GetCountForDeposits(DateTime date, LeadStatus leadStatus)
+        public Task<int> GetCountForDeposits(DateTime date, long campaignId, LeadStatus leadStatus)
         {
             return Task.FromResult(FtdCount);
         }

@@ -11,7 +11,7 @@ namespace MarketingBox.Registration.Service.Domain.Repositories
         Task<Lead> RestoreAsync(long leadId);
         Task<Lead> GetLeadByCustomerIdAsync(string tenantId, string customerId);
         Task<Lead> GetLeadByLeadIdAsync(string tenantId, long leadId);
-        Task<int> GetCountForLeads(DateTime date, LeadStatus leadStatus);
-        Task<int> GetCountForDeposits(DateTime date, LeadStatus leadStatus);
+        Task<int> GetCountForLeads(DateTime date, long campaignId, LeadStatus leadStatus);
+        Task<int> GetCountForDeposits(DateTime date, long campaignId, LeadStatus leadStatus);
     }
 }

@@ -34,7 +34,7 @@ namespace MarketingBox.Registration.Service.Tests
                 CapType = CapType.Lead,
                 DailyCapValue = 100,
                 Priority = 1,
-                Weight = 50,
+                Weight = 3,
                 CampaignBoxId = 1,
                 CampaignId = 1,
                 CountryCode = "CH",
@@ -57,23 +57,56 @@ namespace MarketingBox.Registration.Service.Tests
                 CapType = CapType.Lead,
                 DailyCapValue = 100,
                 Priority = 1,
-                Weight = 50,
+                Weight = 2,
                 CampaignBoxId = 2,
                 CampaignId = 1,
                 CountryCode = "CH",
                 EnableTraffic = true,
                 Sequence = 0,
             };
+            var campaignBoxNoSql3 = new CampaignBoxNoSql()
+            {
+                ActivityHours = new ActivityHours[]
+                {
+                    new ActivityHours()
+                    {
+                        IsActive = true,
+                        Day = DateTime.Today.DayOfWeek,
+                        From = DateTime.Today,
+                        To = DateTime.Today.AddHours(23).AddMinutes(59).AddSeconds(59),
+                    }
+                },
+                BoxId = 1,
+                CapType = CapType.Lead,
+                DailyCapValue = 100,
+                Priority = 1,
+                Weight = 1,
+                CampaignBoxId = 3,
+                CampaignId = 1,
+                CountryCode = "CH",
+                EnableTraffic = true,
+                Sequence = 0,
+            };
 
-            var leadRouter = new LeadRouter(1, new CampaignBoxNoSql[]
+            var leadRouter = new LeadRouter(1, 0,new CampaignBoxNoSql[]
             {
                 campaignBoxNoSql1,
                 campaignBoxNoSql2,
+                campaignBoxNoSql3,
             }, leadRepository);
 
-            var campaignBox = await leadRouter.GetCampaignBox("CH");
+            var campaignBox1 = await leadRouter.GetCampaignBox("CH");
+            var campaignBox2 = await leadRouter.GetCampaignBox("CH");
+            var campaignBox3 = await leadRouter.GetCampaignBox("CH");
+            var campaignBox1_1 = await leadRouter.GetCampaignBox("CH");
+            var campaignBox2_1 = await leadRouter.GetCampaignBox("CH");
+            var campaignBox1_2 = await leadRouter.GetCampaignBox("CH");
+            var campaignBox1_3 = await leadRouter.GetCampaignBox("CH");
 
-            Assert.AreEqual(campaignBoxNoSql1, campaignBox);
+            Assert.AreEqual(campaignBoxNoSql1, campaignBox1);
+            Assert.AreEqual(campaignBoxNoSql1, campaignBox1_1);
+            Assert.AreEqual(campaignBoxNoSql1, campaignBox1_2);
+            Assert.AreEqual(campaignBoxNoSql1, campaignBox1_3);
         }
     }
 }
