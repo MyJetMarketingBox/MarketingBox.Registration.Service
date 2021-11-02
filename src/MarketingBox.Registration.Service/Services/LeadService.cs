@@ -18,6 +18,7 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using LeadGeneralInfo = MarketingBox.Registration.Service.Grpc.Models.Leads.LeadGeneralInfo;
 
 
@@ -36,6 +37,7 @@ namespace MarketingBox.Registration.Service.Services
         private readonly IMyNoSqlServerDataReader<PartnerNoSql> _partnerNoSqlServerDataReader;
         private readonly IIntegrationService _integrationService;
         private readonly ILeadRepository _repository;
+        private readonly LeadRouter _leadRouter;
 
         public LeadService(ILogger<LeadService> logger,
             IServiceBusPublisher<LeadUpdateMessage> publisherLeadUpdated,
@@ -47,7 +49,8 @@ namespace MarketingBox.Registration.Service.Services
             IMyNoSqlServerDataReader<CampaignBoxNoSql> campaignBoxNoSqlServerDataReader,
             IMyNoSqlServerDataReader<PartnerNoSql> partnerNoSqlServerDataReader,
             IIntegrationService integrationService, 
-            ILeadRepository repository)
+            ILeadRepository repository,
+            LeadRouter leadRouter)
         {
             _logger = logger;
             _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
@@ -60,26 +63,29 @@ namespace MarketingBox.Registration.Service.Services
             _partnerNoSqlServerDataReader = partnerNoSqlServerDataReader;
             _integrationService = integrationService;
             _repository = repository;
+            _leadRouter = leadRouter;
         }
 
         public async Task<LeadCreateResponse> CreateAsync(LeadCreateRequest request)
         {
             _logger.LogInformation("Creating new Lead {@context}", request);
 
-            if (!TryGetRouteInfo(request, out var tenantId, out var brandName,
-                out var campaignId, out var brandId))
+            var partnerInfo = await TryGetPartnerInfo(request);
+            
+            //Save Lead
+            if (partnerInfo == null)
             {
                 return RegisterFailedMapToGrpc(request.GeneralInfo);
             }
 
             try
             {
-                var leadId = await _repository.GenerateLeadIdAsync(tenantId, request.GeneratorId());
+                var leadId = await _repository.GenerateLeadIdAsync(partnerInfo.TenantId, request.GeneratorId());
                 var leadBrandRegistrationInfo = new Domain.Leads.LeadRouteInfo()
                 {
-                    BrandId = brandId,
-                    CampaignId = campaignId,
-                    Brand = brandName,
+                    BrandId = partnerInfo.BrandId,
+                    CampaignId = partnerInfo.CampaignId,
+                    Brand = partnerInfo.BrandName,
                     BoxId = request.AuthInfo.BoxId,
                     AffiliateId = request.AuthInfo.AffiliateId,
                     Status = Domain.Leads.LeadStatus.Created,
@@ -120,7 +126,7 @@ namespace MarketingBox.Registration.Service.Services
                     UpdatedAt = currentDate,
                 };
 
-                var lead = Lead.Restore(tenantId, 0, leadGeneralInfo, leadBrandRegistrationInfo, leadAdditionalInfo);
+                var lead = Lead.Restore(partnerInfo.TenantId, 0, leadGeneralInfo, leadBrandRegistrationInfo, leadAdditionalInfo);
 
                 await _repository.SaveAsync(lead);
 
@@ -177,18 +183,12 @@ namespace MarketingBox.Registration.Service.Services
             }
         }
 
-        private bool TryGetPartnerInfo(LeadCreateRequest leadCreateRequest,
-            out string outTenantId,
-            out string outBrandName,
-            out long outCampaignId,
-            out string outPartnerApiKey,
-            out long outBrandId)
+        private async Task<PartnerInfo> TryGetPartnerInfo(LeadCreateRequest leadCreateRequest)
         {
             string tenantId = string.Empty;
             string brandName = string.Empty;
             long campaignId = 0;
             long brandId = 0;
-            bool retValue = true;
 
             try
             {
@@ -196,8 +196,10 @@ namespace MarketingBox.Registration.Service.Services
                     .Get(BoxIndexNoSql.GeneratePartitionKey(leadCreateRequest.AuthInfo.BoxId)).FirstOrDefault();
                 tenantId = boxIndexNoSql?.TenantId;
 
-                var campaignBox = _campaignBoxNoSqlServerDataReader
-                    .Get(CampaignBoxNoSql.GeneratePartitionKey(leadCreateRequest.AuthInfo.BoxId)).FirstOrDefault();
+                var campaignBox = await _leadRouter.GetCampaignBox(tenantId, leadCreateRequest.AuthInfo.BoxId, leadCreateRequest.GeneralInfo.Country);
+
+                if (campaignBox == null)
+                    return null;
 
                 var campaignNoSql = _campaignNoSqlServerDataReader.Get(
                     CampaignNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
@@ -210,18 +212,21 @@ namespace MarketingBox.Registration.Service.Services
 
                 brandName = brandNoSql.Name;
                 brandId = brandNoSql.BrandId;
+
+                return new PartnerInfo()
+                {
+                    BrandId = brandId,
+                    BrandName = brandName,
+                    CampaignId = campaignId,
+                    TenantId = tenantId
+                };
             }
             catch (Exception e)
             {
                 _logger.LogWarning("Can't TryGetRouteInfo {@Context} {@Error}", leadCreateRequest, e.Message);
-                retValue = false;
             }
 
-            outTenantId = tenantId;
-            outBrandName = brandName;
-            outCampaignId = campaignId;
-            outBrandId = brandId;
-            return retValue;
+            return null;
         }
 
         private bool IsPartnerRequestInvalid(string requestApiKey, string apiKey)

@@ -11,5 +11,6 @@
         InvalidPersonalData = 6,
         AlreadyUpdated = 7,
         InvalidAffiliateInfo = 8,
+        Unauthorized = 401
     }
 }

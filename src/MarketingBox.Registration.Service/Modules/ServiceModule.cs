@@ -9,6 +9,7 @@ using MarketingBox.Registration.Service.Messages;
 using MarketingBox.Registration.Service.Messages.Leads;
 using MarketingBox.Registration.Service.MyNoSql.LeadRouter;
 using MarketingBox.Registration.Service.MyNoSql.Leads;
+using MarketingBox.Registration.Service.Services;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
@@ -76,6 +77,8 @@ namespace MarketingBox.Registration.Service.Modules
             builder.RegisterMyNoSqlWriter<LeadRouterCapacitorBoxNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), LeadRouterCapacitorBoxNoSqlEntity.TableName);
 
             #endregion
+
+            builder.RegisterType<LeadRouter>().As<LeadRouter>().SingleInstance();
         }
     }
 }
