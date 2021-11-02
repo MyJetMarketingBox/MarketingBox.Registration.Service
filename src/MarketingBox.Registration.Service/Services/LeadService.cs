@@ -3,7 +3,6 @@ using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Partners;
-using MarketingBox.Integration.Service.Grpc;
 using MarketingBox.Registration.Service.Domain.Leads;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Extensions;
@@ -18,7 +17,7 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+using MarketingBox.Integration.Service.Client;
 using LeadGeneralInfo = MarketingBox.Registration.Service.Grpc.Models.Leads.LeadGeneralInfo;
 
 
@@ -321,7 +320,8 @@ namespace MarketingBox.Registration.Service.Services
                     FirstName = original.FirstName,
                     Ip = original.Ip,
                     LastName = original.LastName,
-                    Phone = original.Phone
+                    Phone = original.Phone,
+                    Country = original.Country
                 }
             };
         }
