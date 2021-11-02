@@ -57,7 +57,7 @@ namespace MarketingBox.Registration.Service.Modules
                 .As<IMyNoSqlServerDataReader<LeadRouterNoSqlEntity>>();
 
             var leadRouterCapacitor = new MyNoSqlReadRepository<LeadRouterCapacitorBoxNoSqlEntity>(noSqlClient, LeadRouterCapacitorBoxNoSqlEntity.TableName);
-            builder.RegisterInstance(leadRouter)
+            builder.RegisterInstance(leadRouterCapacitor)
                 .As<IMyNoSqlServerDataReader<LeadRouterCapacitorBoxNoSqlEntity>>();
 
             builder.RegisterIntegrationServiceClient(Program.Settings.IntegrationServiceUrl);
