@@ -82,9 +82,10 @@ namespace MarketingBox.Registration.Postgres.Repositories
         public async Task<int> GetCountForLeads(DateTime date, long campaignId, LeadStatus leadStatus)
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            var nextDate = date.AddDays(1);
             var count = await ctx.Leads.Where(x => x.RouteInfoStatus == leadStatus &&
                                                    x.RouteInfoCampaignId == campaignId &&
-                                                   x.CreatedAt.Date == date.Date).CountAsync();
+                                                   x.CreatedAt >= date && x.CreatedAt < nextDate).CountAsync();
 
             return count;
         }
@@ -92,10 +93,11 @@ namespace MarketingBox.Registration.Postgres.Repositories
         public async Task<int> GetCountForDeposits(DateTime date, long campaignId, LeadStatus leadStatus)
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            var nextDate = date.AddDays(1);
             var count = await ctx.Leads.Where(x => x.RouteInfoStatus == leadStatus &&
                                                    x.RouteInfoCampaignId == campaignId &&
                                                    x.RouteInfoDepositDate != null && 
-                                                   x.RouteInfoDepositDate.Value.Date == date.Date).CountAsync();
+                                                   x.RouteInfoDepositDate.Value >= date && x.RouteInfoDepositDate.Value < nextDate).CountAsync();
 
             return count;
         }
