@@ -1,12 +1,12 @@
-using MarketingBox.Registration.Postgres.Entities.Lead;
-using MarketingBox.Registration.Service.Domain.Leads;
+using MarketingBox.Registration.Postgres.Entities.Registration;
+using MarketingBox.Registration.Service.Domain.Registrations;
 
 namespace MarketingBox.Registration.Postgres.Extensions
 {
     public static class MapperExtensions
     {
         public static RegistrationEntity CreateRegistrationEntity(
-            this Service.Domain.Leads.Registration registration)
+            this Service.Domain.Registrations.Registration registration)
         {
             return  new RegistrationEntity()
             {
@@ -52,7 +52,7 @@ namespace MarketingBox.Registration.Postgres.Extensions
             };
         }
 
-        public static Service.Domain.Leads.Registration RestoreRegistration(this RegistrationEntity registrationEntity)
+        public static Service.Domain.Registrations.Registration RestoreRegistration(this RegistrationEntity registrationEntity)
         {
             var leadBrandRegistrationInfo = new RegistrationRouteInfo()
             {
@@ -106,7 +106,7 @@ namespace MarketingBox.Registration.Postgres.Extensions
                 UpdatedAt = registrationEntity.UpdatedAt,
             };
 
-            var lead = Service.Domain.Leads.Registration.Restore(
+            var lead = Service.Domain.Registrations.Registration.Restore(
                 registrationEntity.TenantId, 
                 registrationEntity.Sequence, 
                 leadGeneralInfo,

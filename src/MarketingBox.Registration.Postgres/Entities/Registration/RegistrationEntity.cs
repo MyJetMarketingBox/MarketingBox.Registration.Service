@@ -1,7 +1,7 @@
 ﻿using System;
-using MarketingBox.Registration.Service.Domain.Leads;
+using MarketingBox.Registration.Service.Domain.Registrations;
 
-namespace MarketingBox.Registration.Postgres.Entities.Lead
+namespace MarketingBox.Registration.Postgres.Entities.Registration
 {
     public class RegistrationEntity
     {

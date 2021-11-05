@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using MarketingBox.Registration.Service.Domain.Leads;
+using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.Domain.Repositories;
 
 namespace MarketingBox.Registration.Service.Tests
@@ -10,7 +10,7 @@ namespace MarketingBox.Registration.Service.Tests
         public int LeadCount { get; set; } = 0;
 
         public int FtdCount { get; set; } = 0;
-        public Task SaveAsync(Domain.Leads.Registration registration)
+        public Task SaveAsync(Domain.Registrations.Registration registration)
         {
             if (registration.RouteInfo.Status == RegistrationStatus.Registered)
                 LeadCount++;
@@ -26,17 +26,17 @@ namespace MarketingBox.Registration.Service.Tests
             throw new NotImplementedException();
         }
 
-        public Task<Domain.Leads.Registration> RestoreAsync(long registrationId)
+        public Task<Domain.Registrations.Registration> RestoreAsync(long registrationId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Domain.Leads.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId)
+        public Task<Domain.Registrations.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Domain.Leads.Registration> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
+        public Task<Domain.Registrations.Registration> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
         {
             throw new NotImplementedException();
         }

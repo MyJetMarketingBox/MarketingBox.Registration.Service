@@ -1,14 +1,14 @@
 ﻿using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
-using MarketingBox.Registration.Service.Domain.Leads;
 using MarketingBox.Registration.Service.Domain.Repositories;
-using MarketingBox.Registration.Service.MyNoSql.LeadRouter;
 using MyNoSqlServer.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MarketingBox.Registration.Service.Domain.Registrations;
+using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
 
 namespace MarketingBox.Registration.Service.Services
 {

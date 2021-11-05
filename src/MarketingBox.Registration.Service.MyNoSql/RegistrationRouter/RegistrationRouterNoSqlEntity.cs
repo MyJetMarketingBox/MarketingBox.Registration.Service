@@ -1,6 +1,6 @@
 ﻿using MyNoSqlServer.Abstractions;
 
-namespace MarketingBox.Registration.Service.MyNoSql.LeadRouter
+namespace MarketingBox.Registration.Service.MyNoSql.RegistrationRouter
 {
     public class RegistrationRouterNoSqlEntity : MyNoSqlDbEntity
     {

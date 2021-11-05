@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 using Destructurama.Attributed;
 
-namespace MarketingBox.Registration.Service.Grpc.Models.Leads
+namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
 {
     [DataContract]
     public class DepositGeneralInfo

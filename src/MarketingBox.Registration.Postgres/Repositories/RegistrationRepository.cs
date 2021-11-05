@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketingBox.Registration.Postgres.Entities.Lead;
+using MarketingBox.Registration.Postgres.Entities.Registration;
 using MarketingBox.Registration.Postgres.Extensions;
-using MarketingBox.Registration.Service.Domain.Leads;
+using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +18,7 @@ namespace MarketingBox.Registration.Postgres.Repositories
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
         }
 
-        public async Task SaveAsync(Service.Domain.Leads.Registration registration)
+        public async Task SaveAsync(Service.Domain.Registrations.Registration registration)
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var entity = registration.CreateRegistrationEntity();
@@ -46,12 +46,12 @@ namespace MarketingBox.Registration.Postgres.Repositories
             return entity.RegistrationId;
         }
 
-        public Task<Service.Domain.Leads.Registration> RestoreAsync(long registrationId)
+        public Task<Service.Domain.Registrations.Registration> RestoreAsync(long registrationId)
         {
             throw new System.NotImplementedException();
         }
 
-        public async Task<Service.Domain.Leads.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId)
+        public async Task<Service.Domain.Registrations.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId)
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var existingLeadEntity = await ctx.Registrations.FirstOrDefaultAsync(x => x.TenantId == tenantId &&
@@ -65,7 +65,7 @@ namespace MarketingBox.Registration.Postgres.Repositories
             return existingLeadEntity.RestoreRegistration();
         }
 
-        public async Task<Service.Domain.Leads.Registration> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
+        public async Task<Service.Domain.Registrations.Registration> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var existingLeadEntity = await ctx.Registrations.FirstOrDefaultAsync(x => x.TenantId == tenantId &&

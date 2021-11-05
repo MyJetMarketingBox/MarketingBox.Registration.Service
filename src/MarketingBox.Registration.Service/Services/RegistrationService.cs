@@ -5,9 +5,6 @@ using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Models.Common;
-using MarketingBox.Registration.Service.Grpc.Models.Leads.Contracts;
-using MarketingBox.Registration.Service.Messages.Leads;
-using MarketingBox.Registration.Service.MyNoSql.Leads;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
@@ -18,7 +15,15 @@ using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Integration.Service.Client;
-using RegistrationGeneralInfo = MarketingBox.Registration.Service.Grpc.Models.Leads.RegistrationGeneralInfo;
+using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
+using MarketingBox.Registration.Service.Messages.Registrations;
+using MarketingBox.Registration.Service.MyNoSql.Registrations;
+using RegistrationAdditionalInfo = MarketingBox.Registration.Service.Domain.Registrations.RegistrationAdditionalInfo;
+using RegistrationBrandInfo = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationBrandInfo;
+using RegistrationCustomerInfo = MarketingBox.Registration.Service.Domain.Registrations.RegistrationCustomerInfo;
+using RegistrationGeneralInfo = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationGeneralInfo;
+using RegistrationRouteInfo = MarketingBox.Registration.Service.Domain.Registrations.RegistrationRouteInfo;
+using RegistrationStatus = MarketingBox.Registration.Service.Domain.Registrations.RegistrationStatus;
 
 
 namespace MarketingBox.Registration.Service.Services
@@ -80,20 +85,20 @@ namespace MarketingBox.Registration.Service.Services
             try
             {
                 var registrationId = await _repository.GenerateRegistrationIdAsync(partnerInfo.TenantId, request.GeneratorId());
-                var leadBrandRegistrationInfo = new Domain.Leads.RegistrationRouteInfo()
+                var leadBrandRegistrationInfo = new RegistrationRouteInfo()
                 {
                     IntegrationId = partnerInfo.IntegrationId,
                     BrandId = partnerInfo.BrandId,
                     Integration = partnerInfo.BrandName,
                     CampaignId = request.AuthInfo.CampaignId,
                     AffiliateId = request.AuthInfo.AffiliateId,
-                    Status = Domain.Leads.RegistrationStatus.Created,
-                    CustomerInfo = new Domain.Leads.RegistrationCustomerInfo()
+                    Status = RegistrationStatus.Created,
+                    CustomerInfo = new RegistrationCustomerInfo()
                     {
 
                     }
                 };
-                var leadAdditionalInfo = new Domain.Leads.RegistrationAdditionalInfo()
+                var leadAdditionalInfo = new RegistrationAdditionalInfo()
                 {
                     So = request.AdditionalInfo.So,
                     Sub = request.AdditionalInfo.Sub,
@@ -110,7 +115,7 @@ namespace MarketingBox.Registration.Service.Services
 
                 };
                 var currentDate = DateTimeOffset.UtcNow;
-                var leadGeneralInfo = new Domain.Leads.RegistrationGeneralInfo()
+                var leadGeneralInfo = new Domain.Registrations.RegistrationGeneralInfo()
                 {
                     UniqueId = UniqueIdGenerator.GetNextId(),
                     RegistrationId = registrationId,
@@ -125,7 +130,7 @@ namespace MarketingBox.Registration.Service.Services
                     UpdatedAt = currentDate,
                 };
 
-                var lead = Domain.Leads.Registration.Restore(partnerInfo.TenantId, 0, leadGeneralInfo, leadBrandRegistrationInfo, leadAdditionalInfo);
+                var lead = Domain.Registrations.Registration.Restore(partnerInfo.TenantId, 0, leadGeneralInfo, leadBrandRegistrationInfo, leadAdditionalInfo);
 
                 await _repository.SaveAsync(lead);
 
@@ -148,7 +153,7 @@ namespace MarketingBox.Registration.Service.Services
                         request.GeneralInfo);
                 }
 
-                lead.Register(new Domain.Leads.RegistrationCustomerInfo()
+                lead.Register(new RegistrationCustomerInfo()
                 {
                     CustomerId = brandResponse.Data.CustomerId,
                     LoginUrl = brandResponse.Data.LoginUrl,
@@ -250,15 +255,15 @@ namespace MarketingBox.Registration.Service.Services
         }
 
 
-        public async Task<Grpc.Models.Leads.RegistrationBrandInfo> BrandRegisterAsync(Domain.Leads.Registration registration)
+        public async Task<RegistrationBrandInfo> BrandRegisterAsync(Domain.Registrations.Registration registration)
         {
             var request = registration.CreateIntegrationRequest();
             var response = await _integrationService.RegisterLeadAsync(request);
 
-            var brandInfo = new Grpc.Models.Leads.RegistrationBrandInfo()
+            var brandInfo = new RegistrationBrandInfo()
             {
                 Status = (ResultCode)response.Status,
-                Data = new Grpc.Models.Leads.RegistrationCustomerInfo()
+                Data = new Grpc.Models.Registrations.RegistrationCustomerInfo()
                 {
                     LoginUrl = response.RegisteredLeadInfo?.LoginUrl,
                     CustomerId = response.RegisteredLeadInfo?.CustomerId,
@@ -269,16 +274,16 @@ namespace MarketingBox.Registration.Service.Services
             return brandInfo;
         }
 
-        private static RegistrationCreateResponse SuccessfullMapToGrpc(Domain.Leads.Registration registration)
+        private static RegistrationCreateResponse SuccessfullMapToGrpc(Domain.Registrations.Registration registration)
         {
             return new RegistrationCreateResponse()
             {
                 Status = ResultCode.CompletedSuccessfully,
                 Message = registration.RouteInfo.CustomerInfo.LoginUrl,
-                BrandInfo = new MarketingBox.Registration.Service.Grpc.Models.Leads.RegistrationBrandInfo()
+                BrandInfo = new RegistrationBrandInfo()
                 {
                     Status = ResultCode.CompletedSuccessfully,
-                    Data = new MarketingBox.Registration.Service.Grpc.Models.Leads.RegistrationCustomerInfo()
+                    Data = new Grpc.Models.Registrations.RegistrationCustomerInfo()
                     {
                         CustomerId = registration.RouteInfo.CustomerInfo.CustomerId,
                         LoginUrl = registration.RouteInfo.CustomerInfo.LoginUrl,
@@ -292,7 +297,7 @@ namespace MarketingBox.Registration.Service.Services
         }
 
         private static RegistrationCreateResponse RegisterFailedMapToGrpc(
-            MarketingBox.Registration.Service.Grpc.Models.Leads.RegistrationGeneralInfo reneralInfo)
+            RegistrationGeneralInfo reneralInfo)
         {
             return FailedMapToGrpc(
                 new Error()
@@ -306,7 +311,7 @@ namespace MarketingBox.Registration.Service.Services
 
 
         private static RegistrationCreateResponse FailedMapToGrpc(Error error,
-            MarketingBox.Registration.Service.Grpc.Models.Leads.RegistrationGeneralInfo original)
+            RegistrationGeneralInfo original)
         {
             return new RegistrationCreateResponse()
             {

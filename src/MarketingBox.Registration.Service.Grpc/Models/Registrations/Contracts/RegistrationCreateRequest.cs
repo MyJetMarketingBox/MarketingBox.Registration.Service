@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using MarketingBox.Registration.Service.Grpc.Models.Affiliate;
 
-namespace MarketingBox.Registration.Service.Grpc.Models.Leads.Contracts
+namespace MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts
 {
     [DataContract]
     public class RegistrationCreateRequest

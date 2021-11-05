@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Serialization;
 using MarketingBox.Registration.Service.Grpc.Models.Common;
 
-namespace MarketingBox.Registration.Service.Grpc.Models.Leads.Contracts
+namespace MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts
 {
     [DataContract]
     public class RegistrationCreateResponse

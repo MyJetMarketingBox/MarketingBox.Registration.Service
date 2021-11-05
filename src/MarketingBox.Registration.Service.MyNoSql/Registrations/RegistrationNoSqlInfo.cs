@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MarketingBox.Registration.Service.MyNoSql.Leads
+﻿namespace MarketingBox.Registration.Service.MyNoSql.Registrations
 {
     public class RegistrationNoSqlInfo
     {

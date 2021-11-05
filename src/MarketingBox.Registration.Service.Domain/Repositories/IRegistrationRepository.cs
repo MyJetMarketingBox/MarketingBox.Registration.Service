@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Threading.Tasks;
-using MarketingBox.Registration.Service.Domain.Leads;
+using MarketingBox.Registration.Service.Domain.Registrations;
 
 namespace MarketingBox.Registration.Service.Domain.Repositories
 {
     public interface IRegistrationRepository
     {
-        Task SaveAsync(Leads.Registration registration);
+        Task SaveAsync(Registrations.Registration registration);
         Task<long> GenerateRegistrationIdAsync(string tenantId, string generatorId);
-        Task<Leads.Registration> RestoreAsync(long registrationId);
-        Task<Leads.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId);
-        Task<Leads.Registration> GetLeadByRegistrationIdAsync(string tenantId, long registrationId);
+        Task<Registrations.Registration> RestoreAsync(long registrationId);
+        Task<Registrations.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId);
+        Task<Registrations.Registration> GetLeadByRegistrationIdAsync(string tenantId, long registrationId);
         Task<int> GetCountForRegistrations(DateTime date, long brandId, RegistrationStatus registrationStatus);
         Task<int> GetCountForDeposits(DateTime date, long brandId, RegistrationStatus registrationStatus);
     }

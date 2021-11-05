@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace MarketingBox.Registration.Service.MyNoSql.Leads
+namespace MarketingBox.Registration.Service.MyNoSql.Registrations
 {
     [DataContract]
     public class RegistrationCustomerInfo

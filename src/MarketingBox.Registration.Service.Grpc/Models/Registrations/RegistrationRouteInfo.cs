@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace MarketingBox.Registration.Service.Grpc.Models.Leads
+namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
 {
     [DataContract]
     public class RegistrationRouteInfo

@@ -1,7 +1,7 @@
 ﻿using System;
 using Destructurama.Attributed;
 
-namespace MarketingBox.Registration.Service.MyNoSql.Leads
+namespace MarketingBox.Registration.Service.MyNoSql.Registrations
 {
     public class RegistrationGeneralInfo
     {

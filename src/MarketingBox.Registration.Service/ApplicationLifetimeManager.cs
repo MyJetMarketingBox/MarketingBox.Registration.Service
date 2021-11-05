@@ -1,5 +1,4 @@
 ﻿using System;
-using MarketingBox.Registration.Service.Domain.Leads;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;

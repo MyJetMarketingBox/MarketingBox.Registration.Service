@@ -3,16 +3,17 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 using MarketingBox.Registration.Service.Domain.Extensions;
-using MarketingBox.Registration.Service.Domain.Leads;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc.Models.Common;
 using MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts;
-using MarketingBox.Registration.Service.Messages.Leads;
-using MarketingBox.Registration.Service.MyNoSql.Leads;
+using MarketingBox.Registration.Service.Grpc.Models.Registrations;
+using MarketingBox.Registration.Service.Messages.Registrations;
+using MarketingBox.Registration.Service.MyNoSql.Registrations;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
 using ErrorType = MarketingBox.Registration.Service.Grpc.Models.Common.ErrorType;
+using RegistrationStatus = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationStatus;
 
 namespace MarketingBox.Registration.Service.Services
 {
@@ -87,12 +88,12 @@ namespace MarketingBox.Registration.Service.Services
             }
         }
 
-        private static DepositResponse MapToGrpc(Domain.Leads.Registration registration)
+        private static DepositResponse MapToGrpc(Domain.Registrations.Registration registration)
         {
             return new DepositResponse()
             {
                 TenantId = registration.TenantId,
-                GeneralInfo = new MarketingBox.Registration.Service.Grpc.Models.Leads.DepositGeneralInfo()
+                GeneralInfo = new DepositGeneralInfo()
                 {
                     Email = registration.RegistrationInfo.Email,
                     FirstName = registration.RegistrationInfo.FirstName,
@@ -104,7 +105,7 @@ namespace MarketingBox.Registration.Service.Services
                     RegistrationId = registration.RegistrationInfo.RegistrationId,
                     UniqueId = registration.RegistrationInfo.UniqueId,
                     CrmCrmStatus = registration.RouteInfo.CrmStatus,
-                    Status = registration.RouteInfo.Status.MapEnum<MarketingBox.Registration.Service.Grpc.Models.Leads.RegistrationStatus>(),
+                    Status = registration.RouteInfo.Status.MapEnum<RegistrationStatus>(),
                     Country = registration.RegistrationInfo.Country,
                     ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
                     DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,

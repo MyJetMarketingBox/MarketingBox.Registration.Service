@@ -1,13 +1,13 @@
 using MarketingBox.Integration.Service.Grpc.Models.Leads;
 using MarketingBox.Integration.Service.Grpc.Models.Leads.Contracts;
 using MarketingBox.Registration.Service.Domain.Extensions;
-using MarketingBox.Registration.Service.Domain.Leads;
-using MarketingBox.Registration.Service.Grpc.Models.Leads.Contracts;
-using MarketingBox.Registration.Service.Messages.Leads;
-using MarketingBox.Registration.Service.MyNoSql.Leads;
-using RegistrationAdditionalInfo = MarketingBox.Registration.Service.Messages.Leads.RegistrationAdditionalInfo;
-using RegistrationGeneralInfo = MarketingBox.Registration.Service.Messages.Leads.RegistrationGeneralInfo;
-using RegistrationRouteInfo = MarketingBox.Registration.Service.Messages.Leads.RegistrationRouteInfo;
+using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
+using MarketingBox.Registration.Service.Messages.Registrations;
+using MarketingBox.Registration.Service.MyNoSql.Registrations;
+using RegistrationAdditionalInfo = MarketingBox.Registration.Service.Messages.Registrations.RegistrationAdditionalInfo;
+using RegistrationCustomerInfo = MarketingBox.Registration.Service.Messages.Registrations.RegistrationCustomerInfo;
+using RegistrationGeneralInfo = MarketingBox.Registration.Service.Messages.Registrations.RegistrationGeneralInfo;
+using RegistrationRouteInfo = MarketingBox.Registration.Service.Messages.Registrations.RegistrationRouteInfo;
 
 namespace MarketingBox.Registration.Service.Extensions
 {
@@ -22,7 +22,7 @@ namespace MarketingBox.Registration.Service.Extensions
                    request.GeneralInfo.Ip + "_";
         }
         public static RegistrationRequest CreateIntegrationRequest(
-            this Domain.Leads.Registration registration)
+            this Domain.Registrations.Registration registration)
         {
             return new RegistrationRequest()
             {
@@ -59,7 +59,7 @@ namespace MarketingBox.Registration.Service.Extensions
             };
         }
 
-        public static RegistrationUpdateMessage MapToMessage(this Domain.Leads.Registration registration)
+        public static RegistrationUpdateMessage MapToMessage(this Domain.Registrations.Registration registration)
         {
             return new RegistrationUpdateMessage()
             {
@@ -105,7 +105,7 @@ namespace MarketingBox.Registration.Service.Extensions
                     DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
                     CrmCrmStatus = registration.RouteInfo.CrmStatus,
                     Status = registration.RouteInfo.Status.MapEnum<Messages.Common.LeadStatus>(),
-                    CustomerInfo = new Messages.Leads.RegistrationCustomerInfo()
+                    CustomerInfo = new RegistrationCustomerInfo()
                     {
                         CustomerId = registration.RouteInfo?.CustomerInfo?.CustomerId,
                         LoginUrl = registration.RouteInfo?.CustomerInfo?.LoginUrl,
@@ -116,14 +116,14 @@ namespace MarketingBox.Registration.Service.Extensions
             };
         }
 
-        public static RegistrationNoSqlEntity MapToNoSql(this Domain.Leads.Registration registration)
+        public static RegistrationNoSqlEntity MapToNoSql(this Domain.Registrations.Registration registration)
         {
             return RegistrationNoSqlEntity.Create(
-                new MyNoSql.Leads.RegistrationNoSqlInfo()
+                new RegistrationNoSqlInfo()
                 {
                     TenantId = registration.TenantId,
                     Sequence = registration.Sequence,
-                    GeneralInfo = new MyNoSql.Leads.RegistrationGeneralInfo()
+                    GeneralInfo = new MyNoSql.Registrations.RegistrationGeneralInfo()
                     {
                         RegistrationId = registration.RegistrationInfo.RegistrationId,
                         CreatedAt = registration.RegistrationInfo.CreatedAt.UtcDateTime,
@@ -139,7 +139,7 @@ namespace MarketingBox.Registration.Service.Extensions
                         UniqueId = registration.RegistrationInfo.UniqueId
 
                     },
-                    AdditionalInfo = new MyNoSql.Leads.RegistrationAdditionalInfo()
+                    AdditionalInfo = new MyNoSql.Registrations.RegistrationAdditionalInfo()
                     {
                         So = registration.AdditionalInfo?.So,
                         Sub = registration.AdditionalInfo?.Sub,
@@ -154,25 +154,25 @@ namespace MarketingBox.Registration.Service.Extensions
                         Sub9 = registration.AdditionalInfo?.Sub9,
                         Sub10 = registration.AdditionalInfo?.Sub10,
                     },
-                    RouteInfo = new MyNoSql.Leads.RegistrationRouteInfo()
+                    RouteInfo = new MyNoSql.Registrations.RegistrationRouteInfo()
                     {
                         AffiliateId = registration.RouteInfo.AffiliateId,
                         CampaignId = registration.RouteInfo.CampaignId,
                         Integration = registration.RouteInfo.Integration,
                         BrandId = registration.RouteInfo.BrandId,
                         IntegrationId = registration.RouteInfo.IntegrationId,
-                        Status = registration.RouteInfo.Status.MapEnum<MarketingBox.Registration.Service.MyNoSql.Leads.RegistrationStatus>(),
+                        Status = registration.RouteInfo.Status.MapEnum<RegistrationStatus>(),
                         DepositDate = registration.RouteInfo?.DepositDate?.UtcDateTime,
                         ConversionDate = registration.RouteInfo?.ConversionDate?.UtcDateTime,
                         CrmCrmStatus = registration.RouteInfo.CrmStatus,
-                        CustomerInfo = new MyNoSql.Leads.RegistrationCustomerInfo()
+                        CustomerInfo = new MyNoSql.Registrations.RegistrationCustomerInfo()
                         {
                             CustomerId = registration.RouteInfo?.CustomerInfo?.CustomerId,
                             Token = registration.RouteInfo?.CustomerInfo?.Token,
                             LoginUrl = registration.RouteInfo?.CustomerInfo?.LoginUrl,
                             Brand = registration.RouteInfo?.CustomerInfo?.Brand
                         },
-                        ApprovedType = registration.RouteInfo.ApprovedType.MapEnum<MarketingBox.Registration.Service.MyNoSql.Leads.RegistrationApprovedType>(),
+                        ApprovedType = registration.RouteInfo.ApprovedType.MapEnum<RegistrationApprovedType>(),
                     },
                 });
         }

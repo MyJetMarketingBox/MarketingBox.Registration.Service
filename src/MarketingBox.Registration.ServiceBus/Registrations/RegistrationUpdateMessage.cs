@@ -1,7 +1,6 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
-namespace MarketingBox.Registration.Service.Messages.Leads
+namespace MarketingBox.Registration.Service.Messages.Registrations
 {
     [DataContract]
     public class RegistrationUpdateMessage

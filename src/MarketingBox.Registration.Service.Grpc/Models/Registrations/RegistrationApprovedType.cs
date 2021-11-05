@@ -1,4 +1,4 @@
-﻿namespace MarketingBox.Registration.Service.Grpc.Models.Leads
+﻿namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
 {
     public enum RegistrationApprovedType
     {

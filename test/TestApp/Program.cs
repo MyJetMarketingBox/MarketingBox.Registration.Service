@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using MarketingBox.Registration.Service.Client;
 using MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts;
-using MarketingBox.Registration.Service.Grpc.Models.Leads.Contracts;
+using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
 using ProtoBuf.Grpc.Client;
 
 namespace TestApp

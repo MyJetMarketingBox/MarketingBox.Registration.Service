@@ -1,4 +1,4 @@
-﻿using MarketingBox.Registration.Postgres.Entities.Lead;
+﻿using MarketingBox.Registration.Postgres.Entities.Registration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;

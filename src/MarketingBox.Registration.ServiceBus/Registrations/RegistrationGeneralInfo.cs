@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Runtime.Serialization;
 using Destructurama.Attributed;
-using MarketingBox.Registration.Service.Messages.Common;
 
-namespace MarketingBox.Registration.Service.Messages.Leads
+namespace MarketingBox.Registration.Service.Messages.Registrations
 {
     [DataContract]
     public class RegistrationGeneralInfo

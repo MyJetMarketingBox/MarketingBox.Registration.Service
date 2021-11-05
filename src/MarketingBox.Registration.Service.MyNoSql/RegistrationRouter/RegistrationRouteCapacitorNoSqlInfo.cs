@@ -1,4 +1,4 @@
-﻿namespace MarketingBox.Registration.Service.MyNoSql.LeadRouter
+﻿namespace MarketingBox.Registration.Service.MyNoSql.RegistrationRouter
 {
     public class RegistrationRouteCapacitorNoSqlInfo
     {

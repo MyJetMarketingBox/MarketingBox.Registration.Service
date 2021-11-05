@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using MarketingBox.Registration.Service.Grpc.Models.Common;
-using MarketingBox.Registration.Service.Grpc.Models.Leads;
+using MarketingBox.Registration.Service.Grpc.Models.Registrations;
 
 namespace MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts
 {

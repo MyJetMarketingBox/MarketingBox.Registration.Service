@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MarketingBox.Registration.Service.Domain.Leads
+namespace MarketingBox.Registration.Service.Domain.Registrations
 {
     public class RegistrationRouteInfo
     {
