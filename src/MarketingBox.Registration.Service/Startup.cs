@@ -17,6 +17,7 @@ using Prometheus;
 using ProtoBuf.Grpc.Server;
 using SimpleTrading.BaseMetrics;
 using SimpleTrading.ServiceStatusReporterConnector;
+using SimpleTrading.Telemetry;
 
 namespace MarketingBox.Registration.Service
 {
@@ -35,7 +36,7 @@ namespace MarketingBox.Registration.Service
             
             DatabaseContext.LoggerFactory = null;
 
-            services.AddMyTelemetry("SP-", Program.Settings.ZipkinUrl);
+            services.BindTelemetry("RegistrationService","MB-", Program.Settings.ZipkinUrl);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
