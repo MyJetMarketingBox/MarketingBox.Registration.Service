@@ -20,14 +20,14 @@ namespace MarketingBox.Registration.Service.Services
     {
         private readonly ILogger<DepositService> _logger;
 
-        private readonly IServiceBusPublisher<LeadUpdateMessage> _publisherLeadUpdated;
-        private readonly IMyNoSqlServerDataWriter<LeadNoSqlEntity> _myNoSqlServerDataWriter;
-        private readonly ILeadRepository _repository;
+        private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisherLeadUpdated;
+        private readonly IMyNoSqlServerDataWriter<RegistrationNoSqlEntity> _myNoSqlServerDataWriter;
+        private readonly IRegistrationRepository _repository;
 
         public DepositService(ILogger<DepositService> logger,
-            IServiceBusPublisher<LeadUpdateMessage> publisherLeadUpdated, 
-            IMyNoSqlServerDataWriter<LeadNoSqlEntity> myNoSqlServerDataWriter,
-            ILeadRepository repository)
+            IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated, 
+            IMyNoSqlServerDataWriter<RegistrationNoSqlEntity> myNoSqlServerDataWriter,
+            IRegistrationRepository repository)
         {
             _logger = logger;
             _publisherLeadUpdated = publisherLeadUpdated;
@@ -55,7 +55,7 @@ namespace MarketingBox.Registration.Service.Services
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error creating lead {@context}", request);
+                _logger.LogError(e, "Error creating registration {@context}", request);
 
                 return new DepositResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }
@@ -66,7 +66,7 @@ namespace MarketingBox.Registration.Service.Services
             _logger.LogInformation("Approving a deposit {@context}", request);
             try
             {
-                var lead = await _repository.GetLeadByLeadIdAsync(request.TenantId, request.LeadId);
+                var lead = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
                 lead.Approved(DateTimeOffset.UtcNow);
 
                 await _repository.SaveAsync(lead);
@@ -87,32 +87,32 @@ namespace MarketingBox.Registration.Service.Services
             }
         }
 
-        private static DepositResponse MapToGrpc(Lead lead)
+        private static DepositResponse MapToGrpc(Domain.Leads.Registration registration)
         {
             return new DepositResponse()
             {
-                TenantId = lead.TenantId,
+                TenantId = registration.TenantId,
                 GeneralInfo = new MarketingBox.Registration.Service.Grpc.Models.Leads.DepositGeneralInfo()
                 {
-                    Email = lead.LeadInfo.Email,
-                    FirstName = lead.LeadInfo.FirstName,
-                    LastName = lead.LeadInfo.LastName,
-                    Phone = lead.LeadInfo.Phone,
-                    Ip = lead.LeadInfo.Ip,
-                    Password = lead.LeadInfo.Password,
-                    CreatedAt = lead.LeadInfo.CreatedAt.UtcDateTime,
-                    LeadId = lead.LeadInfo.LeadId,
-                    UniqueId = lead.LeadInfo.UniqueId,
-                    CrmCrmStatus = lead.RouteInfo.CrmStatus,
-                    Status = lead.RouteInfo.Status.MapEnum<MarketingBox.Registration.Service.Grpc.Models.Leads.LeadStatus>(),
-                    Country = lead.LeadInfo.Country,
-                    ConversionDate = lead.RouteInfo.ConversionDate?.UtcDateTime,
-                    DepositDate = lead.RouteInfo.DepositDate?.UtcDateTime,
-                    UpdatedAt = lead.LeadInfo.UpdatedAt.UtcDateTime,
+                    Email = registration.RegistrationInfo.Email,
+                    FirstName = registration.RegistrationInfo.FirstName,
+                    LastName = registration.RegistrationInfo.LastName,
+                    Phone = registration.RegistrationInfo.Phone,
+                    Ip = registration.RegistrationInfo.Ip,
+                    Password = registration.RegistrationInfo.Password,
+                    CreatedAt = registration.RegistrationInfo.CreatedAt.UtcDateTime,
+                    RegistrationId = registration.RegistrationInfo.RegistrationId,
+                    UniqueId = registration.RegistrationInfo.UniqueId,
+                    CrmCrmStatus = registration.RouteInfo.CrmStatus,
+                    Status = registration.RouteInfo.Status.MapEnum<MarketingBox.Registration.Service.Grpc.Models.Leads.RegistrationStatus>(),
+                    Country = registration.RegistrationInfo.Country,
+                    ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
+                    DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
+                    UpdatedAt = registration.RegistrationInfo.UpdatedAt.UtcDateTime,
                 }
-                //LeadId = lead.LeadInfo.LeadId,
-                //Message = $"Lead {lead.LeadInfo.LeadId} can be approved as depositor, current status " +
-                //          $"{lead.LeadInfo.RouteInfoStatus.ToString()} at {lead.LeadInfo.RouteInfoDepositDate}",
+                //Id = registration.RegistrationInfo.Id,
+                //Message = $"Registration {registration.RegistrationInfo.Id} can be approved as depositor, current status " +
+                //          $"{registration.RegistrationInfo.RouteInfoStatus.ToString()} at {registration.RegistrationInfo.RouteInfoDepositDate}",
             };
         }
     }

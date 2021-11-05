@@ -11,7 +11,7 @@ namespace MarketingBox.Registration.Service.Client
         {
         }
 
-        public ILeadService GetRegistrationService() => CreateGrpcService<ILeadService>();
+        public IRegistrationService GetRegistrationService() => CreateGrpcService<IRegistrationService>();
 
         public IDepositService GetDepositService() => CreateGrpcService<IDepositService>();
 

@@ -11,7 +11,7 @@ namespace MarketingBox.Registration.Service.Client
         {
             var factory = new RegistrationServiceClientFactory(grpcServiceUrl);
 
-            builder.RegisterInstance(factory.GetRegistrationService()).As<ILeadService>().SingleInstance();
+            builder.RegisterInstance(factory.GetRegistrationService()).As<IRegistrationService>().SingleInstance();
             builder.RegisterInstance(factory.GetDepositService()).As<IDepositService>().SingleInstance();
             builder.RegisterInstance(factory.GetAffiliateAuthServiceService()).As<IAffiliateAuthService>().SingleInstance();
         }

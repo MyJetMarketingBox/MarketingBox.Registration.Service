@@ -5,14 +5,14 @@ namespace MarketingBox.Registration.Service.Tests
 {
     public class MappingTest
     {
-        //private Lead lead;
+        //private Registration lead;
         [SetUp]
         public void Setup()
         {
-            //lead = new Lead()
+            //lead = new Registration()
             //{
                 //TenantId = "tenantId",
-                //UniqueId = LeadService.UniqueIdGenerator.GetNextId(),
+                //UniqueId = RegistrationService.UniqueIdGenerator.GetNextId(),
                 //CreatedAt = DateTime.UtcNow,
                 //FirstName = "FirstName",
                 //LastName = "LastName",
@@ -23,15 +23,15 @@ namespace MarketingBox.Registration.Service.Tests
                 //RouteInfoCrmStatus = LeadCrmStatus.New,
                 //RouteInfoCrmStatus = LeadCrmStatus.Unsigned,
                 //Sequence = 0,
-                //BrandRegistrationInfo = new Postgres.Entities.Lead.LeadCustomerInfo()
+                //BrandRegistrationInfo = new Postgres.Entities.Registration.RegistrationCustomerInfo()
                 //{
 
                 //    AffiliateId = 6,
-                //    BoxId = 3,
-                //    Brand = "Monfex",
-                //    CampaignId = 1
+                //    IntegrationId = 3,
+                //    Integration = "Monfex",
+                //    IntegrationId = 1
                 //},
-                //AdditionalInfo = new Postgres.Entities.Lead.LeadAdditionalInfo()
+                //AdditionalInfo = new Postgres.Entities.Registration.RegistrationAdditionalInfo()
                 //{
                 //    So = string.Empty,
                 //    Sub = string.Empty,
@@ -52,7 +52,7 @@ namespace MarketingBox.Registration.Service.Tests
         [Test]
         public void Test1()
         {
-            //var response = LeadService.MapToMessage(lead);
+            //var response = RegistrationService.MapToMessage(lead);
             Console.WriteLine("Debug output");
             Assert.Pass();
         }

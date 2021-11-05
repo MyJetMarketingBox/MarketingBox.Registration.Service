@@ -5,16 +5,16 @@ using MarketingBox.Registration.Service.Domain.Leads;
 using MarketingBox.Registration.Service.Grpc.Models.Leads.Contracts;
 using MarketingBox.Registration.Service.Messages.Leads;
 using MarketingBox.Registration.Service.MyNoSql.Leads;
-using LeadAdditionalInfo = MarketingBox.Registration.Service.Messages.Leads.LeadAdditionalInfo;
-using LeadGeneralInfo = MarketingBox.Registration.Service.Messages.Leads.LeadGeneralInfo;
-using LeadRouteInfo = MarketingBox.Registration.Service.Messages.Leads.LeadRouteInfo;
+using RegistrationAdditionalInfo = MarketingBox.Registration.Service.Messages.Leads.RegistrationAdditionalInfo;
+using RegistrationGeneralInfo = MarketingBox.Registration.Service.Messages.Leads.RegistrationGeneralInfo;
+using RegistrationRouteInfo = MarketingBox.Registration.Service.Messages.Leads.RegistrationRouteInfo;
 
 namespace MarketingBox.Registration.Service.Extensions
 {
     public static class MapperExtensions
     {
 
-        public static string GeneratorId(this LeadCreateRequest request)
+        public static string GeneratorId(this RegistrationCreateRequest request)
         {
             return request.GeneralInfo.Email + "_" +
                    request.GeneralInfo.FirstName + "_" +
@@ -22,157 +22,157 @@ namespace MarketingBox.Registration.Service.Extensions
                    request.GeneralInfo.Ip + "_";
         }
         public static RegistrationRequest CreateIntegrationRequest(
-            this Lead lead)
+            this Domain.Leads.Registration registration)
         {
             return new RegistrationRequest()
             {
-                TenantId = lead.TenantId,
-                LeadId = lead.LeadInfo.LeadId,
-                LeadUniqueId = lead.LeadInfo.UniqueId,
-                BrandName = lead.RouteInfo.Brand,
-                BrandId = lead.RouteInfo.BrandId,
+                TenantId = registration.TenantId,
+                LeadId = registration.RegistrationInfo.RegistrationId,
+                LeadUniqueId = registration.RegistrationInfo.UniqueId,
+                BrandName = registration.RouteInfo.Integration,
+                BrandId = registration.RouteInfo.IntegrationId,
                 Info = new RegistrationLeadInfo()
                 {
-                    FirstName = lead.LeadInfo.FirstName,
-                    LastName = lead.LeadInfo.LastName,
-                    Email = lead.LeadInfo.Email,
-                    Ip = lead.LeadInfo.Ip,
-                    Phone = lead.LeadInfo.Phone,
-                    Password = lead.LeadInfo.Password,
-                    Country = lead.LeadInfo.Country,
+                    FirstName = registration.RegistrationInfo.FirstName,
+                    LastName = registration.RegistrationInfo.LastName,
+                    Email = registration.RegistrationInfo.Email,
+                    Ip = registration.RegistrationInfo.Ip,
+                    Phone = registration.RegistrationInfo.Phone,
+                    Password = registration.RegistrationInfo.Password,
+                    Country = registration.RegistrationInfo.Country,
                 },
                 AdditionalInfo = new RegistrationLeadAdditionalInfo()
                 {
-                    So = lead.AdditionalInfo?.So,
-                    Sub = lead.AdditionalInfo?.Sub,
-                    Sub1 = lead.AdditionalInfo?.Sub1,
-                    Sub2 = lead.AdditionalInfo?.Sub2,
-                    Sub3 = lead.AdditionalInfo?.Sub3,
-                    Sub4 = lead.AdditionalInfo?.Sub4,
-                    Sub5 = lead.AdditionalInfo?.Sub5,
-                    Sub6 = lead.AdditionalInfo?.Sub6,
-                    Sub7 = lead.AdditionalInfo?.Sub7,
-                    Sub8 = lead.AdditionalInfo?.Sub8,
-                    Sub9 = lead.AdditionalInfo?.Sub9,
-                    Sub10 = lead.AdditionalInfo?.Sub10,
+                    So = registration.AdditionalInfo?.So,
+                    Sub = registration.AdditionalInfo?.Sub,
+                    Sub1 = registration.AdditionalInfo?.Sub1,
+                    Sub2 = registration.AdditionalInfo?.Sub2,
+                    Sub3 = registration.AdditionalInfo?.Sub3,
+                    Sub4 = registration.AdditionalInfo?.Sub4,
+                    Sub5 = registration.AdditionalInfo?.Sub5,
+                    Sub6 = registration.AdditionalInfo?.Sub6,
+                    Sub7 = registration.AdditionalInfo?.Sub7,
+                    Sub8 = registration.AdditionalInfo?.Sub8,
+                    Sub9 = registration.AdditionalInfo?.Sub9,
+                    Sub10 = registration.AdditionalInfo?.Sub10,
                 },
             };
         }
 
-        public static LeadUpdateMessage MapToMessage(this Lead lead)
+        public static RegistrationUpdateMessage MapToMessage(this Domain.Leads.Registration registration)
         {
-            return new LeadUpdateMessage()
+            return new RegistrationUpdateMessage()
             {
-                TenantId = lead.TenantId,
-                Sequence = lead.Sequence,
-                GeneralInfo = new LeadGeneralInfo()
+                TenantId = registration.TenantId,
+                Sequence = registration.Sequence,
+                GeneralInfo = new RegistrationGeneralInfo()
                 {
-                    Email = lead.LeadInfo.Email,
-                    FirstName = lead.LeadInfo.FirstName,
-                    LastName = lead.LeadInfo.LastName,
-                    Phone = lead.LeadInfo.Phone,
-                    Ip = lead.LeadInfo.Ip,
-                    Password = lead.LeadInfo.Password,
-                    CreatedAt = lead.LeadInfo.CreatedAt.UtcDateTime,
-                    LeadId = lead.LeadInfo.LeadId,
-                    UniqueId = lead.LeadInfo.UniqueId,
-                    Country = lead.LeadInfo.Country,
-                    UpdatedAt = lead.LeadInfo.UpdatedAt.UtcDateTime
+                    Email = registration.RegistrationInfo.Email,
+                    FirstName = registration.RegistrationInfo.FirstName,
+                    LastName = registration.RegistrationInfo.LastName,
+                    Phone = registration.RegistrationInfo.Phone,
+                    Ip = registration.RegistrationInfo.Ip,
+                    Password = registration.RegistrationInfo.Password,
+                    CreatedAt = registration.RegistrationInfo.CreatedAt.UtcDateTime,
+                    RegistrationId = registration.RegistrationInfo.RegistrationId,
+                    UniqueId = registration.RegistrationInfo.UniqueId,
+                    Country = registration.RegistrationInfo.Country,
+                    UpdatedAt = registration.RegistrationInfo.UpdatedAt.UtcDateTime
                 },
-                AdditionalInfo = new LeadAdditionalInfo()
+                AdditionalInfo = new RegistrationAdditionalInfo()
                 {
-                    So = lead.AdditionalInfo.So,
-                    Sub = lead.AdditionalInfo.Sub,
-                    Sub1 = lead.AdditionalInfo.Sub1,
-                    Sub2 = lead.AdditionalInfo.Sub2,
-                    Sub3 = lead.AdditionalInfo.Sub3,
-                    Sub4 = lead.AdditionalInfo.Sub4,
-                    Sub5 = lead.AdditionalInfo.Sub5,
-                    Sub6 = lead.AdditionalInfo.Sub6,
-                    Sub7 = lead.AdditionalInfo.Sub7,
-                    Sub8 = lead.AdditionalInfo.Sub8,
-                    Sub9 = lead.AdditionalInfo.Sub9,
-                    Sub10 = lead.AdditionalInfo.Sub10,
+                    So = registration.AdditionalInfo.So,
+                    Sub = registration.AdditionalInfo.Sub,
+                    Sub1 = registration.AdditionalInfo.Sub1,
+                    Sub2 = registration.AdditionalInfo.Sub2,
+                    Sub3 = registration.AdditionalInfo.Sub3,
+                    Sub4 = registration.AdditionalInfo.Sub4,
+                    Sub5 = registration.AdditionalInfo.Sub5,
+                    Sub6 = registration.AdditionalInfo.Sub6,
+                    Sub7 = registration.AdditionalInfo.Sub7,
+                    Sub8 = registration.AdditionalInfo.Sub8,
+                    Sub9 = registration.AdditionalInfo.Sub9,
+                    Sub10 = registration.AdditionalInfo.Sub10,
                 },
-                RouteInfo = new LeadRouteInfo()
+                RouteInfo = new RegistrationRouteInfo()
                 {
-                    AffiliateId = lead.RouteInfo.AffiliateId,
-                    BoxId = lead.RouteInfo.BoxId,
-                    Brand = lead.RouteInfo.Brand,
-                    CampaignId = lead.RouteInfo.CampaignId,
-                    BrandId = lead.RouteInfo.BrandId,
-                    ConversionDate = lead.RouteInfo.ConversionDate?.UtcDateTime,
-                    DepositDate = lead.RouteInfo.DepositDate?.UtcDateTime,
-                    CrmCrmStatus = lead.RouteInfo.CrmStatus,
-                    Status = lead.RouteInfo.Status.MapEnum<Messages.Common.LeadStatus>(),
-                    CustomerInfo = new Messages.Leads.LeadCustomerInfo()
+                    AffiliateId = registration.RouteInfo.AffiliateId,
+                    CampaignId = registration.RouteInfo.CampaignId,
+                    Integration = registration.RouteInfo.Integration,
+                    BrandId = registration.RouteInfo.BrandId,
+                    IntegrationId = registration.RouteInfo.IntegrationId,
+                    ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
+                    DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
+                    CrmCrmStatus = registration.RouteInfo.CrmStatus,
+                    Status = registration.RouteInfo.Status.MapEnum<Messages.Common.LeadStatus>(),
+                    CustomerInfo = new Messages.Leads.RegistrationCustomerInfo()
                     {
-                        CustomerId = lead.RouteInfo?.CustomerInfo?.CustomerId,
-                        LoginUrl = lead.RouteInfo?.CustomerInfo?.LoginUrl,
-                        Token = lead.RouteInfo?.CustomerInfo?.Token,
+                        CustomerId = registration.RouteInfo?.CustomerInfo?.CustomerId,
+                        LoginUrl = registration.RouteInfo?.CustomerInfo?.LoginUrl,
+                        Token = registration.RouteInfo?.CustomerInfo?.Token,
                     },
-                    ApprovedType = lead.RouteInfo.ApprovedType.MapEnum<Messages.Common.LeadApprovedType>(),
+                    ApprovedType = registration.RouteInfo.ApprovedType.MapEnum<Messages.Common.LeadApprovedType>(),
                 },
             };
         }
 
-        public static LeadNoSqlEntity MapToNoSql(this Lead lead)
+        public static RegistrationNoSqlEntity MapToNoSql(this Domain.Leads.Registration registration)
         {
-            return LeadNoSqlEntity.Create(
-                new MyNoSql.Leads.LeadNoSqlInfo()
+            return RegistrationNoSqlEntity.Create(
+                new MyNoSql.Leads.RegistrationNoSqlInfo()
                 {
-                    TenantId = lead.TenantId,
-                    Sequence = lead.Sequence,
-                    GeneralInfo = new MyNoSql.Leads.LeadGeneralInfo()
+                    TenantId = registration.TenantId,
+                    Sequence = registration.Sequence,
+                    GeneralInfo = new MyNoSql.Leads.RegistrationGeneralInfo()
                     {
-                        LeadId = lead.LeadInfo.LeadId,
-                        CreatedAt = lead.LeadInfo.CreatedAt.UtcDateTime,
-                        Email = lead.LeadInfo.Email,
+                        RegistrationId = registration.RegistrationInfo.RegistrationId,
+                        CreatedAt = registration.RegistrationInfo.CreatedAt.UtcDateTime,
+                        Email = registration.RegistrationInfo.Email,
                         
-                        UpdatedAt = lead.LeadInfo.UpdatedAt.UtcDateTime,
-                        Country = lead.LeadInfo.Country,
-                        Ip = lead.LeadInfo.Ip,
-                        FirstName = lead.LeadInfo.FirstName,
-                        LastName = lead.LeadInfo.LastName,
-                        Password = lead.LeadInfo.Password,
-                        Phone = lead.LeadInfo.Phone,
-                        UniqueId = lead.LeadInfo.UniqueId
+                        UpdatedAt = registration.RegistrationInfo.UpdatedAt.UtcDateTime,
+                        Country = registration.RegistrationInfo.Country,
+                        Ip = registration.RegistrationInfo.Ip,
+                        FirstName = registration.RegistrationInfo.FirstName,
+                        LastName = registration.RegistrationInfo.LastName,
+                        Password = registration.RegistrationInfo.Password,
+                        Phone = registration.RegistrationInfo.Phone,
+                        UniqueId = registration.RegistrationInfo.UniqueId
 
                     },
-                    AdditionalInfo = new MyNoSql.Leads.LeadAdditionalInfo()
+                    AdditionalInfo = new MyNoSql.Leads.RegistrationAdditionalInfo()
                     {
-                        So = lead.AdditionalInfo?.So,
-                        Sub = lead.AdditionalInfo?.Sub,
-                        Sub1 = lead.AdditionalInfo?.Sub1,
-                        Sub2 = lead.AdditionalInfo?.Sub2,
-                        Sub3 = lead.AdditionalInfo?.Sub3,
-                        Sub4 = lead.AdditionalInfo?.Sub4,
-                        Sub5 = lead.AdditionalInfo?.Sub5,
-                        Sub6 = lead.AdditionalInfo?.Sub6,
-                        Sub7 = lead.AdditionalInfo?.Sub7,
-                        Sub8 = lead.AdditionalInfo?.Sub8,
-                        Sub9 = lead.AdditionalInfo?.Sub9,
-                        Sub10 = lead.AdditionalInfo?.Sub10,
+                        So = registration.AdditionalInfo?.So,
+                        Sub = registration.AdditionalInfo?.Sub,
+                        Sub1 = registration.AdditionalInfo?.Sub1,
+                        Sub2 = registration.AdditionalInfo?.Sub2,
+                        Sub3 = registration.AdditionalInfo?.Sub3,
+                        Sub4 = registration.AdditionalInfo?.Sub4,
+                        Sub5 = registration.AdditionalInfo?.Sub5,
+                        Sub6 = registration.AdditionalInfo?.Sub6,
+                        Sub7 = registration.AdditionalInfo?.Sub7,
+                        Sub8 = registration.AdditionalInfo?.Sub8,
+                        Sub9 = registration.AdditionalInfo?.Sub9,
+                        Sub10 = registration.AdditionalInfo?.Sub10,
                     },
-                    RouteInfo = new MyNoSql.Leads.LeadRouteInfo()
+                    RouteInfo = new MyNoSql.Leads.RegistrationRouteInfo()
                     {
-                        AffiliateId = lead.RouteInfo.AffiliateId,
-                        BoxId = lead.RouteInfo.BoxId,
-                        Brand = lead.RouteInfo.Brand,
-                        CampaignId = lead.RouteInfo.CampaignId,
-                        BrandId = lead.RouteInfo.BrandId,
-                        Status = lead.RouteInfo.Status.MapEnum<MarketingBox.Registration.Service.MyNoSql.Leads.LeadStatus>(),
-                        DepositDate = lead.RouteInfo?.DepositDate?.UtcDateTime,
-                        ConversionDate = lead.RouteInfo?.ConversionDate?.UtcDateTime,
-                        CrmCrmStatus = lead.RouteInfo.CrmStatus,
-                        CustomerInfo = new MyNoSql.Leads.LeadCustomerInfo()
+                        AffiliateId = registration.RouteInfo.AffiliateId,
+                        CampaignId = registration.RouteInfo.CampaignId,
+                        Integration = registration.RouteInfo.Integration,
+                        BrandId = registration.RouteInfo.BrandId,
+                        IntegrationId = registration.RouteInfo.IntegrationId,
+                        Status = registration.RouteInfo.Status.MapEnum<MarketingBox.Registration.Service.MyNoSql.Leads.RegistrationStatus>(),
+                        DepositDate = registration.RouteInfo?.DepositDate?.UtcDateTime,
+                        ConversionDate = registration.RouteInfo?.ConversionDate?.UtcDateTime,
+                        CrmCrmStatus = registration.RouteInfo.CrmStatus,
+                        CustomerInfo = new MyNoSql.Leads.RegistrationCustomerInfo()
                         {
-                            CustomerId = lead.RouteInfo?.CustomerInfo?.CustomerId,
-                            Token = lead.RouteInfo?.CustomerInfo?.Token,
-                            LoginUrl = lead.RouteInfo?.CustomerInfo?.LoginUrl,
-                            Brand = lead.RouteInfo?.CustomerInfo?.Brand
+                            CustomerId = registration.RouteInfo?.CustomerInfo?.CustomerId,
+                            Token = registration.RouteInfo?.CustomerInfo?.Token,
+                            LoginUrl = registration.RouteInfo?.CustomerInfo?.LoginUrl,
+                            Brand = registration.RouteInfo?.CustomerInfo?.Brand
                         },
-                        ApprovedType = lead.RouteInfo.ApprovedType.MapEnum<MarketingBox.Registration.Service.MyNoSql.Leads.LeadApprovedType>(),
+                        ApprovedType = registration.RouteInfo.ApprovedType.MapEnum<MarketingBox.Registration.Service.MyNoSql.Leads.RegistrationApprovedType>(),
                     },
                 });
         }

@@ -5,110 +5,110 @@ namespace MarketingBox.Registration.Postgres.Extensions
 {
     public static class MapperExtensions
     {
-        public static LeadEntity CreateLeadEntity(
-            this Lead lead)
+        public static RegistrationEntity CreateRegistrationEntity(
+            this Service.Domain.Leads.Registration registration)
         {
-            return  new LeadEntity()
+            return  new RegistrationEntity()
             {
-                TenantId = lead.TenantId,
-                UniqueId = lead.LeadInfo.UniqueId,
-                CreatedAt = lead.LeadInfo.CreatedAt,
-                FirstName = lead.LeadInfo.FirstName,
-                LastName = lead.LeadInfo.LastName,
-                Email = lead.LeadInfo.Email,
-                Ip = lead.LeadInfo.Ip,
-                Password = lead.LeadInfo.Password,
-                Phone = lead.LeadInfo.Phone,
-                Country = lead.LeadInfo.Country,
-                LeadId = lead.LeadInfo.LeadId,
-                UpdatedAt = lead.LeadInfo.UpdatedAt,
-                RouteInfoDepositDate = lead.RouteInfo.DepositDate,
-                RouteInfoStatus = lead.RouteInfo.Status,
-                RouteInfoConversionDate = lead.RouteInfo.ConversionDate,
-                RouteInfoCrmStatus = lead.RouteInfo.CrmStatus,
-                RouteInfoAffiliateId = lead.RouteInfo.AffiliateId,
-                RouteInfoBoxId = lead.RouteInfo.BoxId,
-                RouteInfoBrand = lead.RouteInfo.Brand,
-                RouteInfoCampaignId = lead.RouteInfo.CampaignId,
-                RouteInfoBrandId = lead.RouteInfo.BrandId,
-                RouteInfoApprovedType = lead.RouteInfo.ApprovedType,
-                RouteInfoCustomerInfoCustomerId = lead.RouteInfo.CustomerInfo?.CustomerId,
-                RouteInfoCustomerInfoLoginUrl = lead.RouteInfo.CustomerInfo?.LoginUrl,
-                RouteInfoCustomerInfoToken = lead.RouteInfo.CustomerInfo?.Token,
-                RouteInfoCustomerInfoBrand = lead.RouteInfo.CustomerInfo?.Brand,
-                AdditionalInfoSo = lead.AdditionalInfo?.So,
-                AdditionalInfoSub = lead.AdditionalInfo?.Sub,
-                AdditionalInfoSub1 = lead.AdditionalInfo?.Sub1,
-                AdditionalInfoSub2 = lead.AdditionalInfo?.Sub2,
-                AdditionalInfoSub3 = lead.AdditionalInfo?.Sub3,
-                AdditionalInfoSub4 = lead.AdditionalInfo?.Sub4,
-                AdditionalInfoSub5 = lead.AdditionalInfo?.Sub5,
-                AdditionalInfoSub6 = lead.AdditionalInfo?.Sub6,
-                AdditionalInfoSub7 = lead.AdditionalInfo?.Sub7,
-                AdditionalInfoSub8 = lead.AdditionalInfo?.Sub8,
-                AdditionalInfoSub9 = lead.AdditionalInfo?.Sub9,
-                AdditionalInfoSub10 = lead.AdditionalInfo?.Sub10,
-                Sequence = lead.Sequence,
+                TenantId = registration.TenantId,
+                UniqueId = registration.RegistrationInfo.UniqueId,
+                CreatedAt = registration.RegistrationInfo.CreatedAt,
+                FirstName = registration.RegistrationInfo.FirstName,
+                LastName = registration.RegistrationInfo.LastName,
+                Email = registration.RegistrationInfo.Email,
+                Ip = registration.RegistrationInfo.Ip,
+                Password = registration.RegistrationInfo.Password,
+                Phone = registration.RegistrationInfo.Phone,
+                Country = registration.RegistrationInfo.Country,
+                Id = registration.RegistrationInfo.RegistrationId,
+                UpdatedAt = registration.RegistrationInfo.UpdatedAt,
+                RouteInfoDepositDate = registration.RouteInfo.DepositDate,
+                RouteInfoStatus = registration.RouteInfo.Status,
+                RouteInfoConversionDate = registration.RouteInfo.ConversionDate,
+                RouteInfoCrmStatus = registration.RouteInfo.CrmStatus,
+                RouteInfoAffiliateId = registration.RouteInfo.AffiliateId,
+                RouteInfoCampaignId = registration.RouteInfo.CampaignId,
+                RouteInfoIntegration = registration.RouteInfo.Integration,
+                RouteInfoBrandId = registration.RouteInfo.BrandId,
+                RouteInfoIntegrationId = registration.RouteInfo.IntegrationId,
+                RouteInfoApprovedType = registration.RouteInfo.ApprovedType,
+                RouteInfoCustomerInfoCustomerId = registration.RouteInfo.CustomerInfo?.CustomerId,
+                RouteInfoCustomerInfoLoginUrl = registration.RouteInfo.CustomerInfo?.LoginUrl,
+                RouteInfoCustomerInfoToken = registration.RouteInfo.CustomerInfo?.Token,
+                RouteInfoCustomerInfoBrand = registration.RouteInfo.CustomerInfo?.Brand,
+                AdditionalInfoSo = registration.AdditionalInfo?.So,
+                AdditionalInfoSub = registration.AdditionalInfo?.Sub,
+                AdditionalInfoSub1 = registration.AdditionalInfo?.Sub1,
+                AdditionalInfoSub2 = registration.AdditionalInfo?.Sub2,
+                AdditionalInfoSub3 = registration.AdditionalInfo?.Sub3,
+                AdditionalInfoSub4 = registration.AdditionalInfo?.Sub4,
+                AdditionalInfoSub5 = registration.AdditionalInfo?.Sub5,
+                AdditionalInfoSub6 = registration.AdditionalInfo?.Sub6,
+                AdditionalInfoSub7 = registration.AdditionalInfo?.Sub7,
+                AdditionalInfoSub8 = registration.AdditionalInfo?.Sub8,
+                AdditionalInfoSub9 = registration.AdditionalInfo?.Sub9,
+                AdditionalInfoSub10 = registration.AdditionalInfo?.Sub10,
+                Sequence = registration.Sequence,
             };
         }
 
-        public static Lead RestoreLead(this LeadEntity leadEntity)
+        public static Service.Domain.Leads.Registration RestoreRegistration(this RegistrationEntity registrationEntity)
         {
-            var leadBrandRegistrationInfo = new LeadRouteInfo()
+            var leadBrandRegistrationInfo = new RegistrationRouteInfo()
             {
-                BrandId = leadEntity.RouteInfoBrandId,
-                CampaignId = leadEntity.RouteInfoCampaignId,
-                Brand = leadEntity.RouteInfoCustomerInfoBrand,
-                BoxId = leadEntity.RouteInfoBoxId,
-                AffiliateId = leadEntity.RouteInfoAffiliateId,
-                ConversionDate = leadEntity.RouteInfoConversionDate,
-                DepositDate = leadEntity.RouteInfoDepositDate,
-                Status = leadEntity.RouteInfoStatus,
-                CrmStatus = leadEntity.RouteInfoCrmStatus,
-                ApprovedType = leadEntity.RouteInfoApprovedType,
-                CustomerInfo = new LeadCustomerInfo()
+                IntegrationId = registrationEntity.RouteInfoIntegrationId,
+                BrandId = registrationEntity.RouteInfoBrandId,
+                Integration = registrationEntity.RouteInfoCustomerInfoBrand,
+                CampaignId = registrationEntity.RouteInfoCampaignId,
+                AffiliateId = registrationEntity.RouteInfoAffiliateId,
+                ConversionDate = registrationEntity.RouteInfoConversionDate,
+                DepositDate = registrationEntity.RouteInfoDepositDate,
+                Status = registrationEntity.RouteInfoStatus,
+                CrmStatus = registrationEntity.RouteInfoCrmStatus,
+                ApprovedType = registrationEntity.RouteInfoApprovedType,
+                CustomerInfo = new RegistrationCustomerInfo()
                 {
-                    CustomerId = leadEntity.RouteInfoCustomerInfoCustomerId,
-                    Token = leadEntity.RouteInfoCustomerInfoToken,
-                    LoginUrl = leadEntity.RouteInfoCustomerInfoLoginUrl,
-                    Brand = leadEntity.RouteInfoCustomerInfoBrand,
+                    CustomerId = registrationEntity.RouteInfoCustomerInfoCustomerId,
+                    Token = registrationEntity.RouteInfoCustomerInfoToken,
+                    LoginUrl = registrationEntity.RouteInfoCustomerInfoLoginUrl,
+                    Brand = registrationEntity.RouteInfoCustomerInfoBrand,
                 },
             };
 
-            var leadAdditionalInfo = new LeadAdditionalInfo()
+            var leadAdditionalInfo = new RegistrationAdditionalInfo()
             {
-                So = leadEntity.AdditionalInfoSo,
-                Sub = leadEntity.AdditionalInfoSub,
-                Sub1 = leadEntity.AdditionalInfoSub1,
-                Sub2 = leadEntity.AdditionalInfoSub2,
-                Sub3 = leadEntity.AdditionalInfoSub3,
-                Sub4 = leadEntity.AdditionalInfoSub4,
-                Sub5 = leadEntity.AdditionalInfoSub5,
-                Sub6 = leadEntity.AdditionalInfoSub6,
-                Sub7 = leadEntity.AdditionalInfoSub7,
-                Sub8 = leadEntity.AdditionalInfoSub8,
-                Sub9 = leadEntity.AdditionalInfoSub9,
-                Sub10 = leadEntity.AdditionalInfoSub10,
+                So = registrationEntity.AdditionalInfoSo,
+                Sub = registrationEntity.AdditionalInfoSub,
+                Sub1 = registrationEntity.AdditionalInfoSub1,
+                Sub2 = registrationEntity.AdditionalInfoSub2,
+                Sub3 = registrationEntity.AdditionalInfoSub3,
+                Sub4 = registrationEntity.AdditionalInfoSub4,
+                Sub5 = registrationEntity.AdditionalInfoSub5,
+                Sub6 = registrationEntity.AdditionalInfoSub6,
+                Sub7 = registrationEntity.AdditionalInfoSub7,
+                Sub8 = registrationEntity.AdditionalInfoSub8,
+                Sub9 = registrationEntity.AdditionalInfoSub9,
+                Sub10 = registrationEntity.AdditionalInfoSub10,
             };
 
-            var leadGeneralInfo = new LeadGeneralInfo()
+            var leadGeneralInfo = new RegistrationGeneralInfo()
             {
-                UniqueId = leadEntity.UniqueId,
-                LeadId = leadEntity.LeadId,
-                FirstName = leadEntity.FirstName,
-                LastName = leadEntity.LastName,
-                Password = leadEntity.Password,
-                Email = leadEntity.Email,
-                Phone = leadEntity.Phone,
-                Ip = leadEntity.Ip,
-                Country = leadEntity.Country,
-                CreatedAt = leadEntity.CreatedAt,
-                UpdatedAt = leadEntity.UpdatedAt,
+                UniqueId = registrationEntity.UniqueId,
+                RegistrationId = registrationEntity.Id,
+                FirstName = registrationEntity.FirstName,
+                LastName = registrationEntity.LastName,
+                Password = registrationEntity.Password,
+                Email = registrationEntity.Email,
+                Phone = registrationEntity.Phone,
+                Ip = registrationEntity.Ip,
+                Country = registrationEntity.Country,
+                CreatedAt = registrationEntity.CreatedAt,
+                UpdatedAt = registrationEntity.UpdatedAt,
             };
 
-            var lead = Lead.Restore(
-                leadEntity.TenantId, 
-                leadEntity.Sequence, 
+            var lead = Service.Domain.Leads.Registration.Restore(
+                registrationEntity.TenantId, 
+                registrationEntity.Sequence, 
                 leadGeneralInfo,
                 leadBrandRegistrationInfo, 
                 leadAdditionalInfo);

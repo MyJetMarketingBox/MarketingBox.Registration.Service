@@ -14,20 +14,20 @@ namespace MarketingBox.Registration.Service
         private readonly ILogger<ApplicationLifetimeManager> _logger;
         private readonly ServiceBusLifeTime _myServiceBusTcpClient;
         private readonly MyNoSqlClientLifeTime _myNoSqlClientLifeTime;
-        private readonly ILeadRepository _leadRepository;
+        private readonly IRegistrationRepository _registrationRepository;
 
         public ApplicationLifetimeManager(
             IHostApplicationLifetime appLifetime, 
             ILogger<ApplicationLifetimeManager> logger,
             ServiceBusLifeTime myServiceBusTcpClient,
             MyNoSqlClientLifeTime myNoSqlClientLifeTime,
-            ILeadRepository leadRepository)
+            IRegistrationRepository registrationRepository)
             : base(appLifetime)
         {
             _logger = logger;
             _myServiceBusTcpClient = myServiceBusTcpClient;
             _myNoSqlClientLifeTime = myNoSqlClientLifeTime;
-            _leadRepository = leadRepository;
+            _registrationRepository = registrationRepository;
         }
 
         protected override void OnStarted()

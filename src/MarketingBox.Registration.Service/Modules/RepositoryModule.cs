@@ -8,7 +8,7 @@ namespace MarketingBox.Registration.Service.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<LeadRepository>().As<ILeadRepository>().InstancePerDependency();
+            builder.RegisterType<RegistrationRepository>().As<IRegistrationRepository>().InstancePerDependency();
         }
     }
 }

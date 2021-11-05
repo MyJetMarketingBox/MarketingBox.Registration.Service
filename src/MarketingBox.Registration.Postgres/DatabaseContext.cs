@@ -10,15 +10,15 @@ namespace MarketingBox.Registration.Postgres
         private static readonly JsonSerializerSettings JsonSerializingSettings =
             new() { NullValueHandling = NullValueHandling.Ignore };
 
-        public const string Schema = "lead-service";
+        public const string Schema = "registration-service";
 
-        private const string LeadTableName = "leads";
+        private const string RegistrationTableName = "registrations";
 
-        public DbSet<LeadEntity> Leads { get; set; }
+        public DbSet<RegistrationEntity> Registrations { get; set; }
 
-        private const string LeadIdGeneratorTableName = "leadidgenerator";
+        private const string RegistrationIdGeneratorTableName = "registration_id_generator";
 
-        public DbSet<LeadIdGeneratorEntity> LeadIdGenerators { get; set; }
+        public DbSet<RegistrationIdGeneratorEntity> RegistrationIdGenerators { get; set; }
 
 
         public DatabaseContext(DbContextOptions options) : base(options)
@@ -46,17 +46,16 @@ namespace MarketingBox.Registration.Postgres
 
         private void SetEntities(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<LeadEntity>().ToTable(LeadTableName);
-            modelBuilder.Entity<LeadEntity>().HasKey(e => e.LeadId);
-            modelBuilder.Entity<LeadEntity>().HasIndex(e => new {e.TenantId, e.LeadId});
-            modelBuilder.Entity<LeadEntity>().HasIndex(e => new { e.CreatedAt, e.RouteInfoCampaignId, });
-            modelBuilder.Entity<LeadEntity>().HasIndex(e => new { e.RouteInfoDepositDate, e.RouteInfoCampaignId, });
-            modelBuilder.Entity<LeadEntity>().HasIndex(e => new { e.RouteInfoStatus });
+            modelBuilder.Entity<RegistrationEntity>().ToTable(RegistrationTableName);
+            modelBuilder.Entity<RegistrationEntity>().HasKey(e => e.Id);
+            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new {e.TenantId, e.Id});
+            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new { e.CreatedAt, e.RouteInfoBrandId, });
+            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new { e.RouteInfoDepositDate, e.RouteInfoBrandId, });
+            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new { e.RouteInfoStatus });
 
-            modelBuilder.Entity<LeadIdGeneratorEntity>().ToTable(LeadIdGeneratorTableName);
-            modelBuilder.Entity<LeadIdGeneratorEntity>().HasKey(e => new { e.TenantId, e.GeneratorId });
-            modelBuilder.Entity<LeadIdGeneratorEntity>().Property(p => p.LeadId).ValueGeneratedOnAdd();
-            //modelBuilder.Entity<LeadIdGeneratorEntity>().HasIndex(e => new { e.TenantId, GenerateId = e.GeneratorId });
+            modelBuilder.Entity<RegistrationIdGeneratorEntity>().ToTable(RegistrationIdGeneratorTableName);
+            modelBuilder.Entity<RegistrationIdGeneratorEntity>().HasKey(e => new { e.TenantId, e.GeneratorId });
+            modelBuilder.Entity<RegistrationIdGeneratorEntity>().Property(p => p.RegistrationId).ValueGeneratedOnAdd();
         }
 
         public override void Dispose()

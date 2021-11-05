@@ -56,7 +56,7 @@ namespace MarketingBox.Registration.Service
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcSchema<LeadService, ILeadService>();
+                endpoints.MapGrpcSchema<RegistrationService, IRegistrationService>();
                 endpoints.MapGrpcSchema<DepositService, IDepositService>();
                 endpoints.MapGrpcSchema<AffiliateAuthService, IAffiliateAuthService>();
                 endpoints.MapGrpcSchemaRegistry();

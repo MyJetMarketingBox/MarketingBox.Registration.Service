@@ -12,6 +12,6 @@ namespace MarketingBox.Registration.Service.Grpc.Models.Affiliate
         public string ApiKey { get; set; }
 
         [DataMember(Order = 3)]
-        public long BoxId { get; set; }
+        public long CampaignId { get; set; }
     }
 }

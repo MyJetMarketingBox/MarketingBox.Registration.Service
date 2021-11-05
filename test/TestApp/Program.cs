@@ -20,7 +20,7 @@ namespace TestApp
             var leadService = factory.GetRegistrationService();
             var depositService = factory.GetDepositService();
             var testTenant = "Test-Tenant";
-            var lead = await leadService.CreateAsync(new LeadCreateRequest()
+            var lead = await leadService.CreateAsync(new RegistrationCreateRequest()
             {
                 
             });
@@ -38,24 +38,24 @@ namespace TestApp
                     TenantId = testTenant
                 }
             );
-            //Console.WriteLine(leadCreated.LeadId);
+            //Console.WriteLine(leadCreated.Id);
 
-            //var partnerUpdated = (await client.UpdateAsync(new LeadUpdateRequest()
+            //var partnerUpdated = (await client.UpdateAsync(new RegistrationUpdateRequest()
             //{
-            //    LeadId = leadCreated.LeadId,
+            //    Id = leadCreated.Id,
             //    TenantId = leadCreated.TenantId,
             //    NoSqlInfo = request.NoSqlInfo,
             //    Sequence = 1
-            //})).Lead;
+            //})).Registration;
 
-            //await client.DeleteAsync(new LeadDeleteRequest()
+            //await client.DeleteAsync(new RegistrationDeleteRequest()
             //{
-            //    LeadId = partnerUpdated.LeadId,
+            //    Id = partnerUpdated.Id,
             //});
 
-            //var shouldBeNull =await client.GetAsync(new LeadGetRequest()
+            //var shouldBeNull =await client.GetAsync(new RegistrationGetRequest()
             //{
-            //    LeadId = partnerUpdated.LeadId,
+            //    Id = partnerUpdated.Id,
             //});
 
             Console.WriteLine("End");

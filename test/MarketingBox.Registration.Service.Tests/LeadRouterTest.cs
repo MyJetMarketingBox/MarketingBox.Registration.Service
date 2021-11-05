@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Service.Domain.Models.CampaignBoxes;
-using MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes;
+using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
+using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Registration.Service.MyNoSql.LeadRouter;
 using MarketingBox.Registration.Service.Services;
 using NUnit.Framework;
@@ -20,9 +20,9 @@ namespace MarketingBox.Registration.Service.Tests
         public async Task Test1()
         {
             var boxId = 1;
-            var leadRepository = new FakeLeadRepository();
+            var leadRepository = new FakeRegistrationRepository();
             var countryCode = "CH";
-            var campaignBoxNoSql1 = CampaignBoxNoSql.Create(boxId, 1, 1, countryCode, 1, 3, CapType.Lead, 100,
+            var campaignBoxNoSql1 = CampaignRowNoSql.Create(boxId, 1, 1, countryCode, 1, 3, CapType.Lead, 100,
                 new ActivityHours[]
                 {
                     new ActivityHours()
@@ -33,7 +33,7 @@ namespace MarketingBox.Registration.Service.Tests
                         To = new TimeSpan(23,59,59),
                     }
                 }, null, true, 0);
-            var campaignBoxNoSql2 = CampaignBoxNoSql.Create(boxId, 2, 1, countryCode, 1, 2, CapType.Lead, 100,
+            var campaignBoxNoSql2 = CampaignRowNoSql.Create(boxId, 2, 1, countryCode, 1, 2, CapType.Lead, 100,
                 new ActivityHours[]
                 {
                     new ActivityHours()
@@ -44,7 +44,7 @@ namespace MarketingBox.Registration.Service.Tests
                         To = new TimeSpan(23,59,59),
                     }
                 }, null, true, 0);
-            var campaignBoxNoSql3 = CampaignBoxNoSql.Create(boxId, 3, 1, countryCode, 1, 1, CapType.Lead, 100,
+            var campaignBoxNoSql3 = CampaignRowNoSql.Create(boxId, 3, 1, countryCode, 1, 1, CapType.Lead, 100,
                 new ActivityHours[]
                 {
                     new ActivityHours()
@@ -56,16 +56,16 @@ namespace MarketingBox.Registration.Service.Tests
                     }
                 }, null, true, 0);
 
-            var leadCounter = new FakeMyNoSqlReaderWriter<LeadRouterNoSqlEntity>();
-            var capacitor = new FakeMyNoSqlReaderWriter<LeadRouterCapacitorBoxNoSqlEntity>();
-            var campaignBoxNoSqlServerDataReader = new FakeMyNoSqlReaderWriter<CampaignBoxNoSql>();
+            var leadCounter = new FakeMyNoSqlReaderWriter<RegistrationRouterNoSqlEntity>();
+            var capacitor = new FakeMyNoSqlReaderWriter<RegistrationRouterCapacitorBoxNoSqlEntity>();
+            var campaignBoxNoSqlServerDataReader = new FakeMyNoSqlReaderWriter<CampaignRowNoSql>();
 
             await campaignBoxNoSqlServerDataReader.InsertOrReplaceAsync(campaignBoxNoSql1);
             await campaignBoxNoSqlServerDataReader.InsertOrReplaceAsync(campaignBoxNoSql2);
             await campaignBoxNoSqlServerDataReader.InsertOrReplaceAsync(campaignBoxNoSql3);
 
             var tenantId = "default-tenant-id";
-            var leadRouter = new LeadRouter(
+            var leadRouter = new RegistrationRouter(
                 campaignBoxNoSqlServerDataReader,
                 leadRepository,
                 leadCounter,

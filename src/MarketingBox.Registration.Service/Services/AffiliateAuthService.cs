@@ -4,8 +4,8 @@ using MyNoSqlServer.Abstractions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Service.MyNoSql.Boxes;
-using MarketingBox.Affiliate.Service.MyNoSql.Partners;
+using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
+using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Registration.Service.Grpc.Models.Affiliate.Contracts;
 using MarketingBox.Registration.Service.Grpc.Models.Common;
 
@@ -15,12 +15,12 @@ namespace MarketingBox.Registration.Service.Services
     public class AffiliateAuthService : IAffiliateAuthService
     {
         private readonly ILogger<IAffiliateAuthService> _logger;
-        private readonly IMyNoSqlServerDataReader<BoxIndexNoSql> _boxIndexNoSqlServerDataReader;
-        private readonly IMyNoSqlServerDataReader<PartnerNoSql> _partnerNoSqlServerDataReader;
+        private readonly IMyNoSqlServerDataReader<CampaignIndexNoSql> _boxIndexNoSqlServerDataReader;
+        private readonly IMyNoSqlServerDataReader<AffiliateNoSql> _partnerNoSqlServerDataReader;
 
         public AffiliateAuthService(ILogger<IAffiliateAuthService> logger, 
-            IMyNoSqlServerDataReader<BoxIndexNoSql> boxIndexNoSqlServerDataReader,
-            IMyNoSqlServerDataReader<PartnerNoSql> partnerNoSqlServerDataReader)
+            IMyNoSqlServerDataReader<CampaignIndexNoSql> boxIndexNoSqlServerDataReader,
+            IMyNoSqlServerDataReader<AffiliateNoSql> partnerNoSqlServerDataReader)
 
         {
             _logger = logger;
@@ -34,11 +34,11 @@ namespace MarketingBox.Registration.Service.Services
             try
             {
                 var boxIndexNoSql = _boxIndexNoSqlServerDataReader
-                .Get(BoxIndexNoSql.GeneratePartitionKey(request.AuthInfo.BoxId)).FirstOrDefault();
+                .Get(CampaignIndexNoSql.GeneratePartitionKey(request.AuthInfo.CampaignId)).FirstOrDefault();
 
                 var partner =
-                    _partnerNoSqlServerDataReader.Get(PartnerNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
-                        PartnerNoSql.GenerateRowKey(request.AuthInfo.AffiliateId));
+                    _partnerNoSqlServerDataReader.Get(AffiliateNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
+                        AffiliateNoSql.GenerateRowKey(request.AuthInfo.AffiliateId));
 
                 var partnerApiKey = partner.GeneralInfo.ApiKey;
 

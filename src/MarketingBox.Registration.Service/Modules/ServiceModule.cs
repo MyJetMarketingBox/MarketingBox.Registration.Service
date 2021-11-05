@@ -1,9 +1,9 @@
 ﻿using Autofac;
-using MarketingBox.Affiliate.Service.MyNoSql.Boxes;
+using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
-using MarketingBox.Affiliate.Service.MyNoSql.CampaignBoxes;
+using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
-using MarketingBox.Affiliate.Service.MyNoSql.Partners;
+using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Integration.Service.Client;
 using MarketingBox.Registration.Service.Messages;
 using MarketingBox.Registration.Service.Messages.Leads;
@@ -28,57 +28,59 @@ namespace MarketingBox.Registration.Service.Modules
 
             var noSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort));
 
-            var box = new MyNoSqlReadRepository<BoxNoSql>(noSqlClient, BoxNoSql.TableName);
-            builder.RegisterInstance(box)
-                .As<IMyNoSqlServerDataReader<BoxNoSql>>();
-
-            var boxIndex = new MyNoSqlReadRepository<BoxIndexNoSql>(noSqlClient, BoxIndexNoSql.TableName);
-            builder.RegisterInstance(boxIndex)
-                .As<IMyNoSqlServerDataReader<BoxIndexNoSql>>();
-
             var campaign = new MyNoSqlReadRepository<CampaignNoSql>(noSqlClient, CampaignNoSql.TableName);
             builder.RegisterInstance(campaign)
                 .As<IMyNoSqlServerDataReader<CampaignNoSql>>();
 
-            var campaignBox = new MyNoSqlReadRepository<CampaignBoxNoSql>(noSqlClient, CampaignBoxNoSql.TableName);
-            builder.RegisterInstance(campaignBox)
-                .As<IMyNoSqlServerDataReader<CampaignBoxNoSql>>();
+            var campaignIndex = new MyNoSqlReadRepository<CampaignIndexNoSql>(noSqlClient, CampaignIndexNoSql.TableName);
+            builder.RegisterInstance(campaignIndex)
+                .As<IMyNoSqlServerDataReader<CampaignIndexNoSql>>();
 
             var brand = new MyNoSqlReadRepository<BrandNoSql>(noSqlClient, BrandNoSql.TableName);
             builder.RegisterInstance(brand)
                 .As<IMyNoSqlServerDataReader<BrandNoSql>>();
 
-            var partner = new MyNoSqlReadRepository<PartnerNoSql>(noSqlClient, PartnerNoSql.TableName);
-            builder.RegisterInstance(partner)
-                .As<IMyNoSqlServerDataReader<PartnerNoSql>>();
+            var campaignRow
+            = new MyNoSqlReadRepository<CampaignRowNoSql>(noSqlClient, CampaignRowNoSql.TableName);
+            builder.RegisterInstance(campaignRow
+)
+                .As<IMyNoSqlServerDataReader<CampaignRowNoSql>>();
 
-            var leadRouter = new MyNoSqlReadRepository<LeadRouterNoSqlEntity>(noSqlClient, LeadRouterNoSqlEntity.TableName);
+            var integration = new MyNoSqlReadRepository<IntegrationNoSql>(noSqlClient, IntegrationNoSql.TableName);
+            builder.RegisterInstance(integration)
+                .As<IMyNoSqlServerDataReader<IntegrationNoSql>>();
+
+            var affiliate = new MyNoSqlReadRepository<AffiliateNoSql>(noSqlClient, AffiliateNoSql.TableName);
+            builder.RegisterInstance(affiliate)
+                .As<IMyNoSqlServerDataReader<AffiliateNoSql>>();
+
+            var leadRouter = new MyNoSqlReadRepository<RegistrationRouterNoSqlEntity>(noSqlClient, RegistrationRouterNoSqlEntity.TableName);
             builder.RegisterInstance(leadRouter)
-                .As<IMyNoSqlServerDataReader<LeadRouterNoSqlEntity>>();
+                .As<IMyNoSqlServerDataReader<RegistrationRouterNoSqlEntity>>();
 
-            var leadRouterCapacitor = new MyNoSqlReadRepository<LeadRouterCapacitorBoxNoSqlEntity>(noSqlClient, LeadRouterCapacitorBoxNoSqlEntity.TableName);
+            var leadRouterCapacitor = new MyNoSqlReadRepository<RegistrationRouterCapacitorBoxNoSqlEntity>(noSqlClient, RegistrationRouterCapacitorBoxNoSqlEntity.TableName);
             builder.RegisterInstance(leadRouterCapacitor)
-                .As<IMyNoSqlServerDataReader<LeadRouterCapacitorBoxNoSqlEntity>>();
+                .As<IMyNoSqlServerDataReader<RegistrationRouterCapacitorBoxNoSqlEntity>>();
 
             builder.RegisterIntegrationServiceClient(Program.Settings.IntegrationServiceUrl);
 
-            #region Leads
+            #region Registrations
 
-            // publisher (IServiceBusPublisher<LeadUpdateMessage>)
-            builder.RegisterMyServiceBusPublisher<LeadUpdateMessage>(serviceBusClient, Topics.LeadUpdateTopic, false);
+            // publisher (IServiceBusPublisher<RegistrationUpdateMessage>)
+            builder.RegisterMyServiceBusPublisher<RegistrationUpdateMessage>(serviceBusClient, Topics.RegistrationUpdateTopic, false);
 
-            // register writer (IMyNoSqlServerDataWriter<LeadNoSqlEntity>)
-            builder.RegisterMyNoSqlWriter<LeadNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), LeadNoSqlEntity.TableName);
+            // register writer (IMyNoSqlServerDataWriter<RegistrationNoSqlEntity>)
+            builder.RegisterMyNoSqlWriter<RegistrationNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), RegistrationNoSqlEntity.TableName);
 
-            // register writer (IMyNoSqlServerDataWriter<LeadRouterNoSqlEntity>)
-            builder.RegisterMyNoSqlWriter<LeadRouterNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), LeadRouterNoSqlEntity.TableName);
+            // register writer (IMyNoSqlServerDataWriter<RegistrationRouterNoSqlEntity>)
+            builder.RegisterMyNoSqlWriter<RegistrationRouterNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), RegistrationRouterNoSqlEntity.TableName);
 
-            // register writer (IMyNoSqlServerDataWriter<LeadRouterCapacitorBoxNoSqlEntity>)
-            builder.RegisterMyNoSqlWriter<LeadRouterCapacitorBoxNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), LeadRouterCapacitorBoxNoSqlEntity.TableName);
+            // register writer (IMyNoSqlServerDataWriter<RegistrationRouterCapacitorBoxNoSqlEntity>)
+            builder.RegisterMyNoSqlWriter<RegistrationRouterCapacitorBoxNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), RegistrationRouterCapacitorBoxNoSqlEntity.TableName);
 
             #endregion
 
-            builder.RegisterType<LeadRouter>().As<LeadRouter>().SingleInstance();
+            builder.RegisterType<RegistrationRouter>().As<RegistrationRouter>().SingleInstance();
         }
     }
 }
