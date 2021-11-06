@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="Destructurama.Attributed" Version="3.0.0" />
-    <PackageReference Include="MyJetWallet.Sdk.Service" Version="1.6.10" />
+    <PackageReference Include="MyJetWallet.Sdk.Service" Version="1.6.11" />
     <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="1.2.3" />
   </ItemGroup>
 
