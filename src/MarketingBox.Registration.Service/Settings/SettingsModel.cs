@@ -28,5 +28,8 @@ namespace MarketingBox.Registration.Service.Settings
 
         [YamlProperty("MarketingBoxRegistrationService.IntegrationServiceUrl")]
         public string IntegrationServiceUrl { get; set; }
+
+        [YamlProperty("MarketingBoxRegistrationService.JaegerUrl")]
+        public string JaegerUrl { get; internal set; }
     }
 }
