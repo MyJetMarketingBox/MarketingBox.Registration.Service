@@ -56,7 +56,7 @@ namespace MarketingBox.Registration.Service.Services
                     continue;
                 }
 
-                if (!string.IsNullOrEmpty(country) &&
+                if (!string.IsNullOrEmpty(currentCampaign.CountryCode) &&
                     !currentCampaign.CountryCode.Contains(country, StringComparison.InvariantCultureIgnoreCase))
                 {
                     continue;

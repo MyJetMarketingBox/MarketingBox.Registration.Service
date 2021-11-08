@@ -5,6 +5,7 @@ using MarketingBox.Registration.Service.Grpc.Models.Affiliate;
 using MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
+using Microsoft.Extensions.Logging;
 using ProtoBuf.Grpc.Client;
 
 namespace TestApp
@@ -22,7 +23,7 @@ namespace TestApp
             var leadService = factory.GetRegistrationService();
             var depositService = factory.GetDepositService();
             var testTenant = "default-tenant-id";
-
+            var logger = LoggerFactory.Create((x) => x.AddConsole()).CreateLogger<Program>();
 
             for (int i = 0; i < 12; i++)
             {
@@ -48,6 +49,8 @@ namespace TestApp
                         Phone = "+79995556677"
                     }
                 });
+
+                logger.LogInformation($"{Newtonsoft.Json.JsonConvert.SerializeObject(lead)}");
             }
 
             //var deposit = await depositService.RegisterDepositAsync(
