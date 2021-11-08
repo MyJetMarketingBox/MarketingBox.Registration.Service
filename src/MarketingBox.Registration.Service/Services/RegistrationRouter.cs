@@ -62,6 +62,22 @@ namespace MarketingBox.Registration.Service.Services
                     continue;
                 }
 
+                var activityHours = currentCampaign.ActivityHours.FirstOrDefault(x => x.Day == date.DayOfWeek);
+                if (activityHours == null || !activityHours.IsActive)
+                {
+                    continue;
+                }
+
+                if (activityHours.From.HasValue && date.TimeOfDay < activityHours.From.Value)
+                {
+                    continue;
+                }
+
+                if (activityHours.To.HasValue && date.TimeOfDay > activityHours.To.Value)
+                {
+                    continue;
+                }
+
                 long currentCap = 0;
                 if (currentCampaign.CapType == CapType.Lead)
                 {
@@ -75,22 +91,6 @@ namespace MarketingBox.Registration.Service.Services
                 }
 
                 if (currentCampaign.DailyCapValue <= currentCap)
-                {
-                    continue;
-                }
-
-                var activityHours = currentCampaign.ActivityHours.FirstOrDefault(x => x.Day == date.DayOfWeek);
-                if (activityHours == null || !activityHours.IsActive)
-                {
-                    continue;
-                }
-
-                if (activityHours.From.HasValue && date.TimeOfDay < activityHours.From.Value)
-                {
-                    continue;
-                }
-
-                if (activityHours.To.HasValue && date.TimeOfDay > activityHours.To.Value)
                 {
                     continue;
                 }
