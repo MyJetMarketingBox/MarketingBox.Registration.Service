@@ -5,6 +5,7 @@ using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
 using MarketingBox.Registration.Service.Services;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
 namespace MarketingBox.Registration.Service.Tests
@@ -56,6 +57,7 @@ namespace MarketingBox.Registration.Service.Tests
                     }
                 }, null, true, 0);
 
+            var logger = LoggerFactory.Create((x) => x.AddConsole());
             var leadCounter = new FakeMyNoSqlReaderWriter<RegistrationRouterNoSqlEntity>();
             var capacitor = new FakeMyNoSqlReaderWriter<RegistrationRouterCapacitorBoxNoSqlEntity>();
             var campaignBoxNoSqlServerDataReader = new FakeMyNoSqlReaderWriter<CampaignRowNoSql>();
@@ -71,7 +73,8 @@ namespace MarketingBox.Registration.Service.Tests
                 leadCounter,
                 leadCounter,
                 capacitor,
-                capacitor);
+                capacitor,
+                logger.CreateLogger<RegistrationRouter>());
 
             var campaignBox1 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
             var campaignBox2 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);

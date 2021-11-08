@@ -32,39 +32,30 @@ namespace MarketingBox.Registration.Service.Services
     {
         private readonly ILogger<RegistrationService> _logger;
         private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisherLeadUpdated;
-        private readonly IMyNoSqlServerDataWriter<RegistrationNoSqlEntity> _myNoSqlServerDataWriter;
-        private readonly IMyNoSqlServerDataReader<CampaignIndexNoSql> _boxIndexNoSqlServerDataReader;
-        private readonly IMyNoSqlServerDataReader<IntegrationNoSql> _brandNoSqlServerDataReader;
-        private readonly IMyNoSqlServerDataReader<CampaignNoSql> _boxNoSqlServerDataReader;
-        private readonly IMyNoSqlServerDataReader<BrandNoSql> _campaignNoSqlServerDataReader;
-        private readonly IMyNoSqlServerDataReader<CampaignRowNoSql> _campaignBoxNoSqlServerDataReader;
-        private readonly IMyNoSqlServerDataReader<AffiliateNoSql> _partnerNoSqlServerDataReader;
+        private readonly IMyNoSqlServerDataWriter<RegistrationNoSqlEntity> _registrationNoSqlServerDataWriter;
+        private readonly IMyNoSqlServerDataReader<CampaignIndexNoSql> _campaignIndexNoSqlServerDataReader;
+        private readonly IMyNoSqlServerDataReader<IntegrationNoSql> _integrationNoSqlServerDataReader;
+        private readonly IMyNoSqlServerDataReader<BrandNoSql> _brandNoSqlServerDataReader;
         private readonly IIntegrationService _integrationService;
         private readonly IRegistrationRepository _repository;
         private readonly RegistrationRouter _registrationRouter;
 
         public RegistrationService(ILogger<RegistrationService> logger,
             IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated,
-            IMyNoSqlServerDataWriter<RegistrationNoSqlEntity> myNoSqlServerDataWriter,
-            IMyNoSqlServerDataReader<CampaignIndexNoSql> boxIndexNoSqlServerDataReader,
-            IMyNoSqlServerDataReader<IntegrationNoSql> brandNoSqlServerDataReader,
-            IMyNoSqlServerDataReader<CampaignNoSql> boxNoSqlServerDataReader,
-            IMyNoSqlServerDataReader<BrandNoSql> campaignNoSqlServerDataReader,
-            IMyNoSqlServerDataReader<CampaignRowNoSql> campaignBoxNoSqlServerDataReader,
-            IMyNoSqlServerDataReader<AffiliateNoSql> partnerNoSqlServerDataReader,
+            IMyNoSqlServerDataWriter<RegistrationNoSqlEntity> registrationNoSqlServerDataWriter,
+            IMyNoSqlServerDataReader<CampaignIndexNoSql> campaignIndexNoSqlServerDataReader,
+            IMyNoSqlServerDataReader<IntegrationNoSql> integrationNoSqlServerDataReader,
+            IMyNoSqlServerDataReader<BrandNoSql> brandNoSqlServerDataReader,
             IIntegrationService integrationService, 
             IRegistrationRepository repository,
             RegistrationRouter registrationRouter)
         {
             _logger = logger;
-            _myNoSqlServerDataWriter = myNoSqlServerDataWriter;
+            _registrationNoSqlServerDataWriter = registrationNoSqlServerDataWriter;
             _publisherLeadUpdated = publisherLeadUpdated;
-            _boxIndexNoSqlServerDataReader = boxIndexNoSqlServerDataReader;
+            _campaignIndexNoSqlServerDataReader = campaignIndexNoSqlServerDataReader;
+            _integrationNoSqlServerDataReader = integrationNoSqlServerDataReader;
             _brandNoSqlServerDataReader = brandNoSqlServerDataReader;
-            _boxNoSqlServerDataReader = boxNoSqlServerDataReader;
-            _campaignNoSqlServerDataReader = campaignNoSqlServerDataReader;
-            _campaignBoxNoSqlServerDataReader = campaignBoxNoSqlServerDataReader;
-            _partnerNoSqlServerDataReader = partnerNoSqlServerDataReader;
             _integrationService = integrationService;
             _repository = repository;
             _registrationRouter = registrationRouter;
@@ -130,17 +121,17 @@ namespace MarketingBox.Registration.Service.Services
                     UpdatedAt = currentDate,
                 };
 
-                var lead = Domain.Registrations.Registration.Restore(partnerInfo.TenantId, 0, leadGeneralInfo, leadBrandRegistrationInfo, leadAdditionalInfo);
+                var registration = Domain.Registrations.Registration.Restore(partnerInfo.TenantId, 0, leadGeneralInfo, leadBrandRegistrationInfo, leadAdditionalInfo);
 
-                await _repository.SaveAsync(lead);
+                await _repository.SaveAsync(registration);
 
-                await _publisherLeadUpdated.PublishAsync(lead.MapToMessage());
+                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
                 _logger.LogInformation("Sent original created registration to service bus {@context}", request);
 
-                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(lead.MapToNoSql());
+                await _registrationNoSqlServerDataWriter.InsertOrReplaceAsync(registration.MapToNoSql());
                 _logger.LogInformation("Sent registration update to MyNoSql {@context}", request);
 
-                var brandResponse = await BrandRegisterAsync(lead);
+                var brandResponse = await BrandRegisterAsync(registration);
 
                 if (brandResponse.Status != ResultCode.CompletedSuccessfully)
                 {
@@ -153,7 +144,7 @@ namespace MarketingBox.Registration.Service.Services
                         request.GeneralInfo);
                 }
 
-                lead.Register(new RegistrationCustomerInfo()
+                registration.Register(new RegistrationCustomerInfo()
                 {
                     CustomerId = brandResponse.Data.CustomerId,
                     LoginUrl = brandResponse.Data.LoginUrl,
@@ -161,17 +152,17 @@ namespace MarketingBox.Registration.Service.Services
                     Brand = brandResponse.Data.Brand
                 });
 
-                await _repository.SaveAsync(lead);
+                await _repository.SaveAsync(registration);
 
-                await _publisherLeadUpdated.PublishAsync(lead.MapToMessage());
+                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
                 _logger.LogInformation("Sent original created to service bus {@context}", request);
 
-                await _myNoSqlServerDataWriter.InsertOrReplaceAsync(lead.MapToNoSql());
+                await _registrationNoSqlServerDataWriter.InsertOrReplaceAsync(registration.MapToNoSql());
                 _logger.LogInformation("Sent original update to MyNoSql {@context}", request);
 
 
                 return brandResponse.Status == ResultCode.CompletedSuccessfully ?
-                    SuccessfullMapToGrpc(lead) : FailedMapToGrpc(new Error()
+                    SuccessfullMapToGrpc(registration) : FailedMapToGrpc(new Error()
                     {
                         Message = "Can't register on brand",
                         Type = ErrorType.InvalidPersonalData
@@ -191,12 +182,12 @@ namespace MarketingBox.Registration.Service.Services
         {
             string tenantId = string.Empty;
             string brandName = string.Empty;
-            long campaignId = 0;
+            long brandId = 0;
             long integrationId = 0;
 
             try
             {
-                var boxIndexNoSql = _boxIndexNoSqlServerDataReader
+                var boxIndexNoSql = _campaignIndexNoSqlServerDataReader
                     .Get(CampaignIndexNoSql.GeneratePartitionKey(registrationCreateRequest.AuthInfo.CampaignId)).FirstOrDefault();
                 tenantId = boxIndexNoSql?.TenantId;
 
@@ -205,23 +196,23 @@ namespace MarketingBox.Registration.Service.Services
                 if (campaignBox == null)
                     return null;
 
-                var campaignNoSql = _campaignNoSqlServerDataReader.Get(
+                var brandNoSql = _brandNoSqlServerDataReader.Get(
                     BrandNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
-                    BrandNoSql.GenerateRowKey(campaignBox.CampaignId));
+                    BrandNoSql.GenerateRowKey(campaignBox.BrandId));
 
-                campaignId = campaignNoSql.Id;
+                brandId = brandNoSql.Id;
 
-                var brandNoSql = _brandNoSqlServerDataReader.Get(IntegrationNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
-                    IntegrationNoSql.GenerateRowKey(campaignNoSql.IntegrationId));
+                var integrationNoSql = _integrationNoSqlServerDataReader.Get(IntegrationNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
+                    IntegrationNoSql.GenerateRowKey(brandNoSql.IntegrationId));
 
-                brandName = brandNoSql.Name;
-                integrationId = brandNoSql.IntegrationId;
+                brandName = integrationNoSql.Name;
+                integrationId = integrationNoSql.IntegrationId;
 
                 return new PartnerInfo()
                 {
                     IntegrationId = integrationId,
                     BrandName = brandName,
-                    BrandId = campaignId,
+                    BrandId = brandId,
                     TenantId = tenantId
                 };
             }
