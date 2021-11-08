@@ -27,10 +27,10 @@ namespace MarketingBox.Registration.Service.Extensions
             return new RegistrationRequest()
             {
                 TenantId = registration.TenantId,
-                LeadId = registration.RegistrationInfo.RegistrationId,
+                RegistrationId = registration.RegistrationInfo.RegistrationId,
                 LeadUniqueId = registration.RegistrationInfo.UniqueId,
-                BrandName = registration.RouteInfo.Integration,
-                BrandId = registration.RouteInfo.IntegrationId,
+                IntegrationName = registration.RouteInfo.Integration,
+                IntegrationId = registration.RouteInfo.IntegrationId,
                 Info = new RegistrationLeadInfo()
                 {
                     FirstName = registration.RegistrationInfo.FirstName,
