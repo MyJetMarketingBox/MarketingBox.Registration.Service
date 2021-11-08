@@ -36,6 +36,7 @@ namespace MarketingBox.Registration.Service.Services
         private readonly IMyNoSqlServerDataReader<CampaignIndexNoSql> _campaignIndexNoSqlServerDataReader;
         private readonly IMyNoSqlServerDataReader<IntegrationNoSql> _integrationNoSqlServerDataReader;
         private readonly IMyNoSqlServerDataReader<BrandNoSql> _brandNoSqlServerDataReader;
+        private readonly IMyNoSqlServerDataReader<AffiliateNoSql> _affiliateNoSqlServerDataReader;
         private readonly IIntegrationService _integrationService;
         private readonly IRegistrationRepository _repository;
         private readonly RegistrationRouter _registrationRouter;
@@ -48,7 +49,8 @@ namespace MarketingBox.Registration.Service.Services
             IMyNoSqlServerDataReader<BrandNoSql> brandNoSqlServerDataReader,
             IIntegrationService integrationService, 
             IRegistrationRepository repository,
-            RegistrationRouter registrationRouter)
+            RegistrationRouter registrationRouter, 
+            IMyNoSqlServerDataReader<AffiliateNoSql> affiliateNoSqlServerDataReader)
         {
             _logger = logger;
             _registrationNoSqlServerDataWriter = registrationNoSqlServerDataWriter;
@@ -59,6 +61,7 @@ namespace MarketingBox.Registration.Service.Services
             _integrationService = integrationService;
             _repository = repository;
             _registrationRouter = registrationRouter;
+            _affiliateNoSqlServerDataReader = affiliateNoSqlServerDataReader;
         }
 
         public async Task<RegistrationCreateResponse> CreateAsync(RegistrationCreateRequest request)
@@ -66,7 +69,20 @@ namespace MarketingBox.Registration.Service.Services
             _logger.LogInformation("Creating new Registration {@context}", request);
 
             var partnerInfo = await TryGetPartnerInfo(request);
-            
+
+            if (!IsAffiliateApiKeyValid(request.AuthInfo.CampaignId, request.AuthInfo.AffiliateId, request.AuthInfo.ApiKey))
+            {
+                return await Task.FromResult<RegistrationCreateResponse>(new RegistrationCreateResponse()
+                {
+                    Status = ResultCode.RequiredAuthentication,
+                    Error = new Error()
+                    {
+                        Message = $"Require '{request.AuthInfo.AffiliateId}' authentication",
+                        Type = ErrorType.InvalidAffiliateInfo
+                    }
+                });
+            }
+
             //Save Registration
             if (partnerInfo == null)
             {
@@ -176,6 +192,20 @@ namespace MarketingBox.Registration.Service.Services
 
                 return new RegistrationCreateResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }
+        }
+
+        private bool IsAffiliateApiKeyValid(long campaignId, long affiliateId, string apiKey)
+        {
+            var boxIndexNoSql = _campaignIndexNoSqlServerDataReader
+                .Get(CampaignIndexNoSql.GeneratePartitionKey(campaignId)).FirstOrDefault();
+
+            var partner =
+                _affiliateNoSqlServerDataReader.Get(AffiliateNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
+                    AffiliateNoSql.GenerateRowKey(affiliateId));
+
+            var partnerApiKey = partner.GeneralInfo.ApiKey;
+
+            return partnerApiKey.Equals(apiKey, StringComparison.OrdinalIgnoreCase);
         }
 
         private async Task<PartnerInfo> TryGetPartnerInfo(RegistrationCreateRequest registrationCreateRequest)
