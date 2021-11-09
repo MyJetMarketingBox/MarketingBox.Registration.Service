@@ -24,6 +24,9 @@ namespace MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts
         [DataMember(Order = 6)]
         public long RegistrationId { get; set; }
 
+        [DataMember(Order = 7)]
+        public string UniqueId { get; set; }
+
         [DataMember(Order = 100)]
         public Error Error { get; set; }
     }

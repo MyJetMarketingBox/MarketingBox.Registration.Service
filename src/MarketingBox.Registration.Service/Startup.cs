@@ -58,7 +58,6 @@ namespace MarketingBox.Registration.Service
             {
                 endpoints.MapGrpcSchema<RegistrationService, IRegistrationService>();
                 endpoints.MapGrpcSchema<DepositService, IDepositService>();
-                endpoints.MapGrpcSchema<AffiliateAuthService, IAffiliateAuthService>();
                 endpoints.MapGrpcSchemaRegistry();
 
                 endpoints.MapGet("/", async context =>

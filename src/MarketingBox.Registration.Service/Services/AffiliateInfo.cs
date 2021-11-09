@@ -1,6 +1,6 @@
 ﻿namespace MarketingBox.Registration.Service.Services
 {
-    public class PartnerInfo
+    public class AffiliateInfo
     {
         public string TenantId { get; set; }
         public string BrandName { get; set; }
