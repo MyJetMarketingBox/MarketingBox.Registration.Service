@@ -28,7 +28,10 @@ namespace MarketingBox.Registration.Postgres
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-
+            if (LoggerFactory != null)
+            {
+                optionsBuilder.UseLoggerFactory(LoggerFactory).EnableSensitiveDataLogging();
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
