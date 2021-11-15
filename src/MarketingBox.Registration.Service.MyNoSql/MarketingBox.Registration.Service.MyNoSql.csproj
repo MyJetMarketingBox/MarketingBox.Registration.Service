@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -17,8 +17,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MyJetWallet.Sdk.Service" Version="1.6.11" />
-    <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="1.2.3" />
+    <PackageReference Include="MyJetWallet.Sdk.Service" Version="2.0.2" />
+    <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="2.0.2" />
     <PackageReference Include="MyNoSqlServer.Abstractions" Version="1.0.5" />
     <PackageReference Include="MyNoSqlServer.DataWriter" Version="1.4.2" />
   </ItemGroup>
