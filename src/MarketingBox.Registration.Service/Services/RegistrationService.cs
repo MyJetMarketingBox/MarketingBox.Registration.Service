@@ -244,7 +244,8 @@ namespace MarketingBox.Registration.Service.Services
             }
             catch (Exception e)
             {
-                _logger.LogWarning("Can't TryGetRouteInfo {@Context} {@Error}", campaignId, country, e.Message);
+                _logger.LogWarning("Can't TryGetRouteInfo {@Campaign} {@Country} {@Error}", 
+                    campaignId, country, e.Message);
             }
 
             return null;
@@ -270,16 +271,16 @@ namespace MarketingBox.Registration.Service.Services
         public async Task<RegistrationBrandInfo> BrandRegisterAsync(Domain.Registrations.Registration registration)
         {
             var request = registration.CreateIntegrationRequest();
-            var response = await _integrationService.RegisterLeadAsync(request);
+            var response = await _integrationService.SendRegisterationAsync(request);
 
             var brandInfo = new RegistrationBrandInfo()
             {
                 Status = (ResultCode)response.Status,
                 Data = new Grpc.Models.Registrations.RegistrationCustomerInfo()
                 {
-                    LoginUrl = response.RegisteredLeadInfo?.LoginUrl,
-                    CustomerId = response.RegisteredLeadInfo?.CustomerId,
-                    Token = response.RegisteredLeadInfo?.Token,
+                    LoginUrl = response.Customer?.LoginUrl,
+                    CustomerId = response.Customer?.CustomerId,
+                    Token = response.Customer?.Token,
                 }
             };
 

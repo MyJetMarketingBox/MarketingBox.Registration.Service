@@ -1,5 +1,4 @@
-using MarketingBox.Integration.Service.Grpc.Models.Leads;
-using MarketingBox.Integration.Service.Grpc.Models.Leads.Contracts;
+using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integration;
 using MarketingBox.Registration.Service.Domain.Extensions;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
 using MarketingBox.Registration.Service.Messages.Registrations;
@@ -28,10 +27,10 @@ namespace MarketingBox.Registration.Service.Extensions
             {
                 TenantId = registration.TenantId,
                 RegistrationId = registration.RegistrationInfo.RegistrationId,
-                LeadUniqueId = registration.RegistrationInfo.UniqueId,
+                RegistrationUniqueId = registration.RegistrationInfo.UniqueId,
                 IntegrationName = registration.RouteInfo.Integration,
                 IntegrationId = registration.RouteInfo.IntegrationId,
-                Info = new RegistrationLeadInfo()
+                Info = new Integration.Service.Grpc.Models.Registrations.RegistrationInfo()
                 {
                     FirstName = registration.RegistrationInfo.FirstName,
                     LastName = registration.RegistrationInfo.LastName,
@@ -41,7 +40,7 @@ namespace MarketingBox.Registration.Service.Extensions
                     Password = registration.RegistrationInfo.Password,
                     Country = registration.RegistrationInfo.Country,
                 },
-                AdditionalInfo = new RegistrationLeadAdditionalInfo()
+                AdditionalInfo = new Integration.Service.Grpc.Models.Registrations.RegistrationAdditionalInfo()
                 {
                     So = registration.AdditionalInfo?.So,
                     Sub = registration.AdditionalInfo?.Sub,
