@@ -9,8 +9,9 @@ namespace MarketingBox.Registration.Service.Grpc.Models
     {
         [DataMember(Order = 1)] public long AffiliateId { get; set; }
         [DataMember(Order = 2)] public string ApiKey { get; set; }
-        [DataMember(Order = 3)] public DateTime From { get; set; }
-        [DataMember(Order = 4)] public DateTime To { get; set; }
-        [DataMember(Order = 5)] public CustomersReportType Type { get; set; }
+        [DataMember(Order = 3)] public string TenantId { get; set; }
+        [DataMember(Order = 4)] public DateTime From { get; set; }
+        [DataMember(Order = 5)] public DateTime To { get; set; }
+        [DataMember(Order = 6)] public CustomersReportType Type { get; set; }
     }
 }

@@ -1,11 +1,13 @@
 using System;
 using System.Threading.Tasks;
+using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Models;
 using MarketingBox.Registration.Service.Grpc.Models.Common;
 using MarketingBox.Reporting.Service.Grpc;
 using MarketingBox.Reporting.Service.Grpc.Models;
 using Microsoft.Extensions.Logging;
+using MyNoSqlServer.Abstractions;
 using Newtonsoft.Json;
 
 namespace MarketingBox.Registration.Service.Services
@@ -14,12 +16,15 @@ namespace MarketingBox.Registration.Service.Services
     {
         private readonly ILogger<CustomerService> _logger;
         private readonly ICustomerReportService _customerReportService;
+        private readonly IMyNoSqlServerDataReader<AffiliateNoSql> _affiliateNoSqlServerDataReader;
 
         public CustomerService(ILogger<CustomerService> logger, 
-            ICustomerReportService customerReportService)
+            ICustomerReportService customerReportService, 
+            IMyNoSqlServerDataReader<AffiliateNoSql> affiliateNoSqlServerDataReader)
         {
             _logger = logger;
             _customerReportService = customerReportService;
+            _affiliateNoSqlServerDataReader = affiliateNoSqlServerDataReader;
         }
 
         public async Task<GetCustomersResponse> GetCustomers(GetCustomersRequest request)
@@ -28,7 +33,7 @@ namespace MarketingBox.Registration.Service.Services
             {
                 _logger.LogInformation($"CustomerService.GetCustomers receive request : {JsonConvert.SerializeObject(request)}");
 
-                var isAuth = CheckAuth(request.AffiliateId, request.ApiKey);
+                var isAuth = CheckAuth(request.TenantId, request.AffiliateId, request.ApiKey);
                 if (!isAuth)
                     return new GetCustomersResponse()
                     {
@@ -87,9 +92,16 @@ namespace MarketingBox.Registration.Service.Services
             }
         }
 
-        private bool CheckAuth(long requestAffiliateId, string requestApiKey)
+        private bool CheckAuth(string tenantId, long affiliateId, string apiKey)
         {
-            return true;
+            var partner =
+                _affiliateNoSqlServerDataReader.Get(AffiliateNoSql.GeneratePartitionKey(tenantId),
+                    AffiliateNoSql.GenerateRowKey(affiliateId));
+
+            if (partner?.GeneralInfo != null)
+                return partner.GeneralInfo.ApiKey.Equals(apiKey, StringComparison.OrdinalIgnoreCase);
+
+            return false;
         }
 
         public async Task<GetCustomerResponse> GetCustomer(GetCustomerRequest request)
@@ -98,7 +110,7 @@ namespace MarketingBox.Registration.Service.Services
             {
                 _logger.LogInformation($"CustomerService.GetCustomer receive request : {JsonConvert.SerializeObject(request)}");
                 
-                var isAuth = CheckAuth(request.AffiliateId, request.ApiKey);
+                var isAuth = CheckAuth(request.TenantId, request.AffiliateId, request.ApiKey);
                 if (!isAuth)
                     return new GetCustomerResponse()
                     {
@@ -107,7 +119,6 @@ namespace MarketingBox.Registration.Service.Services
                             Type = ErrorType.Unauthorized
                         }
                     };
-                
                 var reportResponse = await _customerReportService.GetCustomerReport(new GetCustomerReportRequest()
                 {
                     UId = request.UId
