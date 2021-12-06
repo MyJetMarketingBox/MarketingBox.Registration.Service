@@ -36,7 +36,7 @@ namespace MarketingBox.Registration.Service.Services
             {
                 _logger.LogInformation($"CustomerService.GetCustomers receive request : {JsonConvert.SerializeObject(request)}");
 
-                var isAuth = CheckAuth(string.Empty, request.AffiliateId, request.ApiKey);
+                var isAuth = CheckAuth(request.AffiliateId, request.ApiKey);
                 if (!isAuth)
                     return new GetCustomersResponse()
                     {
@@ -106,20 +106,11 @@ namespace MarketingBox.Registration.Service.Services
             };
         }
 
-        private bool CheckAuth(string tenantId, long affiliateId, string apiKey)
+        private bool CheckAuth(long affiliateId, string apiKey)
         {
-            //TODO: implement logic
-            return true;
-            
-            
-            var partner =
-                _affiliateNoSqlServerDataReader.Get(AffiliateNoSql.GeneratePartitionKey(tenantId),
-                    AffiliateNoSql.GenerateRowKey(affiliateId));
-
-            if (partner?.GeneralInfo != null)
-                return partner.GeneralInfo.ApiKey.Equals(apiKey, StringComparison.OrdinalIgnoreCase);
-
-            return false;
+            var affiliates = _affiliateNoSqlServerDataReader.Get();
+            var affiliate = affiliates.FirstOrDefault(e => e.AffiliateId == affiliateId);
+            return affiliate?.GeneralInfo != null && affiliate.GeneralInfo.ApiKey.Equals(apiKey, StringComparison.OrdinalIgnoreCase);
         }
 
         public async Task<GetCustomerResponse> GetCustomer(GetCustomerRequest request)
@@ -128,7 +119,7 @@ namespace MarketingBox.Registration.Service.Services
             {
                 _logger.LogInformation($"CustomerService.GetCustomer receive request : {JsonConvert.SerializeObject(request)}");
                 
-                var isAuth = CheckAuth(string.Empty, request.AffiliateId, request.ApiKey);
+                var isAuth = CheckAuth(request.AffiliateId, request.ApiKey);
                 if (!isAuth)
                     return new GetCustomerResponse()
                     {
