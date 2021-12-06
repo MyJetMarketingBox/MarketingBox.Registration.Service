@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Models;
 using MarketingBox.Registration.Service.Grpc.Models.Common;
+using MarketingBox.Reporting.Service.Domain.Models;
 using MarketingBox.Reporting.Service.Grpc;
 using MarketingBox.Reporting.Service.Grpc.Models;
 using Microsoft.Extensions.Logging;
@@ -58,7 +61,7 @@ namespace MarketingBox.Registration.Service.Services
                 {
                     From = request.From,
                     To = request.To,
-                    Type = request.Type
+                    Type = GetCustomersReportType(request.Type)
                 });
 
                 _logger.LogInformation($"ICustomerReportService.GetCustomersReport response is : {JsonConvert.SerializeObject(reportResponse)}");
@@ -66,7 +69,7 @@ namespace MarketingBox.Registration.Service.Services
                 if (reportResponse.Success)
                     return new GetCustomersResponse()
                     {
-                        Customers = reportResponse.Customers
+                        Customers = GetCustomersGrpc(reportResponse.Customers)
                     };
                 
                 return new GetCustomersResponse()
@@ -90,6 +93,17 @@ namespace MarketingBox.Registration.Service.Services
                     }
                 };
             }
+        }
+
+        private static CustomersReportType GetCustomersReportType(CustomerType requestType)
+        {
+            return requestType switch
+            {
+                CustomerType.Leads => CustomersReportType.Leads,
+                CustomerType.Deposits => CustomersReportType.Deposits,
+                CustomerType.LeadsAndDeposits => CustomersReportType.LeadsAndDeposits,
+                _ => throw new Exception()
+            };
         }
 
         private bool CheckAuth(string tenantId, long affiliateId, string apiKey)
@@ -133,7 +147,7 @@ namespace MarketingBox.Registration.Service.Services
                 if (reportResponse.Success)
                     return new GetCustomerResponse()
                     {
-                        Customer = reportResponse.Customer
+                        Customer = GetCustomerGrpc(reportResponse.Customer)
                     };
                 
                 return new GetCustomerResponse()
@@ -157,6 +171,40 @@ namespace MarketingBox.Registration.Service.Services
                     }
                 };
             }
+        }
+
+        private static CustomerGrpc GetCustomerGrpc(Customer customer)
+        {
+            return new CustomerGrpc()
+            {
+                AffiliateId = customer.AffiliateId,
+                BrandId = customer.BrandId,
+                CampaignId = customer.CampaignId,
+                Country = customer.Country,
+                CreatedDate = customer.CreatedDate,
+                DepositDate = customer.DepositDate,
+                Email = customer.Email,
+                FirstName = customer.FirstName,
+                Ip = customer.Ip,
+                IsDeposit = customer.IsDeposit
+            };
+        }
+        
+        private static List<CustomerGrpc> GetCustomersGrpc(IEnumerable<Customer> customers)
+        {
+            return customers.Select(e => new CustomerGrpc()
+            {
+                AffiliateId = e.AffiliateId,
+                BrandId = e.BrandId,
+                CampaignId = e.CampaignId,
+                Country = e.Country,
+                CreatedDate = e.CreatedDate,
+                DepositDate = e.DepositDate,
+                Email = e.Email,
+                FirstName = e.FirstName,
+                Ip = e.Ip,
+                IsDeposit = e.IsDeposit
+            }).ToList();
         }
     }
 }
