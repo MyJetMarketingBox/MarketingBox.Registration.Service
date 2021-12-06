@@ -168,6 +168,10 @@ namespace MarketingBox.Registration.Service.Services
         {
             return new CustomerGrpc()
             {
+                UId = customer.UId,
+                TenantId = customer.TenantId,
+                LastName = customer.LastName,
+                Phone = customer.Phone,
                 AffiliateId = customer.AffiliateId,
                 BrandId = customer.BrandId,
                 CampaignId = customer.CampaignId,
@@ -185,6 +189,10 @@ namespace MarketingBox.Registration.Service.Services
         {
             return customers.Select(e => new CustomerGrpc()
             {
+                UId = e.UId,
+                TenantId = e.TenantId,
+                LastName = e.LastName,
+                Phone = e.Phone,
                 AffiliateId = e.AffiliateId,
                 BrandId = e.BrandId,
                 CampaignId = e.CampaignId,
