@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Destructurama.Attributed" Version="3.0.0" />
+    <PackageReference Include="MarketingBox.Reporting.Service.Client" Version="3.0.1" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.9.0" />
   </ItemGroup>
 

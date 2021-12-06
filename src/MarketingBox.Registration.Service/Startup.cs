@@ -55,6 +55,9 @@ namespace MarketingBox.Registration.Service
             {
                 endpoints.MapGrpcSchema<RegistrationService, IRegistrationService>();
                 endpoints.MapGrpcSchema<DepositService, IDepositService>();
+                
+                endpoints.MapGrpcSchema<CustomerService, ICustomerService>();
+                
                 endpoints.MapGrpcSchemaRegistry();
 
                 endpoints.MapGet("/", async context =>
@@ -69,6 +72,7 @@ namespace MarketingBox.Registration.Service
             builder.RegisterModule<SettingsModule>();
             builder.RegisterModule<ServiceModule>();
             builder.RegisterModule<RepositoryModule>();
+            builder.RegisterModule<ClientModule>();
         }
     }
 }

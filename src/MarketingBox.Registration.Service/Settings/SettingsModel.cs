@@ -31,5 +31,8 @@ namespace MarketingBox.Registration.Service.Settings
 
         [YamlProperty("MarketingBoxRegistrationService.JaegerUrl")]
         public string JaegerUrl { get; internal set; }
+
+        [YamlProperty("MarketingBoxRegistrationService.ReportingServiceUrl")]
+        public string ReportingServiceUrl { get; set; }
     }
 }
