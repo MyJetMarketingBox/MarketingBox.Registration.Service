@@ -28,6 +28,16 @@ namespace MarketingBox.Registration.Service.Services
             {
                 _logger.LogInformation($"CustomerService.GetCustomers receive request : {JsonConvert.SerializeObject(request)}");
 
+                var isAuth = CheckAuth(request.AffiliateId, request.ApiKey);
+                if (!isAuth)
+                    return new GetCustomersResponse()
+                    {
+                        Error = new Error()
+                        {
+                            Type = ErrorType.Unauthorized
+                        }
+                    };
+
                 if (request.From == DateTime.MinValue)
                     return new GetCustomersResponse()
                     {
@@ -67,6 +77,63 @@ namespace MarketingBox.Registration.Service.Services
             {
                 _logger.LogError(ex, ex.Message);
                 return new GetCustomersResponse()
+                {
+                    Error = new Error()
+                    {
+                        Type = ErrorType.Unknown,
+                        Message = ex.Message
+                    }
+                };
+            }
+        }
+
+        private bool CheckAuth(long requestAffiliateId, string requestApiKey)
+        {
+            return true;
+        }
+
+        public async Task<GetCustomerResponse> GetCustomer(GetCustomerRequest request)
+        {
+            try
+            {
+                _logger.LogInformation($"CustomerService.GetCustomer receive request : {JsonConvert.SerializeObject(request)}");
+                
+                var isAuth = CheckAuth(request.AffiliateId, request.ApiKey);
+                if (!isAuth)
+                    return new GetCustomerResponse()
+                    {
+                        Error = new Error()
+                        {
+                            Type = ErrorType.Unauthorized
+                        }
+                    };
+                
+                var reportResponse = await _customerReportService.GetCustomerReport(new GetCustomerReportRequest()
+                {
+                    UId = request.UId
+                });
+
+                _logger.LogInformation($"ICustomerReportService.GetCustomerReport response is : {JsonConvert.SerializeObject(reportResponse)}");
+                
+                if (reportResponse.Success)
+                    return new GetCustomerResponse()
+                    {
+                        Customer = reportResponse.Customer
+                    };
+                
+                return new GetCustomerResponse()
+                {
+                    Error = new Error()
+                    {
+                        Type = ErrorType.Unknown,
+                        Message = reportResponse.ErrorMessage
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return new GetCustomerResponse()
                 {
                     Error = new Error()
                     {

@@ -7,7 +7,10 @@ namespace MarketingBox.Registration.Service.Grpc
     [ServiceContract]
     public interface ICustomerService
     {
-        [OperationContract]
+        [OperationContract] 
         Task<GetCustomersResponse> GetCustomers(GetCustomersRequest request);
+        
+        [OperationContract] 
+        Task<GetCustomerResponse> GetCustomer(GetCustomerRequest request);
     }
 }
