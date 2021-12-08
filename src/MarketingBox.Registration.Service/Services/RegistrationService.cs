@@ -216,7 +216,7 @@ namespace MarketingBox.Registration.Service.Services
             {
                 var boxIndexNoSql = _campaignIndexNoSqlServerDataReader
                     .Get(CampaignIndexNoSql.GeneratePartitionKey(campaignId)).FirstOrDefault();
-                string tenantId = boxIndexNoSql?.TenantId;
+                var tenantId = boxIndexNoSql?.TenantId;
 
                 var campaignBox = await _registrationRouter.GetCampaignBox(tenantId, campaignId, country);
 
@@ -227,13 +227,13 @@ namespace MarketingBox.Registration.Service.Services
                     BrandNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
                     BrandNoSql.GenerateRowKey(campaignBox.BrandId));
 
-                long brandId = brandNoSql.Id;
+                var brandId = brandNoSql.Id;
 
                 var integrationNoSql = _integrationNoSqlServerDataReader.Get(IntegrationNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
                     IntegrationNoSql.GenerateRowKey(brandNoSql.IntegrationId));
 
-                string brandName = integrationNoSql.Name;
-                long integrationId = integrationNoSql.IntegrationId;
+                var brandName = integrationNoSql.Name;
+                var integrationId = integrationNoSql.IntegrationId;
                 return new AffiliateInfo()
                 {
                     IntegrationId = integrationId,
@@ -251,7 +251,7 @@ namespace MarketingBox.Registration.Service.Services
             return null;
         }
 
-        public static class UniqueIdGenerator
+        private static class UniqueIdGenerator
         {
             public static string GetNextId()
             {
@@ -259,16 +259,16 @@ namespace MarketingBox.Registration.Service.Services
             }
         }
 
-        private static Random random = new Random();
+        private static readonly Random Random = new Random();
         public static string RandomString(int length)
         {
             const string chars = "123456789";
             return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+                .Select(s => s[Random.Next(s.Length)]).ToArray());
         }
 
 
-        public async Task<RegistrationBrandInfo> BrandRegisterAsync(Domain.Registrations.Registration registration)
+        private async Task<RegistrationBrandInfo> BrandRegisterAsync(Domain.Registrations.Registration registration)
         {
             var request = registration.CreateIntegrationRequest();
             var response = await _integrationService.SendRegisterationAsync(request);

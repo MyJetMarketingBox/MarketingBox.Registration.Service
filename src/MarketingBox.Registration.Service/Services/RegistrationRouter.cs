@@ -107,7 +107,6 @@ namespace MarketingBox.Registration.Service.Services
 
             try
             {
-
                 var leadRouter = _dataReader.Get(RegistrationRouterNoSqlEntity.GeneratePartitionKey(tenantId),
                     RegistrationRouterNoSqlEntity.GenerateRowKey(campaignId));
 
@@ -149,9 +148,7 @@ namespace MarketingBox.Registration.Service.Services
                         var campaigns = ordered[priority]
                             .OrderByDescending(x => x.Weight)
                             .ToArray();
-
                         var length = campaigns.Length;
-
                         do
                         {
                             var index = registrationsRoutedCount % length;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
@@ -20,9 +19,9 @@ namespace MarketingBox.Registration.Service.Tests
         [Test]
         public async Task Test1()
         {
-            var boxId = 1;
+            const int boxId = 1;
             var leadRepository = new FakeRegistrationRepository();
-            var countryCode = "CH";
+            const string countryCode = "CH";
             var campaignBoxNoSql1 = CampaignRowNoSql.Create(boxId, 1, 1, countryCode, 1, 3, CapType.Lead, 100,
                 new ActivityHours[]
                 {
@@ -66,7 +65,7 @@ namespace MarketingBox.Registration.Service.Tests
             await campaignBoxNoSqlServerDataReader.InsertOrReplaceAsync(campaignBoxNoSql2);
             await campaignBoxNoSqlServerDataReader.InsertOrReplaceAsync(campaignBoxNoSql3);
 
-            var tenantId = "default-tenant-id";
+            const string tenantId = "default-tenant-id";
             var leadRouter = new RegistrationRouter(
                 campaignBoxNoSqlServerDataReader,
                 leadRepository,
@@ -79,18 +78,18 @@ namespace MarketingBox.Registration.Service.Tests
             var campaignBox1 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
             var campaignBox2 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
             var campaignBox3 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
-            var campaignBox1_1 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
-            var campaignBox2_1 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
-            var campaignBox1_2 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
-            var campaignBox1_3 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
+            var campaignBox11 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
+            var campaignBox21 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
+            var campaignBox12 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
+            var campaignBox13 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
 
             Assert.AreEqual(campaignBoxNoSql1, campaignBox1);
-            Assert.AreEqual(campaignBoxNoSql1, campaignBox1_1);
-            Assert.AreEqual(campaignBoxNoSql1, campaignBox1_2);
-            Assert.AreEqual(campaignBoxNoSql1, campaignBox1_3);
+            Assert.AreEqual(campaignBoxNoSql1, campaignBox11);
+            Assert.AreEqual(campaignBoxNoSql1, campaignBox12);
+            Assert.AreEqual(campaignBoxNoSql1, campaignBox13);
 
             Assert.AreEqual(campaignBoxNoSql2, campaignBox2);
-            Assert.AreEqual(campaignBoxNoSql2, campaignBox2_1);
+            Assert.AreEqual(campaignBoxNoSql2, campaignBox21);
 
             Assert.AreEqual(campaignBoxNoSql3, campaignBox3);
         }
