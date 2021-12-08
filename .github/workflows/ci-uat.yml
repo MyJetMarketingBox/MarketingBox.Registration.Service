@@ -1,9 +1,9 @@
-name: CI test build
+name: CI uat build
 
 on:
   push:
       branches:
-        - master
+        - uat
 
 jobs:
   build:
@@ -44,10 +44,10 @@ jobs:
         password: ${{ secrets.ST_DOCKER_PASSWORD }}
         path: ./publish-api
         registry: simpletrading.azurecr.io
-        repository: marketingbox/marketingbox.registration-service-test
+        repository: marketingbox/marketingbox.registration-service-uat
         tags: latest
         add_git_labels: true
-        build_args: app_version=marketingbox.registration-service-test:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
+        build_args: app_version=marketingbox.registration-service-uat:latest,app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
 
   restart:
     runs-on: ubuntu-latest
@@ -56,7 +56,7 @@ jobs:
     - name: Restart service
       uses: MyJetWallet/kube-restart-pods@master
       env:
-        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA__ST_TEST }}
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA_UAT }}
         NAMESPACE: marketing-box
         POD: marketing-box-registration-service
 
