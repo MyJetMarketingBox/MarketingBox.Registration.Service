@@ -81,45 +81,58 @@ namespace MarketingBox.Registration.Service.Services
                     }
                 });
             }
-            
             try
             {
-                var affiliateInfo = await TryGetAffiliateInfo(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
-                if (affiliateInfo == null)
+                var response = await GetRegistrationCreateResponse(request);
+                while (response?.Error?.Type == ErrorType.InvalidPersonalData)
                 {
-                    return RegisterFailedMapToGrpc(request.GeneralInfo);
+                    response = await GetRegistrationCreateResponse(request);
                 }
-                
-                var registration = await GetRegistration(request, affiliateInfo);
-                await ProcessRegistration(request, registration);
-
-                var brandResponse = await BrandRegisterAsync(registration);
-                if (brandResponse.Status != ResultCode.CompletedSuccessfully)
-                {
-                    _logger.LogInformation("Failed to register on brand {@context} {@response}", request, brandResponse);
-                    return FailedMapToGrpc(new Error()
-                        {
-                            Message = "Can't register on brand",
-                            Type = ErrorType.InvalidPersonalData
-                        },
-                        request.GeneralInfo);
-                }
-                await ProcessSuccessfulBrandResponse(request, registration, brandResponse);
-                
-                return brandResponse.Status == ResultCode.CompletedSuccessfully ?
-                    SuccessfullMapToGrpc(registration) : FailedMapToGrpc(new Error()
-                    {
-                        Message = "Can't register on brand",
-                        Type = ErrorType.InvalidPersonalData
-                    },
-                    request.GeneralInfo);
-                ;
+                return response;
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error creating original {@context}", request);
 
                 return new RegistrationCreateResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
+        }
+
+        private async Task<RegistrationCreateResponse> GetRegistrationCreateResponse(RegistrationCreateRequest request)
+        {
+            var affiliateInfo = await TryGetAffiliateInfo(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
+            if (affiliateInfo == null)
+            {
+                return RegisterFailedMapToGrpc(request.GeneralInfo);
+            }
+            var registration = await GetRegistration(request, affiliateInfo);
+            var brandResponse = await BrandRegisterAsync(registration);
+
+            _logger.LogInformation("Brand request: {@context}. Brand response: {@response}", request, brandResponse);
+            
+            switch (brandResponse.Status)
+            {
+                case ResultCode.CompletedSuccessfully:
+                    await ProcessSuccessfulBrandResponse(request, registration, brandResponse);
+                    return SuccessfullMapToGrpc(registration);
+                case ResultCode.Failed:
+                    return FailedMapToGrpc(new Error()
+                    {
+                        Message = "Can't register on brand",
+                        Type = ErrorType.InvalidPersonalData
+                    }, request.GeneralInfo);
+                case ResultCode.RequiredAuthentication:
+                    return FailedMapToGrpc(new Error()
+                    {
+                        Message = ResultCode.RequiredAuthentication.DescriptionAttr(),
+                        Type = ErrorType.Unauthorized
+                    }, request.GeneralInfo);
+                default:
+                    return FailedMapToGrpc(new Error()
+                    {
+                        Message = "Can't register on brand",
+                        Type = ErrorType.Unknown
+                    }, request.GeneralInfo);
             }
         }
 
@@ -187,9 +200,10 @@ namespace MarketingBox.Registration.Service.Services
                 CreatedAt = currentDate,
                 UpdatedAt = currentDate
             };
-
             var registration = Domain.Registrations.Registration.Restore(affiliateInfo.TenantId, 0, leadGeneralInfo,
                 leadBrandRegistrationInfo, leadAdditionalInfo);
+            
+            await ProcessRegistration(request, registration);
             return registration;
         }
 
