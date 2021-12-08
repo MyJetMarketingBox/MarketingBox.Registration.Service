@@ -65,8 +65,7 @@ namespace MarketingBox.Registration.Service.Services
         public async Task<RegistrationCreateResponse> CreateAsync(RegistrationCreateRequest request)
         {
             _logger.LogInformation("Creating new Registration {@context}", request);
-
-            //Validate Affiliate ApiKey
+            
             if (!IsAffiliateApiKeyValid(request.AuthInfo.CampaignId, 
                 request.AuthInfo.AffiliateId, 
                 request.AuthInfo.ApiKey))
@@ -82,75 +81,19 @@ namespace MarketingBox.Registration.Service.Services
                     }
                 });
             }
-
-            //Get Affiliate Full Info
-            var affiliateInfo = await TryGetAffiliateInfo(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
-            if (affiliateInfo == null)
-            {
-                return RegisterFailedMapToGrpc(request.GeneralInfo);
-            }
-
+            
             try
             {
-                var registrationId = await _repository.GenerateRegistrationIdAsync(affiliateInfo.TenantId, 
-                    request.GeneratorId());
-                var leadBrandRegistrationInfo = new RegistrationRouteInfo()
+                var affiliateInfo = await TryGetAffiliateInfo(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
+                if (affiliateInfo == null)
                 {
-                    IntegrationId = affiliateInfo.IntegrationId,
-                    BrandId = affiliateInfo.BrandId,
-                    Integration = affiliateInfo.BrandName,
-                    CampaignId = request.AuthInfo.CampaignId,
-                    AffiliateId = request.AuthInfo.AffiliateId,
-                    Status = RegistrationStatus.Created,
-                    CustomerInfo = new RegistrationCustomerInfo()
-                    {
-
-                    }
-                };
-                var leadAdditionalInfo = new RegistrationAdditionalInfo()
-                {
-                    So = request.AdditionalInfo.So,
-                    Sub = request.AdditionalInfo.Sub,
-                    Sub1 = request.AdditionalInfo.Sub1,
-                    Sub2 = request.AdditionalInfo.Sub2,
-                    Sub3 = request.AdditionalInfo.Sub3,
-                    Sub4 = request.AdditionalInfo.Sub4,
-                    Sub5 = request.AdditionalInfo.Sub5,
-                    Sub6 = request.AdditionalInfo.Sub6,
-                    Sub7 = request.AdditionalInfo.Sub7,
-                    Sub8 = request.AdditionalInfo.Sub8,
-                    Sub9 = request.AdditionalInfo.Sub9,
-                    Sub10 = request.AdditionalInfo.Sub10,
-
-                };
-                var currentDate = DateTimeOffset.UtcNow;
-                var leadGeneralInfo = new Domain.Registrations.RegistrationGeneralInfo()
-                {
-                    UniqueId = UniqueIdGenerator.GetNextId(),
-                    RegistrationId = registrationId,
-                    FirstName = request.GeneralInfo?.FirstName,
-                    LastName = request.GeneralInfo?.LastName,
-                    Password = request.GeneralInfo?.Password,
-                    Email = request.GeneralInfo?.Email,
-                    Phone = request.GeneralInfo?.Phone,
-                    Ip = request.GeneralInfo?.Ip,
-                    Country = request.GeneralInfo?.Country,
-                    CreatedAt = currentDate,
-                    UpdatedAt = currentDate,
-                };
-
-                var registration = Domain.Registrations.Registration.Restore(affiliateInfo.TenantId, 0, leadGeneralInfo, leadBrandRegistrationInfo, leadAdditionalInfo);
-
-                await _repository.SaveAsync(registration);
-
-                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
-                _logger.LogInformation("Sent original created registration to service bus {@context}", request);
-
-                await _registrationNoSqlServerDataWriter.InsertOrReplaceAsync(registration.MapToNoSql());
-                _logger.LogInformation("Sent registration update to MyNoSql {@context}", request);
+                    return RegisterFailedMapToGrpc(request.GeneralInfo);
+                }
+                
+                var registration = await GetRegistration(request, affiliateInfo);
+                await ProcessRegistration(request, registration);
 
                 var brandResponse = await BrandRegisterAsync(registration);
-
                 if (brandResponse.Status != ResultCode.CompletedSuccessfully)
                 {
                     _logger.LogInformation("Failed to register on brand {@context} {@response}", request, brandResponse);
@@ -161,24 +104,8 @@ namespace MarketingBox.Registration.Service.Services
                         },
                         request.GeneralInfo);
                 }
-
-                registration.Register(new RegistrationCustomerInfo()
-                {
-                    CustomerId = brandResponse.Data.CustomerId,
-                    LoginUrl = brandResponse.Data.LoginUrl,
-                    Token = brandResponse.Data.Token,
-                    Brand = brandResponse.Data.Brand
-                });
-
-                await _repository.SaveAsync(registration);
-
-                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
-                _logger.LogInformation("Sent original created to service bus {@context}", request);
-
-                await _registrationNoSqlServerDataWriter.InsertOrReplaceAsync(registration.MapToNoSql());
-                _logger.LogInformation("Sent original update to MyNoSql {@context}", request);
-
-
+                await ProcessSuccessfulBrandResponse(request, registration, brandResponse);
+                
                 return brandResponse.Status == ResultCode.CompletedSuccessfully ?
                     SuccessfullMapToGrpc(registration) : FailedMapToGrpc(new Error()
                     {
@@ -194,6 +121,87 @@ namespace MarketingBox.Registration.Service.Services
 
                 return new RegistrationCreateResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }
+        }
+
+        private async Task ProcessSuccessfulBrandResponse(RegistrationCreateRequest request, Domain.Registrations.Registration registration,
+            RegistrationBrandInfo brandResponse)
+        {
+            registration.Register(new RegistrationCustomerInfo()
+            {
+                CustomerId = brandResponse.Data.CustomerId,
+                LoginUrl = brandResponse.Data.LoginUrl,
+                Token = brandResponse.Data.Token,
+                Brand = brandResponse.Data.Brand
+            });
+
+            await _repository.SaveAsync(registration);
+
+            await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
+            _logger.LogInformation("Sent original created to service bus {@context}", request);
+
+            await _registrationNoSqlServerDataWriter.InsertOrReplaceAsync(registration.MapToNoSql());
+            _logger.LogInformation("Sent original update to MyNoSql {@context}", request);
+        }
+
+        private async Task<Domain.Registrations.Registration> GetRegistration(RegistrationCreateRequest request, AffiliateInfo affiliateInfo)
+        {
+            var registrationId = await _repository.GenerateRegistrationIdAsync(affiliateInfo.TenantId,
+                request.GeneratorId());
+            var leadBrandRegistrationInfo = new RegistrationRouteInfo()
+            {
+                IntegrationId = affiliateInfo.IntegrationId,
+                BrandId = affiliateInfo.BrandId,
+                Integration = affiliateInfo.BrandName,
+                CampaignId = request.AuthInfo.CampaignId,
+                AffiliateId = request.AuthInfo.AffiliateId,
+                Status = RegistrationStatus.Created,
+                CustomerInfo = new RegistrationCustomerInfo()
+            };
+            var leadAdditionalInfo = new RegistrationAdditionalInfo()
+            {
+                So = request.AdditionalInfo.So,
+                Sub = request.AdditionalInfo.Sub,
+                Sub1 = request.AdditionalInfo.Sub1,
+                Sub2 = request.AdditionalInfo.Sub2,
+                Sub3 = request.AdditionalInfo.Sub3,
+                Sub4 = request.AdditionalInfo.Sub4,
+                Sub5 = request.AdditionalInfo.Sub5,
+                Sub6 = request.AdditionalInfo.Sub6,
+                Sub7 = request.AdditionalInfo.Sub7,
+                Sub8 = request.AdditionalInfo.Sub8,
+                Sub9 = request.AdditionalInfo.Sub9,
+                Sub10 = request.AdditionalInfo.Sub10,
+            };
+            var currentDate = DateTimeOffset.UtcNow;
+            var leadGeneralInfo = new Domain.Registrations.RegistrationGeneralInfo()
+            {
+                UniqueId = UniqueIdGenerator.GetNextId(),
+                RegistrationId = registrationId,
+                FirstName = request.GeneralInfo?.FirstName,
+                LastName = request.GeneralInfo?.LastName,
+                Password = request.GeneralInfo?.Password,
+                Email = request.GeneralInfo?.Email,
+                Phone = request.GeneralInfo?.Phone,
+                Ip = request.GeneralInfo?.Ip,
+                Country = request.GeneralInfo?.Country,
+                CreatedAt = currentDate,
+                UpdatedAt = currentDate
+            };
+
+            var registration = Domain.Registrations.Registration.Restore(affiliateInfo.TenantId, 0, leadGeneralInfo,
+                leadBrandRegistrationInfo, leadAdditionalInfo);
+            return registration;
+        }
+
+        private async Task ProcessRegistration(RegistrationCreateRequest request, Domain.Registrations.Registration registration)
+        {
+            await _repository.SaveAsync(registration);
+
+            await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
+            _logger.LogInformation("Sent original created registration to service bus {@context}", request);
+
+            await _registrationNoSqlServerDataWriter.InsertOrReplaceAsync(registration.MapToNoSql());
+            _logger.LogInformation("Sent registration update to MyNoSql {@context}", request);
         }
 
         private bool IsAffiliateApiKeyValid(long campaignId, long affiliateId, string apiKey)
