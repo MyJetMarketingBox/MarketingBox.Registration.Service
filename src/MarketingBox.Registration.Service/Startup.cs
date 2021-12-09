@@ -55,9 +55,8 @@ namespace MarketingBox.Registration.Service
             {
                 endpoints.MapGrpcSchema<RegistrationService, IRegistrationService>();
                 endpoints.MapGrpcSchema<DepositService, IDepositService>();
-                
+                endpoints.MapGrpcSchema<CrmService, ICrmService>();
                 endpoints.MapGrpcSchema<CustomerService, ICustomerService>();
-                
                 endpoints.MapGrpcSchemaRegistry();
 
                 endpoints.MapGet("/", async context =>

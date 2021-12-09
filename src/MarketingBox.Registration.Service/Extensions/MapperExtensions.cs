@@ -30,6 +30,7 @@ namespace MarketingBox.Registration.Service.Extensions
                 RegistrationUniqueId = registration.RegistrationInfo.UniqueId,
                 IntegrationName = registration.RouteInfo.Integration,
                 IntegrationId = registration.RouteInfo.IntegrationId,
+                AffiliateId = registration.RouteInfo.AffiliateId,
                 Info = new Integration.Service.Grpc.Models.Registrations.RegistrationInfo()
                 {
                     FirstName = registration.RegistrationInfo.FirstName,

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MarketingBox.Registration.Service.Domain.Crm;
+using System;
 
 namespace MarketingBox.Registration.Service.Domain.Registrations
 {
@@ -27,6 +28,16 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
 
             Sequence++;
             RouteInfo.Status = to;
+            RegistrationInfo.UpdatedAt = DateTimeOffset.UtcNow;
+        }
+
+        public void UpdateCrmStatus(CrmStatus crmStatus)
+        {
+            //if (RouteInfo.CrmStatus.ToCrmStatus() == crmStatus)
+            //    return;
+
+            Sequence++;
+            RouteInfo.CrmStatus = crmStatus.ToCrmStatus();
             RegistrationInfo.UpdatedAt = DateTimeOffset.UtcNow;
         }
 

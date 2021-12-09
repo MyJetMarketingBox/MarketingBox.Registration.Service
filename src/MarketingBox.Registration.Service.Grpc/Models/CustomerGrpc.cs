@@ -47,5 +47,8 @@ namespace MarketingBox.Registration.Service.Grpc.Models
 
         [DataMember(Order = 14)]
         public DateTime DepositDate { get; set; }
+
+        [DataMember(Order = 15)]
+        public string CrmStatus { get; set; }
     }
 }

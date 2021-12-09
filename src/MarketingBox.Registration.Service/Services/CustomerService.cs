@@ -202,7 +202,9 @@ namespace MarketingBox.Registration.Service.Services
                 Email = e.Email,
                 FirstName = e.FirstName,
                 Ip = e.Ip,
-                IsDeposit = e.IsDeposit
+                IsDeposit = e.IsDeposit,
+                //TODO Add CrmStatus
+                //CrmStatus = e.CrmStatus
             }).ToList();
         }
     }
