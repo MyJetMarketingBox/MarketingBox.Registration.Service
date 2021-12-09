@@ -10,8 +10,8 @@
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.41.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
-    <PackageReference Include="MarketingBox.Affiliate.Service.Client" Version="2.0.8" />
-    <PackageReference Include="MarketingBox.Integration.Service.Client" Version="2.1.0" />
+    <PackageReference Include="MarketingBox.Affiliate.Service.Client" Version="2.0.9" />
+    <PackageReference Include="MarketingBox.Integration.Service.Client" Version="2.1.2" />
     <PackageReference Include="MarketingBox.Reporting.Service.Client" Version="3.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
