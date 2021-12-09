@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc.Models.Common;
-using MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts;
 using MarketingBox.Registration.Service.Messages.Registrations;
 using MarketingBox.Registration.Service.MyNoSql.Registrations;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
 using ErrorType = MarketingBox.Registration.Service.Grpc.Models.Common.ErrorType;
+using MarketingBox.Registration.Service.Grpc.Models.Crm;
 
 namespace MarketingBox.Registration.Service.Services
 {

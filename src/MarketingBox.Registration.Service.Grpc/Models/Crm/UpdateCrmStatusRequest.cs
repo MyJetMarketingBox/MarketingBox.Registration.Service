@@ -2,14 +2,14 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts;
+namespace MarketingBox.Registration.Service.Grpc.Models.Crm;
 
 [DataContract]
 public class UpdateCrmStatusRequest
 {
     [DataMember(Order = 1)]
     public string TenantId { get; set; }
-    
+
     [DataMember(Order = 2)]
     public long RegistrationId { get; set; }
 
@@ -27,7 +27,7 @@ public class UpdateCrmStatusRequest
 
     [DataMember(Order = 7)]
     public string IntegrationName { get; set; }
-    
+
     [DataMember(Order = 8)]
     public long IntegrationId { get; set; }
 }

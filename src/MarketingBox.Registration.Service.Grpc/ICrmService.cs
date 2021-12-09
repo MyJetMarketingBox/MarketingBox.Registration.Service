@@ -1,6 +1,6 @@
 ﻿using System.ServiceModel;
 using System.Threading.Tasks;
-using MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts;
+using MarketingBox.Registration.Service.Grpc.Models.Crm;
 
 namespace MarketingBox.Registration.Service.Grpc
 {
