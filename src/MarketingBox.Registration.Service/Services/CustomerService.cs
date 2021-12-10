@@ -181,7 +181,8 @@ namespace MarketingBox.Registration.Service.Services
                 Email = customer.Email,
                 FirstName = customer.FirstName,
                 Ip = customer.Ip,
-                IsDeposit = customer.IsDeposit
+                IsDeposit = customer.IsDeposit,
+                CrmStatus = customer.CrmStatus
             };
         }
         
