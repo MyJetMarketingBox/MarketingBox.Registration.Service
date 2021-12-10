@@ -104,6 +104,7 @@ namespace MarketingBox.Registration.Service.Extensions
                     ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
                     DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
                     CrmCrmStatus = registration.RouteInfo.CrmStatus,
+                    CrmStatus = registration.RouteInfo.CrmStatus,
                     Status = registration.RouteInfo.Status.MapEnum<Messages.Common.LeadStatus>(),
                     CustomerInfo = new RegistrationCustomerInfo()
                     {

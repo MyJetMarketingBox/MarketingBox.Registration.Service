@@ -26,6 +26,7 @@ namespace MarketingBox.Registration.Service.Messages.Registrations
         public LeadStatus Status { get; set; }
 
         [DataMember(Order = 7)]
+        [ObsoleteAttribute("This property is obsolete. Use CrmStatus instead.", false)]
         public string CrmCrmStatus { get; set; }
 
         [DataMember(Order = 8)]
@@ -39,6 +40,9 @@ namespace MarketingBox.Registration.Service.Messages.Registrations
 
         [DataMember(Order = 11)]
         public LeadApprovedType ApprovedType { get; set; }
+
+        [DataMember(Order = 12)]
+        public string CrmStatus { get; set; }
     }
 }
 
