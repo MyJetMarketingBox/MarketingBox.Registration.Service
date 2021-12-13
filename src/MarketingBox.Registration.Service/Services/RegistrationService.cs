@@ -79,10 +79,20 @@ namespace MarketingBox.Registration.Service.Services
             }
             try
             {
-                var response = await GetRegistrationCreateResponse(request);
+                var affiliateInfo = await TryGetAffiliateInfo(request.AuthInfo.CampaignId,
+                    request.GeneralInfo.Country);
+                if (affiliateInfo == null)
+                {
+                    return RegisterFailedMapToGrpc(request.GeneralInfo);
+                }
+
+                var registrationId = await _repository.GenerateRegistrationIdAsync(affiliateInfo.TenantId,
+                    request.GeneratorId());
+
+                var response = await GetRegistrationCreateResponse(request, affiliateInfo, registrationId);
                 while (response?.Error?.Type == ErrorType.InvalidPersonalData)
                 {
-                    response = await GetRegistrationCreateResponse(request);
+                    response = await GetRegistrationCreateResponse(request, affiliateInfo, registrationId);
                 }
                 return response;
             }
@@ -93,15 +103,12 @@ namespace MarketingBox.Registration.Service.Services
                 return new RegistrationCreateResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }
         }
-
-        private async Task<RegistrationCreateResponse> GetRegistrationCreateResponse(RegistrationCreateRequest request)
+        private async Task<RegistrationCreateResponse> GetRegistrationCreateResponse(
+            RegistrationCreateRequest request,
+            AffiliateInfo affiliateInfo, 
+            long registrationId)
         {
-            var affiliateInfo = await TryGetAffiliateInfo(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
-            if (affiliateInfo == null)
-            {
-                return RegisterFailedMapToGrpc(request.GeneralInfo);
-            }
-            var registration = await GetRegistration(request, affiliateInfo);
+            var registration = await GetRegistration(request, affiliateInfo, registrationId);
             var brandResponse = await BrandRegisterAsync(registration);
 
             _logger.LogInformation("Brand request: {@context}. Brand response: {@response}", request, brandResponse);
@@ -149,10 +156,11 @@ namespace MarketingBox.Registration.Service.Services
             _logger.LogInformation("Sent original created to service bus {@context}", request);
         }
 
-        private async Task<Domain.Registrations.Registration> GetRegistration(RegistrationCreateRequest request, AffiliateInfo affiliateInfo)
+        private async Task<Domain.Registrations.Registration> GetRegistration(
+            RegistrationCreateRequest request, 
+            AffiliateInfo affiliateInfo, 
+            long registrationId)
         {
-            var registrationId = await _repository.GenerateRegistrationIdAsync(affiliateInfo.TenantId,
-                request.GeneratorId());
             var leadBrandRegistrationInfo = new RegistrationRouteInfo()
             {
                 IntegrationId = affiliateInfo.IntegrationId,
