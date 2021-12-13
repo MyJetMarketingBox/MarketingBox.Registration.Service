@@ -8,7 +8,6 @@ using MarketingBox.Integration.Service.Client;
 using MarketingBox.Registration.Service.Messages;
 using MarketingBox.Registration.Service.Messages.Registrations;
 using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
-using MarketingBox.Registration.Service.MyNoSql.Registrations;
 using MarketingBox.Registration.Service.Services;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
@@ -68,9 +67,6 @@ namespace MarketingBox.Registration.Service.Modules
 
             // publisher (IServiceBusPublisher<RegistrationUpdateMessage>)
             builder.RegisterMyServiceBusPublisher<RegistrationUpdateMessage>(serviceBusClient, Topics.RegistrationUpdateTopic, false);
-
-            // register writer (IMyNoSqlServerDataWriter<RegistrationNoSqlEntity>)
-            builder.RegisterMyNoSqlWriter<RegistrationNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), RegistrationNoSqlEntity.TableName);
 
             // register writer (IMyNoSqlServerDataWriter<RegistrationRouterNoSqlEntity>)
             builder.RegisterMyNoSqlWriter<RegistrationRouterNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), RegistrationRouterNoSqlEntity.TableName);

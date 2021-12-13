@@ -15,7 +15,6 @@ using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Integration.Service.Client;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
 using MarketingBox.Registration.Service.Messages.Registrations;
-using MarketingBox.Registration.Service.MyNoSql.Registrations;
 using RegistrationAdditionalInfo = MarketingBox.Registration.Service.Domain.Registrations.RegistrationAdditionalInfo;
 using RegistrationBrandInfo = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationBrandInfo;
 using RegistrationCustomerInfo = MarketingBox.Registration.Service.Domain.Registrations.RegistrationCustomerInfo;
@@ -30,7 +29,6 @@ namespace MarketingBox.Registration.Service.Services
     {
         private readonly ILogger<RegistrationService> _logger;
         private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisherLeadUpdated;
-        private readonly IMyNoSqlServerDataWriter<RegistrationNoSqlEntity> _registrationNoSqlServerDataWriter;
         private readonly IMyNoSqlServerDataReader<CampaignIndexNoSql> _campaignIndexNoSqlServerDataReader;
         private readonly IMyNoSqlServerDataReader<IntegrationNoSql> _integrationNoSqlServerDataReader;
         private readonly IMyNoSqlServerDataReader<BrandNoSql> _brandNoSqlServerDataReader;
@@ -41,7 +39,6 @@ namespace MarketingBox.Registration.Service.Services
 
         public RegistrationService(ILogger<RegistrationService> logger,
             IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated,
-            IMyNoSqlServerDataWriter<RegistrationNoSqlEntity> registrationNoSqlServerDataWriter,
             IMyNoSqlServerDataReader<CampaignIndexNoSql> campaignIndexNoSqlServerDataReader,
             IMyNoSqlServerDataReader<IntegrationNoSql> integrationNoSqlServerDataReader,
             IMyNoSqlServerDataReader<BrandNoSql> brandNoSqlServerDataReader,
@@ -51,7 +48,6 @@ namespace MarketingBox.Registration.Service.Services
             IMyNoSqlServerDataReader<AffiliateNoSql> affiliateNoSqlServerDataReader)
         {
             _logger = logger;
-            _registrationNoSqlServerDataWriter = registrationNoSqlServerDataWriter;
             _publisherLeadUpdated = publisherLeadUpdated;
             _campaignIndexNoSqlServerDataReader = campaignIndexNoSqlServerDataReader;
             _integrationNoSqlServerDataReader = integrationNoSqlServerDataReader;
@@ -151,9 +147,6 @@ namespace MarketingBox.Registration.Service.Services
 
             await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
             _logger.LogInformation("Sent original created to service bus {@context}", request);
-
-            await _registrationNoSqlServerDataWriter.InsertOrReplaceAsync(registration.MapToNoSql());
-            _logger.LogInformation("Sent original update to MyNoSql {@context}", request);
         }
 
         private async Task<Domain.Registrations.Registration> GetRegistration(RegistrationCreateRequest request, AffiliateInfo affiliateInfo)
@@ -213,9 +206,6 @@ namespace MarketingBox.Registration.Service.Services
 
             await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
             _logger.LogInformation("Sent original created registration to service bus {@context}", request);
-
-            await _registrationNoSqlServerDataWriter.InsertOrReplaceAsync(registration.MapToNoSql());
-            _logger.LogInformation("Sent registration update to MyNoSql {@context}", request);
         }
 
         private bool IsAffiliateApiKeyValid(long campaignId, long affiliateId, string apiKey)
