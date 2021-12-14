@@ -204,8 +204,7 @@ namespace MarketingBox.Registration.Service.Services
                 FirstName = e.FirstName,
                 Ip = e.Ip,
                 IsDeposit = e.IsDeposit,
-                //TODO Add CrmStatus
-                //CrmStatus = e.CrmStatus
+                CrmStatus = e.CrmStatus
             }).ToList();
         }
     }

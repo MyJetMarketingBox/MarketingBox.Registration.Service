@@ -42,7 +42,7 @@ namespace MarketingBox.Registration.Service.Services
             _logger = logger;
         }
 
-        public async Task<CampaignRowNoSql> GetCampaignBox(string tenantId, long campaignId, string country)
+        public async Task<List<CampaignRowNoSql>> GetSuitableCampaigns(long campaignId, string country)
         {
             var date = DateTime.UtcNow;
             var campaignBoxes = _campaignRowNoSqlServerDataReader.Get(CampaignRowNoSql.GeneratePartitionKey(campaignId));
@@ -102,6 +102,14 @@ namespace MarketingBox.Registration.Service.Services
                 return null;
 
             _logger.LogInformation("select From campaigns {@context}", new { CampaignsCount = filtered.Count });
+            return filtered;
+        }
+
+
+        public async Task<CampaignRowNoSql> GetCampaignBox(string tenantId, long campaignId, string country, 
+            List<CampaignRowNoSql> filtered)
+        {
+            filtered = await GetSuitableCampaigns(campaignId, country);
 
             await _semaphore.WaitAsync();
 
@@ -120,7 +128,8 @@ namespace MarketingBox.Registration.Service.Services
                 if (capacitors == null || !capacitors.Any())
                 {
                     saveAll = true;
-                    countDict = filtered.ToDictionary(x => x.CampaignRowId, y => RegistrationRouterCapacitorBoxNoSqlEntity.Create(new RegistrationRouteCapacitorNoSqlInfo()
+                    countDict = filtered.ToDictionary(x => x.CampaignRowId, 
+                        y => RegistrationRouterCapacitorBoxNoSqlEntity.Create(new RegistrationRouteCapacitorNoSqlInfo()
                     {
                         CampaignId = campaignId,
                         CampaignRowId = y.CampaignRowId,
@@ -154,7 +163,18 @@ namespace MarketingBox.Registration.Service.Services
                             var index = registrationsRoutedCount % length;
 
                             var campaign = campaigns[index];
-                            var capacitor = countDict[campaign.CampaignRowId];
+                            if (!countDict.TryGetValue(campaign.CampaignRowId, out var capacitor))
+                            {
+                                capacitor = RegistrationRouterCapacitorBoxNoSqlEntity.Create(
+                                    new RegistrationRouteCapacitorNoSqlInfo()
+                                    {
+                                        CampaignId = campaignId,
+                                        CampaignRowId = campaign.CampaignRowId,
+                                        ProcessedRegistration = 0
+                                    });
+                                await _capacitorWriter.InsertOrReplaceAsync(capacitor);
+                            }
+
                             if (capacitor.NoSqlInfo.ProcessedRegistration == campaign.Weight)
                             {
                                 length--;

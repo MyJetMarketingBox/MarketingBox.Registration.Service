@@ -75,13 +75,14 @@ namespace MarketingBox.Registration.Service.Tests
                 capacitor,
                 logger.CreateLogger<RegistrationRouter>());
 
-            var campaignBox1 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
-            var campaignBox2 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
-            var campaignBox3 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
-            var campaignBox11 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
-            var campaignBox21 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
-            var campaignBox12 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
-            var campaignBox13 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode);
+            var filtered = await leadRouter.GetSuitableCampaigns(boxId, countryCode);
+            var campaignBox1 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode, filtered);
+            var campaignBox2 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode, filtered);
+            var campaignBox3 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode, filtered);
+            var campaignBox11 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode, filtered);
+            var campaignBox21 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode, filtered);
+            var campaignBox12 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode, filtered);
+            var campaignBox13 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode, filtered);
 
             Assert.AreEqual(campaignBoxNoSql1, campaignBox1);
             Assert.AreEqual(campaignBoxNoSql1, campaignBox11);

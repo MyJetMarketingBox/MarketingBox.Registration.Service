@@ -11,7 +11,7 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
         public RegistrationAdditionalInfo AdditionalInfo { get; private set; }
         public RegistrationRouteInfo RouteInfo { get; private set; }
 
-        private Registration(string tenantId, long sequence, RegistrationGeneralInfo registrationGeneralInfo, 
+        private Registration(string tenantId, long sequence, RegistrationGeneralInfo registrationGeneralInfo,
              RegistrationRouteInfo routeInfo, RegistrationAdditionalInfo additionalInfo)
         {
             TenantId = tenantId;
@@ -20,15 +20,10 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
             RouteInfo = routeInfo;
             AdditionalInfo = additionalInfo;
         }
-
-        private void ChangeStatus(RegistrationStatus from, RegistrationStatus to)
+        
+        public void NextTry()
         {
-            if (RouteInfo.Status != from)
-                throw new Exception($"Transfer lead from {from} type to {to}, current status {RouteInfo.Status}");
-
             Sequence++;
-            RouteInfo.Status = to;
-            RegistrationInfo.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
         public void UpdateCrmStatus(CrmStatus crmStatus)
@@ -38,6 +33,16 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
 
             Sequence++;
             RouteInfo.CrmStatus = crmStatus.ToCrmStatus();
+            RegistrationInfo.UpdatedAt = DateTimeOffset.UtcNow;
+        }
+
+        private void ChangeStatus(RegistrationStatus from, RegistrationStatus to)
+        {
+            if (RouteInfo.Status != from)
+                throw new Exception($"Transfer registration from {from} type to {to}, current status {RouteInfo.Status}");
+
+            Sequence++;
+            RouteInfo.Status = to;
             RegistrationInfo.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
@@ -59,7 +64,7 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
             RouteInfo.ConversionDate = depositDate;
         }
 
-        public static Registration Restore(string tenantId, long sequence, RegistrationGeneralInfo registrationGeneralInfo, 
+        public static Registration Restore(string tenantId, long sequence, RegistrationGeneralInfo registrationGeneralInfo,
             RegistrationRouteInfo routeInfo, RegistrationAdditionalInfo additionalInfo)
         {
             return new Registration(
