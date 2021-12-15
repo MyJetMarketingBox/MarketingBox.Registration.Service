@@ -88,7 +88,7 @@ namespace MarketingBox.Registration.Service.Services
                 RegistrationCreateResponse response = null;
                 var campaigns = await _registrationRouter.GetSuitableCampaigns(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
 
-                for(int i=0; i < campaigns.Count; i++)
+                while(campaigns.Count > 0)
                 {
                     var route = await TryGetRouteParameters(request.AuthInfo.CampaignId,
                         request.GeneralInfo.Country, campaigns);
@@ -98,6 +98,8 @@ namespace MarketingBox.Registration.Service.Services
                         await SaveAndPublishRegistration(request, GetRegistration(request, null, tenantId, registrationId));
                         return RegisterFailedMapToGrpc(request.GeneralInfo);
                     }
+                    
+                    campaigns.RemoveAll(x => x.BrandId == route.BrandId);
 
                     if (registration == null)
                     {
@@ -110,7 +112,11 @@ namespace MarketingBox.Registration.Service.Services
                     //}
 
                     response = await GetRegistrationCreateResponse(request, registration);
-                    
+                    if (response.Status == ResultCode.CompletedSuccessfully)
+                    {
+                        break;
+                    }
+
                     if (response?.Error?.Type == ErrorType.InvalidPersonalData)
                     {
                         continue;
@@ -138,7 +144,14 @@ namespace MarketingBox.Registration.Service.Services
             switch (brandResponse.Status)
             {
                 case ResultCode.CompletedSuccessfully:
-                    await ProcessSuccessfulBrandResponse(request, registration, brandResponse);
+                    registration.Register(new RegistrationCustomerInfo()
+                    {
+                        CustomerId = brandResponse.Data.CustomerId,
+                        LoginUrl = brandResponse.Data.LoginUrl,
+                        Token = brandResponse.Data.Token,
+                        Brand = brandResponse.Data.Brand
+                    });
+                    //await ProcessSuccessfulBrandResponse(request, registration, brandResponse);
                     return SuccessfullMapToGrpc(registration);
                 case ResultCode.Failed:
                     return FailedMapToGrpc(new Error()

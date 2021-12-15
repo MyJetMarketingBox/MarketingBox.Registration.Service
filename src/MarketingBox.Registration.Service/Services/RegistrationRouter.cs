@@ -109,8 +109,6 @@ namespace MarketingBox.Registration.Service.Services
         public async Task<CampaignRowNoSql> GetCampaignBox(string tenantId, long campaignId, string country, 
             List<CampaignRowNoSql> filtered)
         {
-            filtered = await GetSuitableCampaigns(campaignId, country);
-
             await _semaphore.WaitAsync();
 
             try
