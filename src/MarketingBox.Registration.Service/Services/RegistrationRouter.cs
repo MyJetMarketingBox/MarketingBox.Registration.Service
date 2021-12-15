@@ -42,7 +42,7 @@ namespace MarketingBox.Registration.Service.Services
             _logger = logger;
         }
 
-        public async Task<List<CampaignRowNoSql>> GetSuitableCampaigns(long campaignId, string country)
+        public async Task<List<CampaignRowNoSql>> GetSuitableRoutes(long campaignId, string country)
         {
             var date = DateTime.UtcNow;
             var campaignBoxes = _campaignRowNoSqlServerDataReader.Get(CampaignRowNoSql.GeneratePartitionKey(campaignId));

@@ -86,12 +86,12 @@ namespace MarketingBox.Registration.Service.Services
 
                 Domain.Registrations.Registration registration = null;
                 RegistrationCreateResponse response = null;
-                var campaigns = await _registrationRouter.GetSuitableCampaigns(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
+                var routes = await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
 
-                while(campaigns.Count > 0)
+                while(routes.Count > 0)
                 {
-                    var route = await TryGetRouteParameters(request.AuthInfo.CampaignId,
-                        request.GeneralInfo.Country, campaigns);
+                    var route = await TryGetSpecificRoute(request.AuthInfo.CampaignId,
+                        request.GeneralInfo.Country, routes);
 
                     if (route == null)
                     {
@@ -99,17 +99,22 @@ namespace MarketingBox.Registration.Service.Services
                         return RegisterFailedMapToGrpc(request.GeneralInfo);
                     }
                     
-                    campaigns.RemoveAll(x => x.BrandId == route.BrandId);
+                    routes.RemoveAll(x => 
+                        (x.BrandId == route.BrandId && 
+                        x.CampaignId == route.CampaignId && 
+                        x.CampaignRowId == route.CampaignRowId));
 
                     if (registration == null)
                     {
                         registration = GetRegistration(request, route, tenantId, registrationId);
-                        //await SaveAndPublishRegistration(request, registration);
                     }
-                    //else 
-                    //{
-                    //    registration.NextTry();
-                    //}
+                    else 
+                    {
+                        registration.RouteInfo.BrandId = route.BrandId;
+                        registration.RouteInfo.CampaignId = route.CampaignId;
+                        registration.RouteInfo.Integration = route.BrandName;
+                        registration.RouteInfo.IntegrationId  = route.IntegrationId;
+                    }
 
                     response = await GetRegistrationCreateResponse(request, registration);
                     if (response.Status == ResultCode.CompletedSuccessfully)
@@ -151,7 +156,6 @@ namespace MarketingBox.Registration.Service.Services
                         Token = brandResponse.Data.Token,
                         Brand = brandResponse.Data.Brand
                     });
-                    //await ProcessSuccessfulBrandResponse(request, registration, brandResponse);
                     return SuccessfullMapToGrpc(registration);
                 case ResultCode.Failed:
                     return FailedMapToGrpc(new Error()
@@ -174,31 +178,17 @@ namespace MarketingBox.Registration.Service.Services
             }
         }
 
-        private async Task ProcessSuccessfulBrandResponse(RegistrationCreateRequest request, Domain.Registrations.Registration registration,
-            RegistrationBrandInfo brandResponse)
-        {
-            registration.Register(new RegistrationCustomerInfo()
-            {
-                CustomerId = brandResponse.Data.CustomerId,
-                LoginUrl = brandResponse.Data.LoginUrl,
-                Token = brandResponse.Data.Token,
-                Brand = brandResponse.Data.Brand
-            });
-
-            await SaveAndPublishRegistration(request, registration);
-        }
-
         private Domain.Registrations.Registration GetRegistration(
             RegistrationCreateRequest request, 
-            AffiliateInfo affiliateInfo, 
+            RouteParameters routeParameters, 
             string tenantId,
             long registrationId)
         {
             var leadBrandRegistrationInfo = new RegistrationRouteInfo()
             {
-                IntegrationId = affiliateInfo?.IntegrationId ?? 0,
-                BrandId = affiliateInfo?.BrandId ?? 0,
-                Integration = affiliateInfo?.BrandName ?? string.Empty,
+                IntegrationId = routeParameters?.IntegrationId ?? 0,
+                BrandId = routeParameters?.BrandId ?? 0,
+                Integration = routeParameters?.BrandName ?? string.Empty,
                 CampaignId = request.AuthInfo.CampaignId,
                 AffiliateId = request.AuthInfo.AffiliateId,
                 Status = RegistrationStatus.Created,
@@ -237,7 +227,6 @@ namespace MarketingBox.Registration.Service.Services
             var registration = Domain.Registrations.Registration.Restore(tenantId, 0, leadGeneralInfo,
                 leadBrandRegistrationInfo, leadAdditionalInfo);
 
-
             return registration;
         }
 
@@ -268,7 +257,7 @@ namespace MarketingBox.Registration.Service.Services
             return partnerApiKey.Equals(apiKey, StringComparison.OrdinalIgnoreCase);
         }
 
-        private async Task<AffiliateInfo> TryGetRouteParameters(long campaignId, string country, 
+        private async Task<RouteParameters> TryGetSpecificRoute(long campaignId, string country, 
             List<CampaignRowNoSql> filtered)
         {
             try
@@ -293,12 +282,14 @@ namespace MarketingBox.Registration.Service.Services
 
                 var brandName = integrationNoSql.Name;
                 var integrationId = integrationNoSql.IntegrationId;
-                return new AffiliateInfo()
+                return new RouteParameters()
                 {
                     IntegrationId = integrationId,
                     BrandName = brandName,
                     BrandId = brandId,
-                    TenantId = tenantId
+                    TenantId = tenantId,
+                    CampaignId = campaignId,
+                    CampaignRowId = campaignBox.CampaignRowId,  
                 };
             }
             catch (Exception e)

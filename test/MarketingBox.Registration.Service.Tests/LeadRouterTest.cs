@@ -75,7 +75,7 @@ namespace MarketingBox.Registration.Service.Tests
                 capacitor,
                 logger.CreateLogger<RegistrationRouter>());
 
-            var filtered = await leadRouter.GetSuitableCampaigns(boxId, countryCode);
+            var filtered = await leadRouter.GetSuitableRoutes(boxId, countryCode);
             var campaignBox1 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode, filtered);
             var campaignBox2 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode, filtered);
             var campaignBox3 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode, filtered);
