@@ -2,8 +2,8 @@
 {
     public class RegistrationAdditionalInfo
     {
-        public string So { get; set; }
-        public string Sub { get; set; }
+        public string Funnel { get; set; }
+        public string AffCode { get; set; }
         public string Sub1 { get; set; }
         public string Sub2 { get; set; }
         public string Sub3 { get; set; }

@@ -32,7 +32,7 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
             //    return;
 
             Sequence++;
-            RouteInfo.CrmStatus = crmStatus.ToCrmStatus();
+            RouteInfo.CrmStatus = crmStatus;
             RegistrationInfo.UpdatedAt = DateTimeOffset.UtcNow;
         }
 

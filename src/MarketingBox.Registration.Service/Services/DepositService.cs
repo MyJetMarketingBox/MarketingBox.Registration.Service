@@ -14,7 +14,7 @@ using MyNoSqlServer.Abstractions;
 using ErrorType = MarketingBox.Registration.Service.Grpc.Models.Common.ErrorType;
 using RegistrationStatus = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationStatus;
 
-namespace MarketingBox.Registration.Service.Services
+namespace MarketingBox.Registration.Service.Modules
 {
     public class DepositService : IDepositService
     {
@@ -37,15 +37,15 @@ namespace MarketingBox.Registration.Service.Services
             _logger.LogInformation("Creating new deposit {@context}", request);
             try
             {
-                var lead = await _repository.GetLeadByCustomerIdAsync(request.TenantId, request.CustomerId);
-                lead.Deposit(DateTimeOffset.UtcNow);
+                var registration = await _repository.GetLeadByCustomerIdAsync(request.TenantId, request.CustomerId);
+                registration.Deposit(DateTimeOffset.UtcNow);
 
-                await _repository.SaveAsync(lead);
+                await _repository.SaveAsync(registration);
 
-                await _publisherLeadUpdated.PublishAsync(lead.MapToMessage());
+                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
                 _logger.LogInformation("Sent deposit register to service bus {@context}", request);
 
-                return MapToGrpc(lead);
+                return MapToGrpc(registration);
             }
             catch (Exception e)
             {
@@ -60,15 +60,15 @@ namespace MarketingBox.Registration.Service.Services
             _logger.LogInformation("Approving a deposit {@context}", request);
             try
             {
-                var lead = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
-                lead.Approved(DateTimeOffset.UtcNow);
+                var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
+                registration.Approved(DateTimeOffset.UtcNow);
 
-                await _repository.SaveAsync(lead);
+                await _repository.SaveAsync(registration);
 
-                await _publisherLeadUpdated.PublishAsync(lead.MapToMessage());
+                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
                 _logger.LogInformation("Sent deposit approve to service bus {@context}", request);
 
-                return MapToGrpc(lead);
+                return MapToGrpc(registration);
             }
             catch (Exception e)
             {
@@ -93,8 +93,8 @@ namespace MarketingBox.Registration.Service.Services
                     Password = registration.RegistrationInfo.Password,
                     CreatedAt = registration.RegistrationInfo.CreatedAt.UtcDateTime,
                     RegistrationId = registration.RegistrationInfo.RegistrationId,
-                    UniqueId = registration.RegistrationInfo.UniqueId,
-                    CrmCrmStatus = registration.RouteInfo.CrmStatus,
+                    UniqueId = registration.RegistrationInfo.RegistrationUid,
+                    CrmStatus = registration.RouteInfo.CrmStatus,
                     Status = registration.RouteInfo.Status.MapEnum<RegistrationStatus>(),
                     Country = registration.RegistrationInfo.Country,
                     ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,

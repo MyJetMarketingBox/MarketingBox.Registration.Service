@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
 using Newtonsoft.Json;
 
-namespace MarketingBox.Registration.Service.Services
+namespace MarketingBox.Registration.Service.Modules
 {
     public class CustomerService : ICustomerService
     {

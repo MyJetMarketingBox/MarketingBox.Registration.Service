@@ -23,8 +23,9 @@ using RegistrationRouteInfo = MarketingBox.Registration.Service.Domain.Registrat
 using RegistrationStatus = MarketingBox.Registration.Service.Domain.Registrations.RegistrationStatus;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using System.Collections.Generic;
+using MarketingBox.Registration.Service.Domain.Route;
 
-namespace MarketingBox.Registration.Service.Services
+namespace MarketingBox.Registration.Service.Modules
 {
     public class RegistrationService : IRegistrationService
     {
@@ -36,7 +37,7 @@ namespace MarketingBox.Registration.Service.Services
         private readonly IMyNoSqlServerDataReader<AffiliateNoSql> _affiliateNoSqlServerDataReader;
         private readonly IIntegrationService _integrationService;
         private readonly IRegistrationRepository _repository;
-        private readonly RegistrationRouter _registrationRouter;
+        private readonly RegistrationRouterService _registrationRouter;
 
         public RegistrationService(ILogger<RegistrationService> logger,
             IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated,
@@ -45,7 +46,7 @@ namespace MarketingBox.Registration.Service.Services
             IMyNoSqlServerDataReader<BrandNoSql> brandNoSqlServerDataReader,
             IIntegrationService integrationService, 
             IRegistrationRepository repository,
-            RegistrationRouter registrationRouter, 
+            RegistrationRouterService registrationRouter, 
             IMyNoSqlServerDataReader<AffiliateNoSql> affiliateNoSqlServerDataReader)
         {
             _logger = logger;
@@ -84,7 +85,7 @@ namespace MarketingBox.Registration.Service.Services
                 var registrationId = await _repository.GenerateRegistrationIdAsync(tenantId,
                     request.GeneratorId());
 
-                Domain.Registrations.Registration registration = null;
+                Domain.Registrations.Registration registration = GetRegistration(request, null, tenantId, registrationId);
                 RegistrationCreateResponse response = null;
                 var routes = await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
 
@@ -104,17 +105,10 @@ namespace MarketingBox.Registration.Service.Services
                         x.CampaignId == route.CampaignId && 
                         x.CampaignRowId == route.CampaignRowId));
 
-                    if (registration == null)
-                    {
-                        registration = GetRegistration(request, route, tenantId, registrationId);
-                    }
-                    else 
-                    {
-                        registration.RouteInfo.BrandId = route.BrandId;
-                        registration.RouteInfo.CampaignId = route.CampaignId;
-                        registration.RouteInfo.Integration = route.BrandName;
-                        registration.RouteInfo.IntegrationId  = route.IntegrationId;
-                    }
+                    registration.RouteInfo.BrandId = route.BrandId;
+                    registration.RouteInfo.CampaignId = route.CampaignId;
+                    registration.RouteInfo.Integration = route.BrandName;
+                    registration.RouteInfo.IntegrationId = route.IntegrationId;
 
                     response = await GetRegistrationCreateResponse(request, registration);
                     if (response.Status == ResultCode.CompletedSuccessfully)
@@ -196,8 +190,8 @@ namespace MarketingBox.Registration.Service.Services
             };
             var leadAdditionalInfo = new RegistrationAdditionalInfo()
             {
-                So = request.AdditionalInfo.So,
-                Sub = request.AdditionalInfo.Sub,
+                Funnel = request.AdditionalInfo.So,
+                AffCode = request.AdditionalInfo.Sub,
                 Sub1 = request.AdditionalInfo.Sub1,
                 Sub2 = request.AdditionalInfo.Sub2,
                 Sub3 = request.AdditionalInfo.Sub3,
@@ -212,7 +206,7 @@ namespace MarketingBox.Registration.Service.Services
             var currentDate = DateTimeOffset.UtcNow;
             var leadGeneralInfo = new Domain.Registrations.RegistrationGeneralInfo()
             {
-                UniqueId = UniqueIdGenerator.GetNextId(),
+                RegistrationUid = UniqueIdGenerator.GetNextId(),
                 RegistrationId = registrationId,
                 FirstName = request.GeneralInfo?.FirstName,
                 LastName = request.GeneralInfo?.LastName,
@@ -347,7 +341,7 @@ namespace MarketingBox.Registration.Service.Services
                 },
                 FallbackUrl = string.Empty,
                 RegistrationId = registration.RegistrationInfo.RegistrationId,
-                UniqueId = registration.RegistrationInfo.UniqueId
+                RegistrationUId = registration.RegistrationInfo.RegistrationUid
             };
         }
 

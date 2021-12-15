@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
+#nullable disable
+
 namespace MarketingBox.Registration.Postgres.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
@@ -16,52 +18,36 @@ namespace MarketingBox.Registration.Postgres.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("registration-service")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63)
-                .HasAnnotation("ProductVersion", "5.0.11")
-                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                .HasAnnotation("ProductVersion", "6.0.1")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            modelBuilder.Entity("MarketingBox.Registration.Postgres.Entities.Lead.RegistrationEntity", b =>
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("MarketingBox.Registration.Postgres.Entities.Registration.RegistrationEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("AdditionalInfoSo")
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AffCode")
                         .HasColumnType("text");
 
-                    b.Property<string>("AdditionalInfoSub")
-                        .HasColumnType("text");
+                    b.Property<long>("AffiliateId")
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("AdditionalInfoSub1")
-                        .HasColumnType("text");
+                    b.Property<int>("ApprovedType")
+                        .HasColumnType("integer");
 
-                    b.Property<string>("AdditionalInfoSub10")
-                        .HasColumnType("text");
+                    b.Property<long>("BrandId")
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("AdditionalInfoSub2")
-                        .HasColumnType("text");
+                    b.Property<long>("CampaignId")
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("AdditionalInfoSub3")
-                        .HasColumnType("text");
-
-                    b.Property<string>("AdditionalInfoSub4")
-                        .HasColumnType("text");
-
-                    b.Property<string>("AdditionalInfoSub5")
-                        .HasColumnType("text");
-
-                    b.Property<string>("AdditionalInfoSub6")
-                        .HasColumnType("text");
-
-                    b.Property<string>("AdditionalInfoSub7")
-                        .HasColumnType("text");
-
-                    b.Property<string>("AdditionalInfoSub8")
-                        .HasColumnType("text");
-
-                    b.Property<string>("AdditionalInfoSub9")
-                        .HasColumnType("text");
+                    b.Property<DateTimeOffset?>("ConversionDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Country")
                         .HasColumnType("text");
@@ -69,11 +55,38 @@ namespace MarketingBox.Registration.Postgres.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("CrmStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CustomerBrand")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CustomerId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CustomerLoginUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CustomerToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("DepositDate")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Email")
                         .HasColumnType("text");
 
                     b.Property<string>("FirstName")
                         .HasColumnType("text");
+
+                    b.Property<string>("Funnel")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Integration")
+                        .HasColumnType("text");
+
+                    b.Property<long>("IntegrationId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Ip")
                         .HasColumnType("text");
@@ -87,50 +100,41 @@ namespace MarketingBox.Registration.Postgres.Migrations
                     b.Property<string>("Phone")
                         .HasColumnType("text");
 
-                    b.Property<long>("RouteInfoAffiliateId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("RouteInfoApprovedType")
-                        .HasColumnType("integer");
-
-                    b.Property<long>("RouteInfoBrandId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("RouteInfoCampaignId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset?>("RouteInfoConversionDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("RouteInfoCrmStatus")
-                        .HasColumnType("text");
-
-                    b.Property<string>("RouteInfoCustomerInfoBrand")
-                        .HasColumnType("text");
-
-                    b.Property<string>("RouteInfoCustomerInfoCustomerId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("RouteInfoCustomerInfoLoginUrl")
-                        .HasColumnType("text");
-
-                    b.Property<string>("RouteInfoCustomerInfoToken")
-                        .HasColumnType("text");
-
-                    b.Property<DateTimeOffset?>("RouteInfoDepositDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("RouteInfoIntegration")
-                        .HasColumnType("text");
-
-                    b.Property<long>("RouteInfoIntegrationId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("RouteInfoStatus")
-                        .HasColumnType("integer");
-
                     b.Property<long>("Sequence")
                         .HasColumnType("bigint");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Sub1")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sub10")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sub2")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sub3")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sub4")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sub5")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sub6")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sub7")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sub8")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Sub9")
+                        .HasColumnType("text");
 
                     b.Property<string>("TenantId")
                         .HasColumnType("text");
@@ -143,18 +147,18 @@ namespace MarketingBox.Registration.Postgres.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RouteInfoStatus");
+                    b.HasIndex("Status");
 
-                    b.HasIndex("CreatedAt", "RouteInfoBrandId");
+                    b.HasIndex("CreatedAt", "BrandId");
 
-                    b.HasIndex("RouteInfoDepositDate", "RouteInfoBrandId");
+                    b.HasIndex("DepositDate", "BrandId");
 
                     b.HasIndex("TenantId", "Id");
 
-                    b.ToTable("registrations");
+                    b.ToTable("registrations", "registration-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Registration.Postgres.Entities.Lead.RegistrationIdGeneratorEntity", b =>
+            modelBuilder.Entity("MarketingBox.Registration.Postgres.Entities.Registration.RegistrationIdGeneratorEntity", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasColumnType("text");
@@ -164,12 +168,13 @@ namespace MarketingBox.Registration.Postgres.Migrations
 
                     b.Property<long>("RegistrationId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("RegistrationId"));
 
                     b.HasKey("TenantId", "GeneratorId");
 
-                    b.ToTable("registration_id_generator");
+                    b.ToTable("registration_id_generator", "registration-service");
                 });
 #pragma warning restore 612, 618
         }

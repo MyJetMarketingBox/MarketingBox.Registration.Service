@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
-using MarketingBox.Registration.Service.Services;
+using MarketingBox.Registration.Service.Modules;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 
@@ -66,14 +66,14 @@ namespace MarketingBox.Registration.Service.Tests
             await campaignBoxNoSqlServerDataReader.InsertOrReplaceAsync(campaignBoxNoSql3);
 
             const string tenantId = "default-tenant-id";
-            var leadRouter = new RegistrationRouter(
+            var leadRouter = new RegistrationRouterService(
                 campaignBoxNoSqlServerDataReader,
                 leadRepository,
                 leadCounter,
                 leadCounter,
                 capacitor,
                 capacitor,
-                logger.CreateLogger<RegistrationRouter>());
+                logger.CreateLogger<RegistrationRouterService>());
 
             var filtered = await leadRouter.GetSuitableRoutes(boxId, countryCode);
             var campaignBox1 = await leadRouter.GetCampaignBox(tenantId, boxId, countryCode, filtered);

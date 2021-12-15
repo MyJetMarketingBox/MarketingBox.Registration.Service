@@ -1,4 +1,5 @@
 using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integration;
+using MarketingBox.Registration.Service.Domain.Crm;
 using MarketingBox.Registration.Service.Domain.Extensions;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
 using MarketingBox.Registration.Service.Messages.Registrations;
@@ -28,7 +29,7 @@ namespace MarketingBox.Registration.Service.Extensions
             {
                 TenantId = registration.TenantId,
                 RegistrationId = registration.RegistrationInfo.RegistrationId,
-                RegistrationUniqueId = registration.RegistrationInfo.UniqueId,
+                RegistrationUniqueId = registration.RegistrationInfo.RegistrationUid,
                 IntegrationName = registration.RouteInfo.Integration,
                 IntegrationId = registration.RouteInfo.IntegrationId,
                 AffiliateId = registration.RouteInfo.AffiliateId,
@@ -44,8 +45,8 @@ namespace MarketingBox.Registration.Service.Extensions
                 },
                 AdditionalInfo = new Integration.Service.Grpc.Models.Registrations.RegistrationAdditionalInfo()
                 {
-                    So = registration.AdditionalInfo?.So,
-                    Sub = registration.AdditionalInfo?.Sub,
+                    So = registration.AdditionalInfo?.Funnel,
+                    Sub = registration.AdditionalInfo?.AffCode,
                     Sub1 = registration.AdditionalInfo?.Sub1,
                     Sub2 = registration.AdditionalInfo?.Sub2,
                     Sub3 = registration.AdditionalInfo?.Sub3,
@@ -76,14 +77,14 @@ namespace MarketingBox.Registration.Service.Extensions
                     Password = registration.RegistrationInfo.Password,
                     CreatedAt = registration.RegistrationInfo.CreatedAt.UtcDateTime,
                     RegistrationId = registration.RegistrationInfo.RegistrationId,
-                    UniqueId = registration.RegistrationInfo.UniqueId,
+                    UniqueId = registration.RegistrationInfo.RegistrationUid,
                     Country = registration.RegistrationInfo.Country,
                     UpdatedAt = registration.RegistrationInfo.UpdatedAt.UtcDateTime
                 },
                 AdditionalInfo = new RegistrationAdditionalInfo()
                 {
-                    So = registration.AdditionalInfo.So,
-                    Sub = registration.AdditionalInfo.Sub,
+                    So = registration.AdditionalInfo.Funnel,
+                    Sub = registration.AdditionalInfo.AffCode,
                     Sub1 = registration.AdditionalInfo.Sub1,
                     Sub2 = registration.AdditionalInfo.Sub2,
                     Sub3 = registration.AdditionalInfo.Sub3,
@@ -104,7 +105,7 @@ namespace MarketingBox.Registration.Service.Extensions
                     IntegrationId = registration.RouteInfo.IntegrationId,
                     ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
                     DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
-                    CrmCrmStatus = registration.RouteInfo.CrmStatus,
+                    CrmCrmStatus = registration.RouteInfo.CrmStatus.ToCrmStatus(),
                     CrmStatus = registration.RouteInfo.CrmStatus,
                     Status = registration.RouteInfo.Status.MapEnum<Messages.Common.LeadStatus>(),
                     CustomerInfo = new RegistrationCustomerInfo()

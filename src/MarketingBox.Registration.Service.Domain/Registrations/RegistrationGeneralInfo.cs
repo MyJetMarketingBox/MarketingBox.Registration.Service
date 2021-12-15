@@ -4,7 +4,7 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
 {
     public class RegistrationGeneralInfo
     {
-        public string UniqueId { get; set; }
+        public string RegistrationUid { get; set; }
         public long RegistrationId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

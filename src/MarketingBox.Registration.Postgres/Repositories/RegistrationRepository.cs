@@ -55,7 +55,7 @@ namespace MarketingBox.Registration.Postgres.Repositories
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var existingLeadEntity = await ctx.Registrations.FirstOrDefaultAsync(x => x.TenantId == tenantId &&
-                                                                              x.RouteInfoCustomerInfoCustomerId == customerId);
+                                                                              x.CustomerId == customerId);
 
             if (existingLeadEntity == null)
             {
@@ -83,8 +83,8 @@ namespace MarketingBox.Registration.Postgres.Repositories
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var nextDate = date.AddDays(1);
-            var count = await ctx.Registrations.Where(x => x.RouteInfoStatus == registrationStatus &&
-                                                   x.RouteInfoBrandId == brandId &&
+            var count = await ctx.Registrations.Where(x => x.Status == registrationStatus &&
+                                                   x.BrandId == brandId &&
                                                    x.CreatedAt >= date && x.CreatedAt < nextDate).CountAsync();
 
             return count;
@@ -94,10 +94,10 @@ namespace MarketingBox.Registration.Postgres.Repositories
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var nextDate = date.AddDays(1);
-            var count = await ctx.Registrations.Where(x => x.RouteInfoStatus == registrationStatus &&
-                                                   x.RouteInfoBrandId == brandId &&
-                                                   x.RouteInfoDepositDate != null && 
-                                                   x.RouteInfoDepositDate.Value >= date && x.RouteInfoDepositDate.Value < nextDate).CountAsync();
+            var count = await ctx.Registrations.Where(x => x.Status == registrationStatus &&
+                                                   x.BrandId == brandId &&
+                                                   x.DepositDate != null && 
+                                                   x.DepositDate.Value >= date && x.DepositDate.Value < nextDate).CountAsync();
 
             return count;
         }

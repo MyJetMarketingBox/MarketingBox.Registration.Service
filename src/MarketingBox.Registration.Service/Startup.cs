@@ -3,7 +3,6 @@ using Autofac;
 using MarketingBox.Registration.Postgres;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Modules;
-using MarketingBox.Registration.Service.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

@@ -11,9 +11,9 @@ using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
 using Microsoft.Extensions.Logging;
 
-namespace MarketingBox.Registration.Service.Services
+namespace MarketingBox.Registration.Service.Modules
 {
-    public class RegistrationRouter
+    public class RegistrationRouterService
     {
         private readonly IMyNoSqlServerDataReader<CampaignRowNoSql> _campaignRowNoSqlServerDataReader;
         private readonly IRegistrationRepository _registrationRepository;
@@ -21,17 +21,17 @@ namespace MarketingBox.Registration.Service.Services
         private readonly IMyNoSqlServerDataWriter<RegistrationRouterNoSqlEntity> _dataWriter;
         private readonly IMyNoSqlServerDataReader<RegistrationRouterCapacitorBoxNoSqlEntity> _capacitorReader;
         private readonly IMyNoSqlServerDataWriter<RegistrationRouterCapacitorBoxNoSqlEntity> _capacitorWriter;
-        private readonly ILogger<RegistrationRouter> _logger;
+        private readonly ILogger<RegistrationRouterService> _logger;
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
-        public RegistrationRouter(
+        public RegistrationRouterService(
             IMyNoSqlServerDataReader<CampaignRowNoSql> campaignRowNoSqlServerDataReader,
             IRegistrationRepository registrationRepository,
             IMyNoSqlServerDataReader<RegistrationRouterNoSqlEntity> dataReader,
             IMyNoSqlServerDataWriter<RegistrationRouterNoSqlEntity> dataWriter,
             IMyNoSqlServerDataReader<RegistrationRouterCapacitorBoxNoSqlEntity> capacitorReader,
             IMyNoSqlServerDataWriter<RegistrationRouterCapacitorBoxNoSqlEntity> capacitorWriter,
-            ILogger<RegistrationRouter> logger)
+            ILogger<RegistrationRouterService> logger)
         {
             _campaignRowNoSqlServerDataReader = campaignRowNoSqlServerDataReader;
             _registrationRepository = registrationRepository;

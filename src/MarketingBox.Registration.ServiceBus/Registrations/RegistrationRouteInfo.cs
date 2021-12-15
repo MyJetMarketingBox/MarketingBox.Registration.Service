@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using MarketingBox.Registration.Service.Domain.Crm;
 using MarketingBox.Registration.Service.Messages.Common;
 
 namespace MarketingBox.Registration.Service.Messages.Registrations
@@ -42,7 +43,7 @@ namespace MarketingBox.Registration.Service.Messages.Registrations
         public LeadApprovedType ApprovedType { get; set; }
 
         [DataMember(Order = 12)]
-        public string CrmStatus { get; set; }
+        public CrmStatus CrmStatus { get; set; }
     }
 }
 

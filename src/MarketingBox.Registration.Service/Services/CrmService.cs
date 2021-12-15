@@ -9,7 +9,7 @@ using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
 using MarketingBox.Registration.Service.Grpc.Models.Crm;
 
-namespace MarketingBox.Registration.Service.Services
+namespace MarketingBox.Registration.Service.Modules
 {
     public class CrmService : ICrmService
     {
@@ -32,12 +32,12 @@ namespace MarketingBox.Registration.Service.Services
             _logger.LogInformation("Update crm status {@context}", request);
             try
             {
-                var lead = await _repository.GetLeadByCustomerIdAsync(request.TenantId, request.CustomerId);
-                lead.UpdateCrmStatus(request.Crm);
+                var registration = await _repository.GetLeadByCustomerIdAsync(request.TenantId, request.CustomerId);
+                registration.UpdateCrmStatus(request.Crm);
 
-                await _repository.SaveAsync(lead);
+                await _repository.SaveAsync(registration);
 
-                await _publisherLeadUpdated.PublishAsync(lead.MapToMessage());
+                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
                 _logger.LogInformation("Sent crm status to service bus {@context}", request);
             }
             catch (Exception e)
