@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using MarketingBox.Registration.Service.Client;
 using MarketingBox.Registration.Service.Grpc.Models.Affiliate;
-using MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
 using Microsoft.Extensions.Logging;
@@ -22,7 +21,7 @@ namespace TestApp
             var factory = new RegistrationServiceClientFactory("http://localhost:12121");
             var leadService = factory.GetRegistrationService();
             var depositService = factory.GetDepositService();
-            var testTenant = "default-tenant-id";
+            //var testTenant = "default-tenant-id";
             var logger = LoggerFactory.Create((x) => x.AddConsole()).CreateLogger<Program>();
 
             for (int i = 0; i < 12; i++)

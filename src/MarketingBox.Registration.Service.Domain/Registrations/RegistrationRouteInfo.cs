@@ -16,5 +16,6 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
         public DateTimeOffset? ConversionDate { get; set; }
         public RegistrationApprovedType ApprovedType { get; set; }
         public RegistrationCustomerInfo CustomerInfo { get; set; }
+        public string AffiliateName { get; set; }
     }
 }

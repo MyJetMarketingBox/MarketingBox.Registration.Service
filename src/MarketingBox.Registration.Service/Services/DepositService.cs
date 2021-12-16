@@ -12,7 +12,6 @@ using MarketingBox.Registration.Service.Messages.Registrations;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
 using ErrorType = MarketingBox.Registration.Service.Grpc.Models.Common.ErrorType;
-using RegistrationStatus = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationStatus;
 
 namespace MarketingBox.Registration.Service.Modules
 {
@@ -100,6 +99,8 @@ namespace MarketingBox.Registration.Service.Modules
                     ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
                     DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
                     UpdatedAt = registration.RegistrationInfo.UpdatedAt.UtcDateTime,
+                    AffiliateId = registration.RouteInfo.AffiliateId,
+                    AffiliateName = registration.RouteInfo.AffiliateName,
                 }
                 //Id = registration.RegistrationInfo.Id,
                 //Message = $"Registration {registration.RegistrationInfo.Id} can be approved as depositor, current status " +

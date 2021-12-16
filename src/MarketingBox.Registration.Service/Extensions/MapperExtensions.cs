@@ -78,6 +78,7 @@ namespace MarketingBox.Registration.Service.Extensions
                     CreatedAt = registration.RegistrationInfo.CreatedAt.UtcDateTime,
                     RegistrationId = registration.RegistrationInfo.RegistrationId,
                     UniqueId = registration.RegistrationInfo.RegistrationUid,
+                    RegistrationUId = registration.RegistrationInfo.RegistrationUid,
                     Country = registration.RegistrationInfo.Country,
                     UpdatedAt = registration.RegistrationInfo.UpdatedAt.UtcDateTime
                 },
@@ -85,6 +86,8 @@ namespace MarketingBox.Registration.Service.Extensions
                 {
                     So = registration.AdditionalInfo.Funnel,
                     Sub = registration.AdditionalInfo.AffCode,
+                    Funnel = registration.AdditionalInfo.Funnel,
+                    AffCode = registration.AdditionalInfo.AffCode,
                     Sub1 = registration.AdditionalInfo.Sub1,
                     Sub2 = registration.AdditionalInfo.Sub2,
                     Sub3 = registration.AdditionalInfo.Sub3,
@@ -105,7 +108,6 @@ namespace MarketingBox.Registration.Service.Extensions
                     IntegrationId = registration.RouteInfo.IntegrationId,
                     ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
                     DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
-                    CrmCrmStatus = registration.RouteInfo.CrmStatus.ToCrmStatus(),
                     CrmStatus = registration.RouteInfo.CrmStatus,
                     Status = registration.RouteInfo.Status.MapEnum<Messages.Common.LeadStatus>(),
                     CustomerInfo = new RegistrationCustomerInfo()
@@ -115,6 +117,7 @@ namespace MarketingBox.Registration.Service.Extensions
                         Token = registration.RouteInfo?.CustomerInfo?.Token,
                     },
                     ApprovedType = registration.RouteInfo.ApprovedType.MapEnum<Messages.Common.LeadApprovedType>(),
+                    AffiliateName = registration.RouteInfo.AffiliateName
                 },
             };
         }

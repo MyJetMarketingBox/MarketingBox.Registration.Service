@@ -49,12 +49,13 @@ namespace MarketingBox.Registration.Postgres.Extensions
                 Sub9 = registration.AdditionalInfo?.Sub9,
                 Sub10 = registration.AdditionalInfo?.Sub10,
                 Sequence = registration.Sequence,
+                AffiliateName = registration.RouteInfo.AffiliateName,
             };
         }
 
         public static Service.Domain.Registrations.Registration RestoreRegistration(this RegistrationEntity registrationEntity)
         {
-            var leadBrandRegistrationInfo = new RegistrationRouteInfo()
+            var registrationInfo = new RegistrationRouteInfo()
             {
                 IntegrationId = registrationEntity.IntegrationId,
                 BrandId = registrationEntity.BrandId,
@@ -73,6 +74,7 @@ namespace MarketingBox.Registration.Postgres.Extensions
                     LoginUrl = registrationEntity.CustomerLoginUrl,
                     Brand = registrationEntity.CustomerBrand,
                 },
+                AffiliateName = registrationEntity.AffiliateName
             };
 
             var leadAdditionalInfo = new RegistrationAdditionalInfo()
@@ -110,7 +112,7 @@ namespace MarketingBox.Registration.Postgres.Extensions
                 registrationEntity.TenantId, 
                 registrationEntity.Sequence, 
                 leadGeneralInfo,
-                leadBrandRegistrationInfo, 
+                registrationInfo, 
                 leadAdditionalInfo);
 
             return lead;

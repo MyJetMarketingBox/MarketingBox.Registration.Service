@@ -45,5 +45,6 @@ namespace MarketingBox.Registration.Postgres.Entities.Registration
         public DateTimeOffset? ConversionDate { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
         public long Sequence { get; set; }
+        public string AffiliateName { get; set; }
     }
 }

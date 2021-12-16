@@ -66,7 +66,7 @@ namespace MarketingBox.Registration.Service.Modules
 
             var tenantId = GetTenantId(request.AuthInfo.CampaignId);
             if (!IsAffiliateApiKeyValid(tenantId, request.AuthInfo.AffiliateId, 
-                request.AuthInfo.ApiKey))
+                request.AuthInfo.ApiKey, out var affiliateName))
             {
                 return await Task.FromResult<RegistrationCreateResponse>(
                     new RegistrationCreateResponse()
@@ -85,7 +85,7 @@ namespace MarketingBox.Registration.Service.Modules
                 var registrationId = await _repository.GenerateRegistrationIdAsync(tenantId,
                     request.GeneratorId());
 
-                Domain.Registrations.Registration registration = GetRegistration(request, null, tenantId, registrationId);
+                Domain.Registrations.Registration registration = GetRegistration(request, null, tenantId, registrationId, affiliateName);
                 RegistrationCreateResponse response = null;
                 var routes = await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
 
@@ -96,7 +96,7 @@ namespace MarketingBox.Registration.Service.Modules
 
                     if (route == null)
                     {
-                        await SaveAndPublishRegistration(request, GetRegistration(request, null, tenantId, registrationId));
+                        await SaveAndPublishRegistration(request, registration);
                         return RegisterFailedMapToGrpc(request.GeneralInfo);
                     }
                     
@@ -176,7 +176,8 @@ namespace MarketingBox.Registration.Service.Modules
             RegistrationCreateRequest request, 
             RouteParameters routeParameters, 
             string tenantId,
-            long registrationId)
+            long registrationId,
+            string affiliateName)
         {
             var leadBrandRegistrationInfo = new RegistrationRouteInfo()
             {
@@ -185,13 +186,15 @@ namespace MarketingBox.Registration.Service.Modules
                 Integration = routeParameters?.BrandName ?? string.Empty,
                 CampaignId = request.AuthInfo.CampaignId,
                 AffiliateId = request.AuthInfo.AffiliateId,
+                AffiliateName = affiliateName,
+                CrmStatus = Domain.Crm.CrmStatus.New,
                 Status = RegistrationStatus.Created,
                 CustomerInfo = new RegistrationCustomerInfo()
             };
-            var leadAdditionalInfo = new RegistrationAdditionalInfo()
+            var additionalInfo = new RegistrationAdditionalInfo()
             {
-                Funnel = request.AdditionalInfo.So,
-                AffCode = request.AdditionalInfo.Sub,
+                Funnel = request.AdditionalInfo.Funnel,
+                AffCode = request.AdditionalInfo.AffCode,
                 Sub1 = request.AdditionalInfo.Sub1,
                 Sub2 = request.AdditionalInfo.Sub2,
                 Sub3 = request.AdditionalInfo.Sub3,
@@ -204,7 +207,7 @@ namespace MarketingBox.Registration.Service.Modules
                 Sub10 = request.AdditionalInfo.Sub10,
             };
             var currentDate = DateTimeOffset.UtcNow;
-            var leadGeneralInfo = new Domain.Registrations.RegistrationGeneralInfo()
+            var generalInfo = new Domain.Registrations.RegistrationGeneralInfo()
             {
                 RegistrationUid = UniqueIdGenerator.GetNextId(),
                 RegistrationId = registrationId,
@@ -218,8 +221,8 @@ namespace MarketingBox.Registration.Service.Modules
                 CreatedAt = currentDate,
                 UpdatedAt = currentDate
             };
-            var registration = Domain.Registrations.Registration.Restore(tenantId, 0, leadGeneralInfo,
-                leadBrandRegistrationInfo, leadAdditionalInfo);
+            var registration = Domain.Registrations.Registration.Restore(tenantId, 0, generalInfo,
+                leadBrandRegistrationInfo, additionalInfo);
 
             return registration;
         }
@@ -240,13 +243,15 @@ namespace MarketingBox.Registration.Service.Modules
             return boxIndexNoSql?.TenantId;
         }
 
-        private bool IsAffiliateApiKeyValid(string tenantId, long affiliateId, string apiKey)
+        private bool IsAffiliateApiKeyValid(string tenantId, long affiliateId, string apiKey, out string affiliateName)
         {
             var partner =
                 _affiliateNoSqlServerDataReader.Get(AffiliateNoSql.GeneratePartitionKey(tenantId),
                     AffiliateNoSql.GenerateRowKey(affiliateId));
 
             var partnerApiKey = partner.GeneralInfo.ApiKey;
+            
+            affiliateName = partner.GeneralInfo.Username;
 
             return partnerApiKey.Equals(apiKey, StringComparison.OrdinalIgnoreCase);
         }

@@ -62,5 +62,12 @@ namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
 
         [DataMember(Order = 16)]
         public CrmStatus CrmStatus { get; set; }
+
+        [DataMember(Order = 17)]
+        [LogMasked(PreserveLength = true, ShowFirst = 2, ShowLast = 2)]
+        public string AffiliateName { get; set; }
+
+        [DataMember(Order = 18)]
+        public long AffiliateId { get; set; }
     }
 }
