@@ -19,6 +19,6 @@ namespace MarketingBox.Registration.Service.Client
 
         public IAffiliateAuthService GetAffiliateAuthServiceService() => CreateGrpcService<IAffiliateAuthService>();
         
-        public ICustomerService GetCustomerService() => CreateGrpcService<ICustomerService>();
+        public IRegistrationsByDateService GetCustomerService() => CreateGrpcService<IRegistrationsByDateService>();
     }
 }
