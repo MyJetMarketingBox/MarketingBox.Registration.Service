@@ -11,7 +11,6 @@ using MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations;
 using MarketingBox.Registration.Service.Messages.Registrations;
 using ErrorType = MarketingBox.Registration.Service.Grpc.Models.Common.ErrorType;
-using MarketingBox.Registration.Service.Domain.Registrations;
 
 namespace MarketingBox.Registration.Service.Modules
 {
@@ -60,7 +59,7 @@ namespace MarketingBox.Registration.Service.Modules
             try
             {
                 var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
-                registration.Approved(DateTimeOffset.UtcNow, request.Mode.MapEnum<Domain.Registrations.RegistrationApprovedType>());
+                registration.Approve(DateTimeOffset.UtcNow, request.Mode.MapEnum<Domain.Registrations.DepositUpdateMode>());
                 await _repository.SaveAsync(registration);
 
                 await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
@@ -75,6 +74,118 @@ namespace MarketingBox.Registration.Service.Modules
                 return new DepositResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
             }
         }
+
+
+        public async Task<DepositResponse> DeclineDepositAsync(DepositUpdateRequest request)
+        {
+            _logger.LogInformation("Declining a deposit {@context}", request);
+            try
+            {
+                var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
+                registration.Decline(request.Mode.MapEnum<Domain.Registrations.DepositUpdateMode>());
+                await _repository.SaveAsync(registration);
+
+                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
+                _logger.LogInformation("Sent deposit decline to service bus {@context}", request);
+
+                return MapToGrpc(registration);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error declining a deposit {@context}", request);
+
+                return new DepositResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
+        }
+
+        public async Task<DepositResponse> ApproveDeclinedDepositAsync(DepositUpdateRequest request)
+        {
+            _logger.LogInformation("Approving a declined deposit {@context}", request);
+            try
+            {
+                var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
+                registration.ApproveDeclined(DateTimeOffset.UtcNow);
+                await _repository.SaveAsync(registration);
+
+                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
+                _logger.LogInformation("Sent approving declined to service bus {@context}", request);
+
+                return MapToGrpc(registration);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error approving a declined deposit {@context}", request);
+
+                return new DepositResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
+        }
+
+        public async Task<DepositResponse> DeclineApprovedDepositAsync(DepositUpdateRequest request)
+        {
+            _logger.LogInformation("Declining an approved deposit {@context}", request);
+            try
+            {
+                var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
+                registration.DeclineApproved();
+                await _repository.SaveAsync(registration);
+
+                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
+                _logger.LogInformation("Sent declining approved to service bus {@context}", request);
+
+                return MapToGrpc(registration);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error declining an approved deposit {@context}", request);
+
+                return new DepositResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
+        }
+
+        public async Task<DepositResponse> ApproveRegisteredDepositAsync(DepositUpdateRequest request)
+        {
+            _logger.LogInformation("Approving a registered deposit {@context}", request);
+            try
+            {
+                var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
+                registration.ApproveRegistered(DateTimeOffset.UtcNow);
+                await _repository.SaveAsync(registration);
+
+                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
+                _logger.LogInformation("Sent approving registered to service bus {@context}", request);
+
+                return MapToGrpc(registration);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error approving a registered deposit {@context}", request);
+
+                return new DepositResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
+        }
+
+        public async Task<DepositResponse> RegisterApprovedDepositAsync(DepositUpdateRequest request)
+        {
+            _logger.LogInformation("Registering an approved deposit {@context}", request);
+            try
+            {
+                var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
+                registration.RegisterApproved();
+                await _repository.SaveAsync(registration);
+
+                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
+                _logger.LogInformation("Sent registering approved to service bus {@context}", request);
+
+                return MapToGrpc(registration);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error registering an approved deposit {@context}", request);
+
+                return new DepositResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+            }
+        }
+
 
         private static DepositResponse MapToGrpc(Domain.Registrations.Registration registration)
         {

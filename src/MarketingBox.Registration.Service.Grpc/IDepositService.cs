@@ -12,5 +12,20 @@ namespace MarketingBox.Registration.Service.Grpc
 
         [OperationContract]
         Task<DepositResponse> ApproveDepositAsync(DepositApproveRequest request);
+
+        [OperationContract]
+        Task<DepositResponse> DeclineDepositAsync(DepositUpdateRequest request);
+
+        [OperationContract]
+        Task<DepositResponse> ApproveDeclinedDepositAsync(DepositUpdateRequest request);
+
+        [OperationContract]
+        Task<DepositResponse> DeclineApprovedDepositAsync(DepositUpdateRequest request);
+
+        [OperationContract]
+        Task<DepositResponse> ApproveRegisteredDepositAsync(DepositUpdateRequest request);
+
+        [OperationContract]
+        Task<DepositResponse> RegisterApprovedDepositAsync(DepositUpdateRequest request);
     }
 }

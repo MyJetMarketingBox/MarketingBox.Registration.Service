@@ -58,12 +58,48 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
             RouteInfo.DepositDate = depositDate;
         }
 
-        public void Approved(DateTimeOffset depositDate, RegistrationApprovedType type)
+        public void Approve(DateTimeOffset depositDate, DepositUpdateMode type)
         {
             ChangeStatus(RegistrationStatus.Deposited, RegistrationStatus.Approved);
             RouteInfo.ApprovedType = type;
             RouteInfo.ConversionDate = depositDate;
         }
+
+        public void Decline(DepositUpdateMode type)
+        {
+            ChangeStatus(RegistrationStatus.Deposited, RegistrationStatus.Declined);
+            RouteInfo.ApprovedType = type;
+            RouteInfo.ConversionDate = null;
+        }
+
+        public void ApproveDeclined(DateTimeOffset depositDate)
+        {
+            ChangeStatus(RegistrationStatus.Declined, RegistrationStatus.Approved);
+            RouteInfo.ApprovedType = DepositUpdateMode.Manually; 
+            RouteInfo.ConversionDate = depositDate;
+        }
+
+        public void DeclineApproved()
+        {
+            ChangeStatus(RegistrationStatus.Approved, RegistrationStatus.Declined);
+            RouteInfo.ApprovedType = DepositUpdateMode.Manually;
+            RouteInfo.ConversionDate = null;
+        }
+
+        public void ApproveRegistered(DateTimeOffset depositDate)
+        {
+            ChangeStatus(RegistrationStatus.Registered, RegistrationStatus.Approved);
+            RouteInfo.ApprovedType = DepositUpdateMode.Manually;
+            RouteInfo.ConversionDate = depositDate;
+        }
+
+        public void RegisterApproved()
+        {
+            ChangeStatus(RegistrationStatus.Approved, RegistrationStatus.Registered);
+            RouteInfo.ApprovedType = DepositUpdateMode.Manually;
+            RouteInfo.ConversionDate = null;
+        }
+
 
         public static Registration Restore(string tenantId, long sequence, RegistrationGeneralInfo registrationGeneralInfo,
             RegistrationRouteInfo routeInfo, RegistrationAdditionalInfo additionalInfo)

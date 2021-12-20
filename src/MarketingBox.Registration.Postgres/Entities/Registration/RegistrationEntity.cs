@@ -22,7 +22,7 @@ namespace MarketingBox.Registration.Postgres.Entities.Registration
         public string Integration { get; set; }
         public long IntegrationId { get; set; }
         public RegistrationStatus Status { get; set; }
-        public RegistrationApprovedType ApprovedType { get; set; }
+        public DepositUpdateMode ApprovedType { get; set; }
         public string Funnel { get; set; }
         public string AffCode { get; set; }
         public string Sub1 { get; set; }
