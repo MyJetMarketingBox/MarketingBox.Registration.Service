@@ -187,7 +187,7 @@ namespace MarketingBox.Registration.Service.Modules
                 CampaignId = request.AuthInfo.CampaignId,
                 AffiliateId = request.AuthInfo.AffiliateId,
                 AffiliateName = affiliateName,
-                CrmStatus = Domain.Crm.CrmStatus.New,
+                CrmStatus = Domain.Crm.CrmStatus.Unknown,
                 Status = RegistrationStatus.Created,
                 CustomerInfo = new RegistrationCustomerInfo()
             };

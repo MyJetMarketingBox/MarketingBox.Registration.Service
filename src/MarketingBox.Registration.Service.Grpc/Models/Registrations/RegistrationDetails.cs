@@ -28,7 +28,7 @@ namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
         [DataMember(Order = 18)] public string Integration { get; set; }
         [DataMember(Order = 19)] public long IntegrationId { get; set; }
         [DataMember(Order = 20)] public RegistrationStatus Status { get; set; }
-        [DataMember(Order = 21)] public DepositUpdateMode ApprovedType { get; set; }
+        [DataMember(Order = 21)] public DepositUpdateMode ApprovedType { get; set; } //TODO Rename
         [DataMember(Order = 22)] public string Funnel { get; set; }
         [DataMember(Order = 23)] public string AffCode { get; set; }
         [DataMember(Order = 24)] public string Sub1 { get; set; }

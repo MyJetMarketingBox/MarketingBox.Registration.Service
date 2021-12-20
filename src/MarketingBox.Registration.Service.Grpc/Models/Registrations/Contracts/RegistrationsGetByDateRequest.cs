@@ -17,7 +17,7 @@ namespace MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts
     public enum RegistrationType
     {
         [DataMember(Order = 1)] Registrations,
-        [DataMember(Order = 2)] QFTDepositors,
+        [DataMember(Order = 2)] QFTDepositors,  //TODO Rename
         [DataMember(Order = 3)] All
     }
 }
