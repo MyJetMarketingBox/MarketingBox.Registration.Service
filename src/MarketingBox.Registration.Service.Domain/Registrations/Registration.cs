@@ -58,9 +58,10 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
             RouteInfo.DepositDate = depositDate;
         }
 
-        public void Approved(DateTimeOffset depositDate)
+        public void Approved(DateTimeOffset depositDate, RegistrationApprovedType type)
         {
             ChangeStatus(RegistrationStatus.Deposited, RegistrationStatus.Approved);
+            RouteInfo.ApprovedType = type;
             RouteInfo.ConversionDate = depositDate;
         }
 

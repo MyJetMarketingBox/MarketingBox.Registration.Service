@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
+using MyJetWallet.Sdk.ServiceBus;
 using MarketingBox.Registration.Service.Domain.Extensions;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Extensions;
@@ -9,9 +10,8 @@ using MarketingBox.Registration.Service.Grpc.Models.Common;
 using MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations;
 using MarketingBox.Registration.Service.Messages.Registrations;
-using MyJetWallet.Sdk.ServiceBus;
-using MyNoSqlServer.Abstractions;
 using ErrorType = MarketingBox.Registration.Service.Grpc.Models.Common.ErrorType;
+using MarketingBox.Registration.Service.Domain.Registrations;
 
 namespace MarketingBox.Registration.Service.Modules
 {
@@ -60,8 +60,7 @@ namespace MarketingBox.Registration.Service.Modules
             try
             {
                 var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
-                registration.Approved(DateTimeOffset.UtcNow);
-
+                registration.Approved(DateTimeOffset.UtcNow, request.Mode.MapEnum<RegistrationApprovedType>());
                 await _repository.SaveAsync(registration);
 
                 await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
@@ -94,7 +93,7 @@ namespace MarketingBox.Registration.Service.Modules
                     RegistrationId = registration.RegistrationInfo.RegistrationId,
                     UniqueId = registration.RegistrationInfo.RegistrationUid,
                     CrmStatus = registration.RouteInfo.CrmStatus,
-                    Status = registration.RouteInfo.Status.MapEnum<RegistrationStatus>(),
+                    Status = registration.RouteInfo.Status.MapEnum<MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationStatus>(),
                     Country = registration.RegistrationInfo.Country,
                     ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
                     DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
