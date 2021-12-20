@@ -31,7 +31,7 @@ namespace MarketingBox.Registration.Postgres.Extensions
                 Integration = registration.RouteInfo.Integration,
                 BrandId = registration.RouteInfo.BrandId,
                 IntegrationId = registration.RouteInfo.IntegrationId,
-                ApprovedType = registration.RouteInfo.ApprovedType,
+                ApprovedType = registration.RouteInfo.UpdateMode,
                 CustomerId = registration.RouteInfo.CustomerInfo?.CustomerId,
                 CustomerLoginUrl = registration.RouteInfo.CustomerInfo?.LoginUrl,
                 CustomerToken = registration.RouteInfo.CustomerInfo?.Token,
@@ -66,7 +66,7 @@ namespace MarketingBox.Registration.Postgres.Extensions
                 DepositDate = registrationEntity.DepositDate,
                 Status = registrationEntity.Status,
                 CrmStatus = registrationEntity.CrmStatus,
-                ApprovedType = registrationEntity.ApprovedType,
+                UpdateMode = registrationEntity.ApprovedType,
                 CustomerInfo = new RegistrationCustomerInfo()
                 {
                     CustomerId = registrationEntity.CustomerId,

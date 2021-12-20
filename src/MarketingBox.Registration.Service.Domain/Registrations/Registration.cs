@@ -61,42 +61,42 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
         public void Approve(DateTimeOffset depositDate, DepositUpdateMode type)
         {
             ChangeStatus(RegistrationStatus.Deposited, RegistrationStatus.Approved);
-            RouteInfo.ApprovedType = type;
+            RouteInfo.UpdateMode = type;
             RouteInfo.ConversionDate = depositDate;
         }
 
         public void Decline(DepositUpdateMode type)
         {
             ChangeStatus(RegistrationStatus.Deposited, RegistrationStatus.Declined);
-            RouteInfo.ApprovedType = type;
+            RouteInfo.UpdateMode = type;
             RouteInfo.ConversionDate = null;
         }
 
         public void ApproveDeclined(DateTimeOffset depositDate)
         {
             ChangeStatus(RegistrationStatus.Declined, RegistrationStatus.Approved);
-            RouteInfo.ApprovedType = DepositUpdateMode.Manually; 
+            RouteInfo.UpdateMode = DepositUpdateMode.Manually; 
             RouteInfo.ConversionDate = depositDate;
         }
 
         public void DeclineApproved()
         {
             ChangeStatus(RegistrationStatus.Approved, RegistrationStatus.Declined);
-            RouteInfo.ApprovedType = DepositUpdateMode.Manually;
+            RouteInfo.UpdateMode = DepositUpdateMode.Manually;
             RouteInfo.ConversionDate = null;
         }
 
         public void ApproveRegistered(DateTimeOffset depositDate)
         {
             ChangeStatus(RegistrationStatus.Registered, RegistrationStatus.Approved);
-            RouteInfo.ApprovedType = DepositUpdateMode.Manually;
+            RouteInfo.UpdateMode = DepositUpdateMode.Manually;
             RouteInfo.ConversionDate = depositDate;
         }
 
         public void RegisterApproved()
         {
             ChangeStatus(RegistrationStatus.Approved, RegistrationStatus.Registered);
-            RouteInfo.ApprovedType = DepositUpdateMode.Manually;
+            RouteInfo.UpdateMode = DepositUpdateMode.Manually;
             RouteInfo.ConversionDate = null;
         }
 

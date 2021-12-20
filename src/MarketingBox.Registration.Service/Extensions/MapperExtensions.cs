@@ -1,6 +1,7 @@
 using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integration;
 using MarketingBox.Registration.Service.Domain.Crm;
 using MarketingBox.Registration.Service.Domain.Extensions;
+using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
 using MarketingBox.Registration.Service.Messages.Registrations;
 using System;
@@ -109,14 +110,14 @@ namespace MarketingBox.Registration.Service.Extensions
                     ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
                     DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
                     CrmStatus = registration.RouteInfo.CrmStatus,
-                    Status = registration.RouteInfo.Status.MapEnum<Messages.Common.LeadStatus>(),
+                    Status = registration.RouteInfo.Status.MapEnum<RegistrationStatus>(),
                     CustomerInfo = new RegistrationCustomerInfo()
                     {
                         CustomerId = registration.RouteInfo?.CustomerInfo?.CustomerId,
                         LoginUrl = registration.RouteInfo?.CustomerInfo?.LoginUrl,
                         Token = registration.RouteInfo?.CustomerInfo?.Token,
                     },
-                    ApprovedType = registration.RouteInfo.ApprovedType.MapEnum<Messages.Common.LeadApprovedType>(),
+                    UpdateMode = registration.RouteInfo.UpdateMode.MapEnum<DepositUpdateMode>(),
                     AffiliateName = registration.RouteInfo.AffiliateName
                 },
             };

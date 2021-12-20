@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 using MarketingBox.Registration.Service.Domain.Crm;
+using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.Messages.Common;
 
 namespace MarketingBox.Registration.Service.Messages.Registrations
@@ -24,7 +25,7 @@ namespace MarketingBox.Registration.Service.Messages.Registrations
         public long IntegrationId { get; set; }
 
         [DataMember(Order = 6)]
-        public LeadStatus Status { get; set; }
+        public RegistrationStatus Status { get; set; }
 
         [DataMember(Order = 7)]
         [ObsoleteAttribute("This property is obsolete. Use CrmStatus instead.", true)]
@@ -40,7 +41,7 @@ namespace MarketingBox.Registration.Service.Messages.Registrations
         public RegistrationCustomerInfo CustomerInfo { get; set; }
 
         [DataMember(Order = 11)]
-        public LeadApprovedType ApprovedType { get; set; }
+        public DepositUpdateMode UpdateMode { get; set; }
 
         [DataMember(Order = 12)]
         public CrmStatus CrmStatus { get; set; }
