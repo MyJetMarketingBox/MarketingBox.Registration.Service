@@ -60,7 +60,7 @@ namespace MarketingBox.Registration.Service.Modules
             try
             {
                 var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
-                registration.Approved(DateTimeOffset.UtcNow, request.Mode.MapEnum<RegistrationApprovedType>());
+                registration.Approved(DateTimeOffset.UtcNow, request.Mode.MapEnum<Domain.Registrations.RegistrationApprovedType>());
                 await _repository.SaveAsync(registration);
 
                 await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());

@@ -14,6 +14,6 @@ namespace MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts
         public long RegistrationId { get; set; }
 
         [DataMember(Order = 3)]
-        public ApproveMode Mode { get; set; }
+        public RegistrationApprovedType Mode { get; set; }
     }
 }
