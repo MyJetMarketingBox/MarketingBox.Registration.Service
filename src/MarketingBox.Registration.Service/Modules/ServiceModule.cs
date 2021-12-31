@@ -8,8 +8,7 @@ using MarketingBox.Integration.Service.Client;
 using MarketingBox.Registration.Service.Messages;
 using MarketingBox.Registration.Service.Messages.Registrations;
 using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
-using MarketingBox.Registration.Service.MyNoSql.Registrations;
-using MarketingBox.Registration.Service.Services;
+using MarketingBox.Registration.Service.Modules;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
@@ -69,9 +68,6 @@ namespace MarketingBox.Registration.Service.Modules
             // publisher (IServiceBusPublisher<RegistrationUpdateMessage>)
             builder.RegisterMyServiceBusPublisher<RegistrationUpdateMessage>(serviceBusClient, Topics.RegistrationUpdateTopic, false);
 
-            // register writer (IMyNoSqlServerDataWriter<RegistrationNoSqlEntity>)
-            builder.RegisterMyNoSqlWriter<RegistrationNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), RegistrationNoSqlEntity.TableName);
-
             // register writer (IMyNoSqlServerDataWriter<RegistrationRouterNoSqlEntity>)
             builder.RegisterMyNoSqlWriter<RegistrationRouterNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), RegistrationRouterNoSqlEntity.TableName);
 
@@ -80,7 +76,7 @@ namespace MarketingBox.Registration.Service.Modules
 
             #endregion
 
-            builder.RegisterType<RegistrationRouter>().As<RegistrationRouter>().SingleInstance();
+            builder.RegisterType<RegistrationRouterService>().As<RegistrationRouterService>().SingleInstance();
         }
     }
 }

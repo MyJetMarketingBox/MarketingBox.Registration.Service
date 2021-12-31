@@ -48,9 +48,9 @@ namespace MarketingBox.Registration.Postgres
             modelBuilder.Entity<RegistrationEntity>().ToTable(RegistrationTableName);
             modelBuilder.Entity<RegistrationEntity>().HasKey(e => e.Id);
             modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new {e.TenantId, e.Id});
-            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new { e.CreatedAt, e.RouteInfoBrandId, });
-            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new { e.RouteInfoDepositDate, e.RouteInfoBrandId, });
-            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new { e.RouteInfoStatus });
+            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new { e.CreatedAt, e.BrandId, });
+            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new { e.DepositDate, e.BrandId, });
+            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new { e.Status });
 
             modelBuilder.Entity<RegistrationIdGeneratorEntity>().ToTable(RegistrationIdGeneratorTableName);
             modelBuilder.Entity<RegistrationIdGeneratorEntity>().HasKey(e => new { e.TenantId, e.GeneratorId });

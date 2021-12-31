@@ -11,9 +11,9 @@ using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
 using Microsoft.Extensions.Logging;
 
-namespace MarketingBox.Registration.Service.Services
+namespace MarketingBox.Registration.Service.Modules
 {
-    public class RegistrationRouter
+    public class RegistrationRouterService
     {
         private readonly IMyNoSqlServerDataReader<CampaignRowNoSql> _campaignRowNoSqlServerDataReader;
         private readonly IRegistrationRepository _registrationRepository;
@@ -21,17 +21,17 @@ namespace MarketingBox.Registration.Service.Services
         private readonly IMyNoSqlServerDataWriter<RegistrationRouterNoSqlEntity> _dataWriter;
         private readonly IMyNoSqlServerDataReader<RegistrationRouterCapacitorBoxNoSqlEntity> _capacitorReader;
         private readonly IMyNoSqlServerDataWriter<RegistrationRouterCapacitorBoxNoSqlEntity> _capacitorWriter;
-        private readonly ILogger<RegistrationRouter> _logger;
+        private readonly ILogger<RegistrationRouterService> _logger;
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
-        public RegistrationRouter(
+        public RegistrationRouterService(
             IMyNoSqlServerDataReader<CampaignRowNoSql> campaignRowNoSqlServerDataReader,
             IRegistrationRepository registrationRepository,
             IMyNoSqlServerDataReader<RegistrationRouterNoSqlEntity> dataReader,
             IMyNoSqlServerDataWriter<RegistrationRouterNoSqlEntity> dataWriter,
             IMyNoSqlServerDataReader<RegistrationRouterCapacitorBoxNoSqlEntity> capacitorReader,
             IMyNoSqlServerDataWriter<RegistrationRouterCapacitorBoxNoSqlEntity> capacitorWriter,
-            ILogger<RegistrationRouter> logger)
+            ILogger<RegistrationRouterService> logger)
         {
             _campaignRowNoSqlServerDataReader = campaignRowNoSqlServerDataReader;
             _registrationRepository = registrationRepository;
@@ -42,7 +42,7 @@ namespace MarketingBox.Registration.Service.Services
             _logger = logger;
         }
 
-        public async Task<CampaignRowNoSql> GetCampaignBox(string tenantId, long campaignId, string country)
+        public async Task<List<CampaignRowNoSql>> GetSuitableRoutes(long campaignId, string country)
         {
             var date = DateTime.UtcNow;
             var campaignBoxes = _campaignRowNoSqlServerDataReader.Get(CampaignRowNoSql.GeneratePartitionKey(campaignId));
@@ -102,12 +102,17 @@ namespace MarketingBox.Registration.Service.Services
                 return null;
 
             _logger.LogInformation("select From campaigns {@context}", new { CampaignsCount = filtered.Count });
+            return filtered;
+        }
 
+
+        public async Task<CampaignRowNoSql> GetCampaignBox(string tenantId, long campaignId, string country, 
+            List<CampaignRowNoSql> filtered)
+        {
             await _semaphore.WaitAsync();
 
             try
             {
-
                 var leadRouter = _dataReader.Get(RegistrationRouterNoSqlEntity.GeneratePartitionKey(tenantId),
                     RegistrationRouterNoSqlEntity.GenerateRowKey(campaignId));
 
@@ -121,7 +126,8 @@ namespace MarketingBox.Registration.Service.Services
                 if (capacitors == null || !capacitors.Any())
                 {
                     saveAll = true;
-                    countDict = filtered.ToDictionary(x => x.CampaignRowId, y => RegistrationRouterCapacitorBoxNoSqlEntity.Create(new RegistrationRouteCapacitorNoSqlInfo()
+                    countDict = filtered.ToDictionary(x => x.CampaignRowId, 
+                        y => RegistrationRouterCapacitorBoxNoSqlEntity.Create(new RegistrationRouteCapacitorNoSqlInfo()
                     {
                         CampaignId = campaignId,
                         CampaignRowId = y.CampaignRowId,
@@ -149,15 +155,24 @@ namespace MarketingBox.Registration.Service.Services
                         var campaigns = ordered[priority]
                             .OrderByDescending(x => x.Weight)
                             .ToArray();
-
                         var length = campaigns.Length;
-
                         do
                         {
                             var index = registrationsRoutedCount % length;
 
                             var campaign = campaigns[index];
-                            var capacitor = countDict[campaign.CampaignRowId];
+                            if (!countDict.TryGetValue(campaign.CampaignRowId, out var capacitor))
+                            {
+                                capacitor = RegistrationRouterCapacitorBoxNoSqlEntity.Create(
+                                    new RegistrationRouteCapacitorNoSqlInfo()
+                                    {
+                                        CampaignId = campaignId,
+                                        CampaignRowId = campaign.CampaignRowId,
+                                        ProcessedRegistration = 0
+                                    });
+                                await _capacitorWriter.InsertOrReplaceAsync(capacitor);
+                            }
+
                             if (capacitor.NoSqlInfo.ProcessedRegistration == campaign.Weight)
                             {
                                 length--;

@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Runtime.Serialization;
 
 namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
 {
@@ -6,8 +7,10 @@ namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
     public class RegistrationAdditionalInfo
     {
         [DataMember(Order = 1)]
+        [ObsoleteAttribute("This property is obsolete. Use Funnel instead.", false)]
         public string So { get; set; }
 
+        [ObsoleteAttribute("This property is obsolete. Use AffCode instead.", false)]
         [DataMember(Order = 2)]
         public string Sub { get; set; }
 
@@ -40,5 +43,11 @@ namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
 
         [DataMember(Order = 12)]
         public string Sub10 { get; set; }
+
+        [DataMember(Order = 13)]
+        public string Funnel { get; set; }
+        
+        [DataMember(Order = 14)]
+        public string AffCode { get; set; }
     }
 }

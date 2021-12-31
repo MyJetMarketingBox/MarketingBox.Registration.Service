@@ -3,21 +3,16 @@ using Autofac;
 using MarketingBox.Registration.Postgres;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Modules;
-using MarketingBox.Registration.Service.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MyJetWallet.Sdk.GrpcMetrics;
 using MyJetWallet.Sdk.GrpcSchema;
 using MyJetWallet.Sdk.Postgres;
 using MyJetWallet.Sdk.Service;
 using Prometheus;
-using ProtoBuf.Grpc.Server;
-using SimpleTrading.BaseMetrics;
 using SimpleTrading.ServiceStatusReporterConnector;
-using SimpleTrading.Telemetry;
 
 namespace MarketingBox.Registration.Service
 {
@@ -55,9 +50,8 @@ namespace MarketingBox.Registration.Service
             {
                 endpoints.MapGrpcSchema<RegistrationService, IRegistrationService>();
                 endpoints.MapGrpcSchema<DepositService, IDepositService>();
-                
-                endpoints.MapGrpcSchema<CustomerService, ICustomerService>();
-                
+                endpoints.MapGrpcSchema<CrmService, ICrmService>();
+                endpoints.MapGrpcSchema<RegistrationsByDateService, IRegistrationsByDateService>();
                 endpoints.MapGrpcSchemaRegistry();
 
                 endpoints.MapGet("/", async context =>
