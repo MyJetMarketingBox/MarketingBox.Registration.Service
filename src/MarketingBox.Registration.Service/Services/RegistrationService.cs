@@ -74,7 +74,7 @@ namespace MarketingBox.Registration.Service.Modules
                     Status = ResultCode.RequiredAuthentication,
                     Error = new Error()
                     {
-                        Message = $"Require '{request.AuthInfo.AffiliateId}' authentication",
+                        Message = $"Required authentication for affiliate '{request.AuthInfo.AffiliateId}'",
                         Type = ErrorType.InvalidAffiliateInfo
                     }
                 });
@@ -248,6 +248,12 @@ namespace MarketingBox.Registration.Service.Modules
             var partner =
                 _affiliateNoSqlServerDataReader.Get(AffiliateNoSql.GeneratePartitionKey(tenantId),
                     AffiliateNoSql.GenerateRowKey(affiliateId));
+
+            if(partner == null)
+            {
+                affiliateName = string.Empty;
+                return false;
+            }
 
             var partnerApiKey = partner.GeneralInfo.ApiKey;
             
