@@ -65,6 +65,21 @@ namespace MarketingBox.Registration.Service.Modules
             _logger.LogInformation("Creating new Registration {@context}", request);
 
             var tenantId = GetTenantId(request.AuthInfo.CampaignId);
+            
+            if (tenantId == null)
+            {
+                return await Task.FromResult<RegistrationCreateResponse>(
+                    new RegistrationCreateResponse()
+                    {
+                        Status = ResultCode.RequiredAuthentication,
+                        Error = new Error()
+                        {
+                            Message = $"Incorrect OfferId '{request.AuthInfo.CampaignId}'",
+                            Type = ErrorType.InvalidAffiliateInfo
+                        }
+                    });
+            }
+
             if (!IsAffiliateApiKeyValid(tenantId, request.AuthInfo.AffiliateId, 
                 request.AuthInfo.ApiKey, out var affiliateName))
             {
