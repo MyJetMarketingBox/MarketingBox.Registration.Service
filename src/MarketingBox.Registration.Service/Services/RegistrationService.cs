@@ -74,7 +74,7 @@ namespace MarketingBox.Registration.Service.Modules
                         Status = ResultCode.RequiredAuthentication,
                         Error = new Error()
                         {
-                            Message = $"Incorrect OfferId '{request.AuthInfo.CampaignId}'",
+                            Message = $"Incorrect offerid '{request.AuthInfo.CampaignId}'",
                             Type = ErrorType.InvalidAffiliateInfo
                         }
                     });
@@ -104,7 +104,20 @@ namespace MarketingBox.Registration.Service.Modules
                 RegistrationCreateResponse response = null;
                 var routes = await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
 
-                while(routes.Count > 0)
+                if (routes == null)
+                {
+                    return new RegistrationCreateResponse()
+                    {
+                        Error = new Error()
+                        {
+                            Message = $"Country '{request.GeneralInfo.Country}' " +
+                                $"disabled for offerid {request.AuthInfo.CampaignId}",
+                            Type = ErrorType.InvalidCountry
+                        }
+                    };
+                }
+
+                while (routes.Count > 0)
                 {
                     var route = await TryGetSpecificRoute(request.AuthInfo.CampaignId,
                         request.GeneralInfo.Country, routes);
