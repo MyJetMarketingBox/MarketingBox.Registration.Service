@@ -144,7 +144,10 @@ namespace MarketingBox.Registration.Service.Modules
                         break;
                     }
 
-                    if (response?.Error?.Type == ErrorType.InvalidPersonalData)
+                    if (response?.Error?.Type == ErrorType.InvalidPersonalData
+                        || response?.Error?.Type == ErrorType.AlreadyExist
+                        || response?.Error?.Type == ErrorType.InvalidCountry
+                        || response?.Error?.Type == ErrorType.InvalidParameter)
                     {
                         continue;
                     }
@@ -215,7 +218,7 @@ namespace MarketingBox.Registration.Service.Modules
                 CampaignId = request.AuthInfo.CampaignId,
                 AffiliateId = request.AuthInfo.AffiliateId,
                 AffiliateName = affiliateName,
-                CrmStatus = Domain.Crm.CrmStatus.Unknown,
+                CrmStatus = Domain.Crm.CrmStatus.New,
                 Status = RegistrationStatus.Created,
                 CustomerInfo = new RegistrationCustomerInfo()
             };
