@@ -104,6 +104,16 @@ namespace MarketingBox.Registration.Service.Modules
                 RegistrationCreateResponse response = null;
                 var routes = await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
 
+                if (!routes.Any())
+                {
+                    await _repository.SaveAsync(registration);
+                    return FailedMapToGrpc(new Error()
+                    {
+                        Message = "Can't register on brand",
+                        Type = ErrorType.Unknown
+                    }, request.GeneralInfo);
+                }
+
                 while(routes.Count > 0)
                 {
                     var route = await TryGetSpecificRoute(request.AuthInfo.CampaignId,
@@ -196,8 +206,8 @@ namespace MarketingBox.Registration.Service.Modules
         {
             var leadBrandRegistrationInfo = new RegistrationRouteInfo()
             {
-                IntegrationId = routeParameters?.IntegrationId ?? 0,
-                BrandId = routeParameters?.BrandId ?? 0,
+                IntegrationId = routeParameters?.IntegrationId,
+                BrandId = routeParameters?.BrandId,
                 Integration = routeParameters?.BrandName ?? string.Empty,
                 CampaignId = request.AuthInfo.CampaignId,
                 AffiliateId = request.AuthInfo.AffiliateId,

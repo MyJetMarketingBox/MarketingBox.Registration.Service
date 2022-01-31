@@ -32,7 +32,7 @@ namespace MarketingBox.Registration.Service.Extensions
                 RegistrationId = registration.RegistrationInfo.RegistrationId,
                 RegistrationUniqueId = registration.RegistrationInfo.RegistrationUid,
                 IntegrationName = registration.RouteInfo.Integration,
-                IntegrationId = registration.RouteInfo.IntegrationId,
+                IntegrationId = registration.RouteInfo.IntegrationId ?? default,
                 AffiliateId = registration.RouteInfo.AffiliateId,
                 Info = new Integration.Service.Grpc.Models.Registrations.RegistrationInfo()
                 {
@@ -105,8 +105,8 @@ namespace MarketingBox.Registration.Service.Extensions
                     AffiliateId = registration.RouteInfo.AffiliateId,
                     CampaignId = registration.RouteInfo.CampaignId,
                     Integration = registration.RouteInfo.Integration,
-                    BrandId = registration.RouteInfo.BrandId,
-                    IntegrationId = registration.RouteInfo.IntegrationId,
+                    BrandId = registration.RouteInfo.BrandId ?? default,
+                    IntegrationId = registration.RouteInfo.IntegrationId ?? default,
                     ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
                     DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
                     CrmStatus = registration.RouteInfo.CrmStatus,

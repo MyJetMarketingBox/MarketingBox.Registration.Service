@@ -79,23 +79,33 @@ namespace MarketingBox.Registration.Postgres.Repositories
             return existingLeadEntity.RestoreRegistration();
         }
 
-        public async Task<int> GetCountForRegistrations(DateTime date, long brandId, RegistrationStatus registrationStatus)
+        public async Task<int> GetCountForRegistrations(
+            DateTime date,
+            long brandId,
+            long campaignId,
+            RegistrationStatus registrationStatus)
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-            var nextDate = date.AddDays(1);
+            var nextDate = date.AddDays(1).Date;
             var count = await ctx.Registrations.Where(x => x.Status == registrationStatus &&
                                                    x.BrandId == brandId &&
-                                                   x.CreatedAt >= date && x.CreatedAt < nextDate).CountAsync();
+                                                   x.CampaignId == campaignId &&
+                                                   x.CreatedAt >= date.Date && x.CreatedAt < nextDate).CountAsync();
 
             return count;
         }
 
-        public async Task<int> GetCountForDeposits(DateTime date, long brandId, RegistrationStatus registrationStatus)
+        public async Task<int> GetCountForDeposits(
+            DateTime date,
+            long brandId,
+            long campaignId,
+            RegistrationStatus registrationStatus)
         {
             using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-            var nextDate = date.AddDays(1);
+            var nextDate = date.AddDays(1).Date;
             var count = await ctx.Registrations.Where(x => x.Status == registrationStatus &&
                                                    x.BrandId == brandId &&
+                                                   x.CampaignId == campaignId &&
                                                    x.DepositDate != null && 
                                                    x.DepositDate.Value >= date && x.DepositDate.Value < nextDate).CountAsync();
 

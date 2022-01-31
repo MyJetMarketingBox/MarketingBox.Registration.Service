@@ -17,10 +17,10 @@ namespace MarketingBox.Registration.Postgres.Entities.Registration
         public string Ip { get; set; }
         public string Country { get; set; }
         public long AffiliateId { get; set; }
-        public long BrandId { get; set; }
+        public long? BrandId { get; set; }
         public long CampaignId { get; set; }
         public string Integration { get; set; }
-        public long IntegrationId { get; set; }
+        public long? IntegrationId { get; set; }
         public RegistrationStatus Status { get; set; }
         public DepositUpdateMode ApprovedType { get; set; }
         public string Funnel { get; set; }

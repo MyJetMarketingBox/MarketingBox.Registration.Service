@@ -81,13 +81,19 @@ namespace MarketingBox.Registration.Service.Modules
                 long currentCap = 0;
                 if (currentCampaign.CapType == CapType.Lead)
                 {
-                    currentCap = await _registrationRepository.GetCountForRegistrations(date,
-                        currentCampaign.CampaignId, RegistrationStatus.Registered);
+                    currentCap = await _registrationRepository.GetCountForRegistrations(
+                        date,
+                        currentCampaign.BrandId,
+                        currentCampaign.CampaignId,
+                        RegistrationStatus.Registered);
                 }
                 else if (currentCampaign.CapType == CapType.Ftds)
                 {
-                    currentCap = await _registrationRepository.GetCountForDeposits(date,
-                        currentCampaign.CampaignId, RegistrationStatus.Approved);
+                    currentCap = await _registrationRepository.GetCountForDeposits(
+                        date,
+                        currentCampaign.BrandId,
+                        currentCampaign.CampaignId, 
+                        RegistrationStatus.Approved);
                 }
 
                 if (currentCampaign.DailyCapValue <= currentCap)
@@ -97,9 +103,6 @@ namespace MarketingBox.Registration.Service.Modules
 
                 filtered.Add(currentCampaign);
             }
-
-            if (!filtered.Any())
-                return null;
 
             _logger.LogInformation("select From campaigns {@context}", new { CampaignsCount = filtered.Count });
             return filtered;
