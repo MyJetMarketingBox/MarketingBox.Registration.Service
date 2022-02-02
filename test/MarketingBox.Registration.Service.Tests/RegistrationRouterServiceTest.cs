@@ -242,7 +242,7 @@ namespace MarketingBox.Registration.Service.Tests
         /// Test that all campaigns pass by filters.
         /// </summary>
         [Test]
-        public async Task GetSuitableRoutesAllCampaignPassTest()
+        public async Task GetSuitableRoutesAllCampaignsPassTest()
         {
             var routes = await _leadRouter.GetSuitableRoutes(BoxId, CountryCode);
 
@@ -303,6 +303,9 @@ namespace MarketingBox.Registration.Service.Tests
             CollectionAssert.IsNotEmpty(routes);
             Assert.That(routes, Has.Exactly(2).Items);
             CollectionAssert.DoesNotContain(routes, _campaignBoxNoSql1);
+
+            _autoMocker.Verify();
+            NoOtherCalls();
         }
 
         /// <summary>
