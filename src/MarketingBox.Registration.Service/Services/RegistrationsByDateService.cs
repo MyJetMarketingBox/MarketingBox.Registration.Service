@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
 using Newtonsoft.Json;
 
-namespace MarketingBox.Registration.Service.Modules
+namespace MarketingBox.Registration.Service.Services
 {
     public class RegistrationsByDateService : IRegistrationsByDateService
     {

@@ -8,7 +8,7 @@ using MarketingBox.Integration.Service.Client;
 using MarketingBox.Registration.Service.Messages;
 using MarketingBox.Registration.Service.Messages.Registrations;
 using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
-using MarketingBox.Registration.Service.Modules;
+using MarketingBox.Registration.Service.Services;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
@@ -41,8 +41,7 @@ namespace MarketingBox.Registration.Service.Modules
 
             var campaignRow
             = new MyNoSqlReadRepository<CampaignRowNoSql>(noSqlClient, CampaignRowNoSql.TableName);
-            builder.RegisterInstance(campaignRow
-)
+            builder.RegisterInstance(campaignRow)
                 .As<IMyNoSqlServerDataReader<CampaignRowNoSql>>();
 
             var integration = new MyNoSqlReadRepository<IntegrationNoSql>(noSqlClient, IntegrationNoSql.TableName);

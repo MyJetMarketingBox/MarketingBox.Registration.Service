@@ -4,6 +4,6 @@
     {
         public string TenantId { get; set; }
         public long CampaignId { get; set; }
-        public int RegistrationsRoutedCount { get; set; }
+        public long? LastRegisteredBrandId { get; set; }
     }
 }
