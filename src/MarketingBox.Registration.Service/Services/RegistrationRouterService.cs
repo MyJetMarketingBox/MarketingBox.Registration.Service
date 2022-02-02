@@ -40,7 +40,7 @@ namespace MarketingBox.Registration.Service.Services
             }
             else
             {
-                // take next campaign or the first one.
+                // take index of last registered campaign or the first one in otherwise.
                 index = campaigns.IndexOf(
                     campaigns.FirstOrDefault(
                         x =>
