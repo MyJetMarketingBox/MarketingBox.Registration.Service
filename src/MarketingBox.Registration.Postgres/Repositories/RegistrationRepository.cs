@@ -85,7 +85,7 @@ namespace MarketingBox.Registration.Postgres.Repositories
             long campaignId,
             RegistrationStatus registrationStatus)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var nextDate = date.AddDays(1).Date;
             var count = await ctx.Registrations.Where(x => x.Status == registrationStatus &&
                                                    x.BrandId == brandId &&
@@ -101,13 +101,13 @@ namespace MarketingBox.Registration.Postgres.Repositories
             long campaignId,
             RegistrationStatus registrationStatus)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var nextDate = date.AddDays(1).Date;
             var count = await ctx.Registrations.Where(x => x.Status == registrationStatus &&
                                                    x.BrandId == brandId &&
                                                    x.CampaignId == campaignId &&
-                                                   x.DepositDate != null && 
-                                                   x.DepositDate.Value >= date && x.DepositDate.Value < nextDate).CountAsync();
+                                                   x.ConversionDate != null && 
+                                                   x.ConversionDate.Value >= date.Date && x.ConversionDate.Value < nextDate).CountAsync();
 
             return count;
         }
