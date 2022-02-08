@@ -12,7 +12,7 @@
     <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
     <PackageReference Include="MarketingBox.Affiliate.Service.Client" Version="2.1.8" />
     <PackageReference Include="MarketingBox.Integration.Service.Client" Version="2.1.5" />
-    <PackageReference Include="MarketingBox.Reporting.Service.Client" Version="3.3.2" />
+    <PackageReference Include="MarketingBox.Reporting.Service.Client" Version="3.3.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
@@ -29,7 +29,7 @@
     <PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.0.152" />
     <PackageReference Include="SimpleTrading.BaseMetrics" Version="1.0.3" />
     <PackageReference Include="SimpleTrading.ServiceStatusReporterConnector" Version="1.0.9" />
-    <PackageReference Include="MySettingsReader" Version="1.2.1" />
+    <PackageReference Include="MySettingsReader" Version="1.2.2" />
     <PackageReference Include="SimpleTrading.Telemetry" Version="1.0.3" />
   </ItemGroup>
 

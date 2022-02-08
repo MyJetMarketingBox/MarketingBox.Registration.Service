@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
-using MarketingBox.Registration.Service.Domain.Crm;
 using MarketingBox.Registration.Service.Domain.Extensions;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Models.Common;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
+using MarketingBox.Reporting.Service.Domain.Models;
 using MarketingBox.Reporting.Service.Grpc;
 using MarketingBox.Reporting.Service.Grpc.Models.RegistrationsByAffiliate;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
 using Newtonsoft.Json;
+using CrmStatus = MarketingBox.Registration.Service.Domain.Crm.CrmStatus;
 
 namespace MarketingBox.Registration.Service.Services
 {
@@ -100,13 +101,13 @@ namespace MarketingBox.Registration.Service.Services
             }
         }
 
-        private static Reporting.Service.Grpc.Models.RegistrationsByAffiliate.RegistrationsReportType GetCustomersReportType(RegistrationType requestType)
+        private static RegistrationsReportType GetCustomersReportType(RegistrationType requestType)
         {
             return requestType switch
             {
-                RegistrationType.Registrations => Reporting.Service.Grpc.Models.RegistrationsByAffiliate.RegistrationsReportType.Registrations,
-                RegistrationType.QFTDepositors => Reporting.Service.Grpc.Models.RegistrationsByAffiliate.RegistrationsReportType.QFTDepositors,
-                RegistrationType.All => Reporting.Service.Grpc.Models.RegistrationsByAffiliate.RegistrationsReportType.All,
+                RegistrationType.Registrations => RegistrationsReportType.Registrations,
+                RegistrationType.QFTDepositors => RegistrationsReportType.Ftd,
+                RegistrationType.All => RegistrationsReportType.All,
                 _ => throw new Exception()
             };
         }
@@ -214,8 +215,7 @@ namespace MarketingBox.Registration.Service.Services
                 Integration = details.Integration,
                 IntegrationId = details.IntegrationId,
                 RegistrationId = details.RegistrationId,
-                Status = details.Status.MapEnum<MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationStatus>(),
-                Sequence = details.Sequence,
+                Status = details.Status.MapEnum<MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationStatus>()
             };
         }
         
@@ -259,8 +259,7 @@ namespace MarketingBox.Registration.Service.Services
                 Integration = details.Integration,
                 IntegrationId = details.IntegrationId,
                 RegistrationId = details.RegistrationId,
-                Status = details.Status.MapEnum<MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationStatus>(),
-                Sequence = details.Sequence,
+                Status = details.Status.MapEnum<MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationStatus>()
             }).ToList();
         }
     }
