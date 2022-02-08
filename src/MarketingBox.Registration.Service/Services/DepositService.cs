@@ -204,7 +204,7 @@ namespace MarketingBox.Registration.Service.Services
                     RegistrationId = registration.RegistrationInfo.RegistrationId,
                     UniqueId = registration.RegistrationInfo.RegistrationUid,
                     CrmStatus = registration.RouteInfo.CrmStatus,
-                    Status = registration.RouteInfo.Status.MapEnum<MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationStatus>(),
+                    Status = registration.RouteInfo.Status.MapEnum<RegistrationStatus>(),
                     Country = registration.RegistrationInfo.Country,
                     ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
                     DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
