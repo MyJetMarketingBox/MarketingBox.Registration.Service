@@ -65,7 +65,7 @@ namespace MarketingBox.Registration.Service.Modules
             #region Registrations
 
             // publisher (IServiceBusPublisher<RegistrationUpdateMessage>)
-            builder.RegisterMyServiceBusPublisher<RegistrationUpdateMessage>(serviceBusClient, Topics.RegistrationUpdateTopic, false);
+            builder.RegisterMyServiceBusPublisher<RegistrationUpdateMessage>(serviceBusClient, RegistrationUpdateMessage.Topic, false);
 
             // register writer (IMyNoSqlServerDataWriter<RegistrationRouterNoSqlEntity>)
             builder.RegisterMyNoSqlWriter<RegistrationRouterNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), RegistrationRouterNoSqlEntity.TableName);
