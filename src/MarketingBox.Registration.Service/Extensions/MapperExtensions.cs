@@ -78,15 +78,12 @@ namespace MarketingBox.Registration.Service.Extensions
                     Password = registration.RegistrationInfo.Password,
                     CreatedAt = registration.RegistrationInfo.CreatedAt.UtcDateTime,
                     RegistrationId = registration.RegistrationInfo.RegistrationId,
-                    UniqueId = registration.RegistrationInfo.RegistrationUid,
                     RegistrationUId = registration.RegistrationInfo.RegistrationUid,
                     Country = registration.RegistrationInfo.Country,
                     UpdatedAt = registration.RegistrationInfo.UpdatedAt.UtcDateTime
                 },
                 AdditionalInfo = new RegistrationAdditionalInfo()
                 {
-                    So = registration.AdditionalInfo.Funnel,
-                    Sub = registration.AdditionalInfo.AffCode,
                     Funnel = registration.AdditionalInfo.Funnel,
                     AffCode = registration.AdditionalInfo.AffCode,
                     Sub1 = registration.AdditionalInfo.Sub1,
