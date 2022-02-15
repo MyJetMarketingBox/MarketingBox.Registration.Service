@@ -1,18 +1,18 @@
-﻿using MarketingBox.Registration.Service.Grpc;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Threading.Tasks;
-using MyJetWallet.Sdk.ServiceBus;
 using MarketingBox.Registration.Service.Domain.Extensions;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Extensions;
+using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Models.Common;
 using MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations;
 using MarketingBox.Registration.Service.Messages.Registrations;
+using Microsoft.Extensions.Logging;
+using MyJetWallet.Sdk.ServiceBus;
 using ErrorType = MarketingBox.Registration.Service.Grpc.Models.Common.ErrorType;
 
-namespace MarketingBox.Registration.Service.Modules
+namespace MarketingBox.Registration.Service.Services
 {
     public class DepositService : IDepositService
     {
@@ -204,7 +204,7 @@ namespace MarketingBox.Registration.Service.Modules
                     RegistrationId = registration.RegistrationInfo.RegistrationId,
                     UniqueId = registration.RegistrationInfo.RegistrationUid,
                     CrmStatus = registration.RouteInfo.CrmStatus,
-                    Status = registration.RouteInfo.Status.MapEnum<MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationStatus>(),
+                    Status = registration.RouteInfo.Status.MapEnum<RegistrationStatus>(),
                     Country = registration.RegistrationInfo.Country,
                     ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
                     DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,

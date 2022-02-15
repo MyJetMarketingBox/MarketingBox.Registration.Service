@@ -32,7 +32,7 @@ namespace MarketingBox.Registration.Service.Extensions
                 RegistrationId = registration.RegistrationInfo.RegistrationId,
                 RegistrationUniqueId = registration.RegistrationInfo.RegistrationUid,
                 IntegrationName = registration.RouteInfo.Integration,
-                IntegrationId = registration.RouteInfo.IntegrationId,
+                IntegrationId = registration.RouteInfo.IntegrationId ?? default,
                 AffiliateId = registration.RouteInfo.AffiliateId,
                 Info = new Integration.Service.Grpc.Models.Registrations.RegistrationInfo()
                 {
@@ -78,15 +78,12 @@ namespace MarketingBox.Registration.Service.Extensions
                     Password = registration.RegistrationInfo.Password,
                     CreatedAt = registration.RegistrationInfo.CreatedAt.UtcDateTime,
                     RegistrationId = registration.RegistrationInfo.RegistrationId,
-                    UniqueId = registration.RegistrationInfo.RegistrationUid,
                     RegistrationUId = registration.RegistrationInfo.RegistrationUid,
                     Country = registration.RegistrationInfo.Country,
                     UpdatedAt = registration.RegistrationInfo.UpdatedAt.UtcDateTime
                 },
                 AdditionalInfo = new RegistrationAdditionalInfo()
                 {
-                    So = registration.AdditionalInfo.Funnel,
-                    Sub = registration.AdditionalInfo.AffCode,
                     Funnel = registration.AdditionalInfo.Funnel,
                     AffCode = registration.AdditionalInfo.AffCode,
                     Sub1 = registration.AdditionalInfo.Sub1,
@@ -105,8 +102,8 @@ namespace MarketingBox.Registration.Service.Extensions
                     AffiliateId = registration.RouteInfo.AffiliateId,
                     CampaignId = registration.RouteInfo.CampaignId,
                     Integration = registration.RouteInfo.Integration,
-                    BrandId = registration.RouteInfo.BrandId,
-                    IntegrationId = registration.RouteInfo.IntegrationId,
+                    BrandId = registration.RouteInfo.BrandId ?? default,
+                    IntegrationId = registration.RouteInfo.IntegrationId ?? default,
                     ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
                     DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
                     CrmStatus = registration.RouteInfo.CrmStatus,

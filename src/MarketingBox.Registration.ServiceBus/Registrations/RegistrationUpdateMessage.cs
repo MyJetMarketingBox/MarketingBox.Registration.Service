@@ -5,6 +5,8 @@ namespace MarketingBox.Registration.Service.Messages.Registrations
     [DataContract]
     public class RegistrationUpdateMessage
     {
+        public const string Topic = "marketing-box-registration-service-registration-update";
+        
         [DataMember(Order = 1)]
         public string TenantId { get; set; }
       

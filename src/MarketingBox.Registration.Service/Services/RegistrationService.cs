@@ -1,31 +1,31 @@
-﻿using MarketingBox.Affiliate.Service.MyNoSql.Brands;
-using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
-using MarketingBox.Registration.Service.Domain.Repositories;
-using MarketingBox.Registration.Service.Extensions;
-using MarketingBox.Registration.Service.Grpc;
-using MarketingBox.Registration.Service.Grpc.Models.Common;
-using Microsoft.Extensions.Logging;
-using MyJetWallet.Sdk.ServiceBus;
-using MyNoSqlServer.Abstractions;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
+using MarketingBox.Affiliate.Service.MyNoSql.Brands;
+using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
+using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Integration.Service.Client;
+using MarketingBox.Registration.Service.Domain.Repositories;
+using MarketingBox.Registration.Service.Domain.Route;
+using MarketingBox.Registration.Service.Extensions;
+using MarketingBox.Registration.Service.Grpc;
+using MarketingBox.Registration.Service.Grpc.Models.Common;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
 using MarketingBox.Registration.Service.Messages.Registrations;
+using Microsoft.Extensions.Logging;
+using MyJetWallet.Sdk.ServiceBus;
+using MyNoSqlServer.Abstractions;
 using RegistrationAdditionalInfo = MarketingBox.Registration.Service.Domain.Registrations.RegistrationAdditionalInfo;
 using RegistrationBrandInfo = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationBrandInfo;
 using RegistrationCustomerInfo = MarketingBox.Registration.Service.Domain.Registrations.RegistrationCustomerInfo;
 using RegistrationGeneralInfo = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationGeneralInfo;
 using RegistrationRouteInfo = MarketingBox.Registration.Service.Domain.Registrations.RegistrationRouteInfo;
 using RegistrationStatus = MarketingBox.Registration.Service.Domain.Registrations.RegistrationStatus;
-using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
-using System.Collections.Generic;
-using MarketingBox.Registration.Service.Domain.Route;
 
-namespace MarketingBox.Registration.Service.Modules
+namespace MarketingBox.Registration.Service.Services
 {
     public class RegistrationService : IRegistrationService
     {
@@ -104,20 +104,17 @@ namespace MarketingBox.Registration.Service.Modules
                 RegistrationCreateResponse response = null;
                 var routes = await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
 
-                if (routes == null)
+                if (!routes.Any())
                 {
-                    return new RegistrationCreateResponse()
+                    await _repository.SaveAsync(registration);
+                    return FailedMapToGrpc(new Error()
                     {
-                        Error = new Error()
-                        {
-                            Message = $"Country '{request.GeneralInfo.Country}' " +
-                                $"disabled for offerid {request.AuthInfo.CampaignId}",
-                            Type = ErrorType.InvalidCountry
-                        }
-                    };
+                        Message = "Can't register on brand",
+                        Type = ErrorType.Unknown
+                    }, request.GeneralInfo);
                 }
 
-                while (routes.Count > 0)
+                while(routes.Count > 0)
                 {
                     var route = await TryGetSpecificRoute(request.AuthInfo.CampaignId,
                         request.GeneralInfo.Country, routes);
@@ -212,8 +209,8 @@ namespace MarketingBox.Registration.Service.Modules
         {
             var leadBrandRegistrationInfo = new RegistrationRouteInfo()
             {
-                IntegrationId = routeParameters?.IntegrationId ?? 0,
-                BrandId = routeParameters?.BrandId ?? 0,
+                IntegrationId = routeParameters?.IntegrationId,
+                BrandId = routeParameters?.BrandId,
                 Integration = routeParameters?.BrandName ?? string.Empty,
                 CampaignId = request.AuthInfo.CampaignId,
                 AffiliateId = request.AuthInfo.AffiliateId,

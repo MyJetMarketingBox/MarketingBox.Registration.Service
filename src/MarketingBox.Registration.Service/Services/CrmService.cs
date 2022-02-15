@@ -1,15 +1,14 @@
-﻿using MarketingBox.Registration.Service.Grpc;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Extensions;
-using MarketingBox.Registration.Service.Messages.Registrations;
-using MyJetWallet.Sdk.ServiceBus;
-using MyNoSqlServer.Abstractions;
+using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Models.Crm;
+using MarketingBox.Registration.Service.Messages.Registrations;
+using Microsoft.Extensions.Logging;
+using MyJetWallet.Sdk.ServiceBus;
 
-namespace MarketingBox.Registration.Service.Modules
+namespace MarketingBox.Registration.Service.Services
 {
     public class CrmService : ICrmService
     {
