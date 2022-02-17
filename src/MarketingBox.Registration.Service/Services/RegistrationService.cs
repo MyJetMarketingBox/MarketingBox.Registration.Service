@@ -7,6 +7,8 @@ using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
+using MarketingBox.ExternalReferenceProxy.Service.Grpc;
+using MarketingBox.ExternalReferenceProxy.Service.Grpc.Models;
 using MarketingBox.Integration.Service.Client;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Domain.Route;
@@ -38,6 +40,7 @@ namespace MarketingBox.Registration.Service.Services
         private readonly IIntegrationService _integrationService;
         private readonly IRegistrationRepository _repository;
         private readonly RegistrationRouterService _registrationRouter;
+        private readonly IExternalReferenceProxyService _externalReferenceProxyService;
 
         public RegistrationService(ILogger<RegistrationService> logger,
             IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated,
@@ -47,7 +50,8 @@ namespace MarketingBox.Registration.Service.Services
             IIntegrationService integrationService, 
             IRegistrationRepository repository,
             RegistrationRouterService registrationRouter, 
-            IMyNoSqlServerDataReader<AffiliateNoSql> affiliateNoSqlServerDataReader)
+            IMyNoSqlServerDataReader<AffiliateNoSql> affiliateNoSqlServerDataReader, 
+            IExternalReferenceProxyService externalReferenceProxyService)
         {
             _logger = logger;
             _publisherLeadUpdated = publisherLeadUpdated;
@@ -58,6 +62,7 @@ namespace MarketingBox.Registration.Service.Services
             _repository = repository;
             _registrationRouter = registrationRouter;
             _affiliateNoSqlServerDataReader = affiliateNoSqlServerDataReader;
+            _externalReferenceProxyService = externalReferenceProxyService;
         }
 
         public async Task<RegistrationCreateResponse> CreateAsync(RegistrationCreateRequest request)
@@ -68,7 +73,7 @@ namespace MarketingBox.Registration.Service.Services
             
             if (tenantId == null)
             {
-                return await Task.FromResult<RegistrationCreateResponse>(
+                return await Task.FromResult(
                     new RegistrationCreateResponse()
                     {
                         Status = ResultCode.RequiredAuthentication,
@@ -83,7 +88,7 @@ namespace MarketingBox.Registration.Service.Services
             if (!IsAffiliateApiKeyValid(tenantId, request.AuthInfo.AffiliateId, 
                 request.AuthInfo.ApiKey, out var affiliateName))
             {
-                return await Task.FromResult<RegistrationCreateResponse>(
+                return await Task.FromResult(
                     new RegistrationCreateResponse()
                 {
                     Status = ResultCode.RequiredAuthentication,
@@ -100,7 +105,7 @@ namespace MarketingBox.Registration.Service.Services
                 var registrationId = await _repository.GenerateRegistrationIdAsync(tenantId,
                     request.GeneratorId());
 
-                Domain.Registrations.Registration registration = GetRegistration(request, null, tenantId, registrationId, affiliateName);
+                var registration = GetRegistration(request, null, tenantId, registrationId, affiliateName);
                 RegistrationCreateResponse response = null;
                 var routes = await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
 
@@ -347,17 +352,28 @@ namespace MarketingBox.Registration.Service.Services
             var request = registration.CreateIntegrationRequest();
             var response = await _integrationService.SendRegisterationAsync(request);
 
+            var proxyLoginRef = await _externalReferenceProxyService.GetProxyRefAsync(new GetProxyRefRequest()
+            {
+                RegistrationId = registration.RegistrationInfo.RegistrationId,
+                RegistrationUId = registration.RegistrationInfo.RegistrationUid,
+                TenantId = registration.TenantId,
+                BrandLink = response.Customer?.LoginUrl
+            });
+            if (!proxyLoginRef.Success)
+            {
+                _logger.LogError(proxyLoginRef.ErrorMessage);
+                throw new Exception(proxyLoginRef.ErrorMessage);
+            }
             var brandInfo = new RegistrationBrandInfo()
             {
                 Status = (ResultCode)response.Status,
                 Data = new Grpc.Models.Registrations.RegistrationCustomerInfo()
                 {
-                    LoginUrl = response.Customer?.LoginUrl,
+                    LoginUrl = proxyLoginRef.ProxyLink,
                     CustomerId = response.Customer?.CustomerId,
                     Token = response.Customer?.Token,
                 }
             };
-
             return brandInfo;
         }
 
