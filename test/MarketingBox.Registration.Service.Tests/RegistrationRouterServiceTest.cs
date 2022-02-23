@@ -11,6 +11,7 @@ using Moq;
 using Moq.AutoMock;
 using MyNoSqlServer.Abstractions;
 using NUnit.Framework;
+using ActivityHours = MarketingBox.Affiliate.Service.MyNoSql.CampaignRows.ActivityHours;
 
 namespace MarketingBox.Registration.Service.Tests
 {
