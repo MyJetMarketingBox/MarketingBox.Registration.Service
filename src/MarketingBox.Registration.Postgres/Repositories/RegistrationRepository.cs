@@ -5,6 +5,7 @@ using MarketingBox.Registration.Postgres.Entities.Registration;
 using MarketingBox.Registration.Postgres.Extensions;
 using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.Domain.Repositories;
+using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace MarketingBox.Registration.Postgres.Repositories
@@ -29,7 +30,8 @@ namespace MarketingBox.Registration.Postgres.Repositories
 
             if (rowsCount == 0)
             {
-                throw new Exception($"Registration {registration.RegistrationInfo.RegistrationId} already updated, try to use most recent version");
+                throw new BadRequestException(
+                    $"Registration {registration.RegistrationInfo.RegistrationId} already updated, try to use most recent version");
             }
         }
 
@@ -59,7 +61,7 @@ namespace MarketingBox.Registration.Postgres.Repositories
 
             if (existingLeadEntity == null)
             {
-                throw new Exception($"Registration with customerId {customerId} can't be found");
+                throw new NotFoundException(nameof(customerId), customerId);
             }
 
             return existingLeadEntity.RestoreRegistration();
@@ -67,13 +69,13 @@ namespace MarketingBox.Registration.Postgres.Repositories
 
         public async Task<Service.Domain.Registrations.Registration> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var existingLeadEntity = await ctx.Registrations.FirstOrDefaultAsync(x => x.TenantId == tenantId &&
                                                                               x.Id == registrationId);
 
             if (existingLeadEntity == null)
             {
-                throw new Exception($"Registration with registrationId {registrationId} can't be found");
+                throw new NotFoundException(nameof(registrationId), registrationId);
             }
 
             return existingLeadEntity.RestoreRegistration();

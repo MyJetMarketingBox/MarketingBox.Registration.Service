@@ -13,7 +13,7 @@ using MyNoSqlServer.Abstractions;
 
 namespace MarketingBox.Registration.Service.Services
 {
-    public class RegistrationRouterService
+    public class RegistrationRouterService : IRegistrationRouterService
     {
         private readonly IMyNoSqlServerDataReader<CampaignRowNoSql> _campaignRowNoSqlServerDataReader;
         private readonly IRegistrationRepository _registrationRepository;

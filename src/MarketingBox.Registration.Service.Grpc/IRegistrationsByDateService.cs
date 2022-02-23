@@ -1,6 +1,9 @@
+using System.Collections.Generic;
 using System.ServiceModel;
 using System.Threading.Tasks;
+using MarketingBox.Registration.Service.Grpc.Models.Registrations;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
+using MarketingBox.Sdk.Common.Models.Grpc;
 
 namespace MarketingBox.Registration.Service.Grpc
 {
@@ -8,9 +11,9 @@ namespace MarketingBox.Registration.Service.Grpc
     public interface IRegistrationsByDateService
     {
         [OperationContract] 
-        Task<RegistrationsGetByDateResponse> GetRegistrationsAsync(RegistrationsGetByDateRequest request);
+        Task<Response<IReadOnlyCollection<RegistrationDetails>>> GetRegistrationsAsync(RegistrationsGetByDateRequest request);
         
         [OperationContract] 
-        Task<RegistrationGetResponse> GetRegistrationAsync(RegistrationGetRequest request);
+        Task<Response<RegistrationDetails>> GetRegistrationAsync(RegistrationGetRequest request);
     }
 }

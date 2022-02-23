@@ -75,7 +75,7 @@ namespace MarketingBox.Registration.Service.Modules
 
             #endregion
 
-            builder.RegisterType<RegistrationRouterService>().As<RegistrationRouterService>().SingleInstance();
+            builder.RegisterType<RegistrationRouterService>().As<IRegistrationRouterService>().SingleInstance();
         }
     }
 }

@@ -1,14 +1,10 @@
 ﻿using System.Runtime.Serialization;
-using MarketingBox.Registration.Service.Grpc.Models.Common;
 
 namespace MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts
 {
     [DataContract]
-    public class RegistrationCreateResponse
+    public class Registration
     {
-        [DataMember(Order = 1)]
-        public ResultCode Status { get; set; }
-
         [DataMember(Order = 2)]
         public string Message { get; set; }
 
@@ -26,8 +22,5 @@ namespace MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts
 
         [DataMember(Order = 7)]
         public string RegistrationUId { get; set; }
-
-        [DataMember(Order = 100)]
-        public Error Error { get; set; }
     }
 }
