@@ -69,8 +69,9 @@ namespace MarketingBox.Registration.Postgres.Repositories
         public async Task<Service.Domain.Registrations.Registration> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
         {
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-            var existingLeadEntity = await ctx.Registrations.FirstOrDefaultAsync(x => x.TenantId == tenantId &&
-                                                                              x.Id == registrationId);
+            var existingLeadEntity = await ctx.Registrations
+                .FirstOrDefaultAsync(x => x.TenantId == tenantId &&
+                                          x.Id == registrationId);
 
             if (existingLeadEntity == null)
             {

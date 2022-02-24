@@ -11,6 +11,7 @@ using MarketingBox.Registration.Service.Messages;
 using MarketingBox.Registration.Service.Messages.Registrations;
 using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
 using MarketingBox.Registration.Service.Services;
+using MarketingBox.Registration.Service.Subscribers;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
@@ -24,6 +25,12 @@ namespace MarketingBox.Registration.Service.Modules
         {
             builder.RegisterType<RegistrationRouterService>().As<IRegistrationRouterService>().SingleInstance();
             builder.RegisterType<RegistrationRepository>().As<IRegistrationRepository>().InstancePerDependency();
+
+            builder
+                .RegisterType<RegistrationProxyEntityServiceBusSubscriber>()
+                .As<IStartable>()
+                .AutoActivate()
+                .SingleInstance();
         }
     }
 }
