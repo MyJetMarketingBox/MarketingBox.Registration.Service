@@ -17,5 +17,6 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
         public DepositUpdateMode UpdateMode { get; set; }
         public RegistrationCustomerInfo CustomerInfo { get; set; }
         public string AffiliateName { get; set; }
+        public bool AutologinUsed { get; set; }
     }
 }

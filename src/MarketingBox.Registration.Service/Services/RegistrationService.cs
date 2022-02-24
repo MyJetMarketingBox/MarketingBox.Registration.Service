@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Grpc.Core;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
@@ -27,7 +26,6 @@ using MyNoSqlServer.Abstractions;
 using RegistrationAdditionalInfo = MarketingBox.Registration.Service.Domain.Registrations.RegistrationAdditionalInfo;
 using RegistrationBrandInfo = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationBrandInfo;
 using RegistrationCustomerInfo = MarketingBox.Registration.Service.Domain.Registrations.RegistrationCustomerInfo;
-using RegistrationGeneralInfo = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationGeneralInfo;
 using RegistrationRouteInfo = MarketingBox.Registration.Service.Domain.Registrations.RegistrationRouteInfo;
 using RegistrationStatus = MarketingBox.Registration.Service.Domain.Registrations.RegistrationStatus;
 using RegistrationContract = MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts.Registration;
@@ -228,7 +226,7 @@ namespace MarketingBox.Registration.Service.Services
                 CreatedAt = currentDate,
                 UpdatedAt = currentDate
             };
-            var registration = Domain.Registrations.Registration.Restore(tenantId, 0, generalInfo,
+            var registration = Domain.Registrations.Registration.Restore(tenantId, generalInfo,
                 leadBrandRegistrationInfo, additionalInfo);
 
             return registration;

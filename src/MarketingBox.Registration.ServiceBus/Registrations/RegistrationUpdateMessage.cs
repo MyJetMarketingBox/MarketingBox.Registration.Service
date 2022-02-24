@@ -18,8 +18,5 @@ namespace MarketingBox.Registration.Service.Messages.Registrations
 
         [DataMember(Order = 4)]
         public RegistrationAdditionalInfo AdditionalInfo { get; set; }
-        
-        [DataMember(Order = 5)]
-        public long Sequence { get; set; }
     }
 }

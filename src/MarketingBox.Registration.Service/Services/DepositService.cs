@@ -239,9 +239,6 @@ namespace MarketingBox.Registration.Service.Services
                     AffiliateId = registration.RouteInfo.AffiliateId,
                     AffiliateName = registration.RouteInfo.AffiliateName,
                 }
-                //Id = registration.RegistrationInfo.Id,
-                //Message = $"Registration {registration.RegistrationInfo.Id} can be approved as depositor, current status " +
-                //          $"{registration.RegistrationInfo.RouteInfoStatus.ToString()} at {registration.RegistrationInfo.RouteInfoDepositDate}",
             };
         }
     }

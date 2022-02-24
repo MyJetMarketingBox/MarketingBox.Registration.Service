@@ -21,11 +21,10 @@ namespace MarketingBox.Registration.Postgres.Repositories
 
         public async Task SaveAsync(Service.Domain.Registrations.Registration registration)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var entity = registration.CreateRegistrationEntity();
             var rowsCount = await ctx.Registrations.Upsert(entity)
                 .AllowIdentityMatch()
-                .UpdateIf(prev => prev.Sequence < entity.Sequence)
                 .RunAsync();
 
             if (rowsCount == 0)
@@ -55,7 +54,7 @@ namespace MarketingBox.Registration.Postgres.Repositories
 
         public async Task<Service.Domain.Registrations.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId)
         {
-            using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var existingLeadEntity = await ctx.Registrations.FirstOrDefaultAsync(x => x.TenantId == tenantId &&
                                                                               x.CustomerId == customerId);
 

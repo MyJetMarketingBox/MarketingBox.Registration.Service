@@ -66,7 +66,8 @@ namespace MarketingBox.Registration.Service
         {
             builder.RegisterModule<SettingsModule>();
             builder.RegisterModule<ServiceModule>();
-            builder.RegisterModule<RepositoryModule>();
+            builder.RegisterModule<ServiceBusModule>();
+            builder.RegisterModule<NoSqlModule>();
             builder.RegisterModule<ClientModule>();
         }
     }

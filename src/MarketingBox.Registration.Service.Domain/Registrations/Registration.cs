@@ -6,32 +6,21 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
     public class Registration
     {
         public string TenantId { get; }
-        public long Sequence { get; private set; }
         public RegistrationGeneralInfo RegistrationInfo { get; private set; }
         public RegistrationAdditionalInfo AdditionalInfo { get; private set; }
         public RegistrationRouteInfo RouteInfo { get; private set; }
 
-        private Registration(string tenantId, long sequence, RegistrationGeneralInfo registrationGeneralInfo,
+        private Registration(string tenantId, RegistrationGeneralInfo registrationGeneralInfo,
              RegistrationRouteInfo routeInfo, RegistrationAdditionalInfo additionalInfo)
         {
             TenantId = tenantId;
-            Sequence = sequence;
             RegistrationInfo = registrationGeneralInfo;
             RouteInfo = routeInfo;
             AdditionalInfo = additionalInfo;
         }
-        
-        public void NextTry()
-        {
-            Sequence++;
-        }
 
         public void UpdateCrmStatus(CrmStatus crmStatus)
         {
-            //if (RouteInfo.CrmStatus.ToCrmStatus() == crmStatus)
-            //    return;
-
-            Sequence++;
             RouteInfo.CrmStatus = crmStatus;
             RegistrationInfo.UpdatedAt = DateTimeOffset.UtcNow;
         }
@@ -41,7 +30,6 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
             if (RouteInfo.Status != from)
                 throw new Exception($"Transfer registration from {from} type to {to}, current status {RouteInfo.Status}");
 
-            Sequence++;
             RouteInfo.Status = to;
             RegistrationInfo.UpdatedAt = DateTimeOffset.UtcNow;
         }
@@ -101,12 +89,11 @@ namespace MarketingBox.Registration.Service.Domain.Registrations
         }
 
 
-        public static Registration Restore(string tenantId, long sequence, RegistrationGeneralInfo registrationGeneralInfo,
+        public static Registration Restore(string tenantId, RegistrationGeneralInfo registrationGeneralInfo,
             RegistrationRouteInfo routeInfo, RegistrationAdditionalInfo additionalInfo)
         {
             return new Registration(
                 tenantId,
-                sequence,
                 registrationGeneralInfo,
                 routeInfo,
                 additionalInfo

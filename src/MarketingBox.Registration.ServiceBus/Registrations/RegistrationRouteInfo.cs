@@ -48,6 +48,8 @@ namespace MarketingBox.Registration.Service.Messages.Registrations
 
         [DataMember(Order = 13)]
         public string AffiliateName { get; set; }
+        [DataMember(Order = 14)]
+        public bool AutologinUsed { get; set; }
 
     }
 }

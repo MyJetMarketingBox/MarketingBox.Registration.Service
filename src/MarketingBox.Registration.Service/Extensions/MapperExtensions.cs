@@ -1,5 +1,4 @@
 using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integration;
-using MarketingBox.Registration.Service.Domain.Crm;
 using MarketingBox.Registration.Service.Domain.Extensions;
 using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
@@ -67,7 +66,6 @@ namespace MarketingBox.Registration.Service.Extensions
             return new RegistrationUpdateMessage()
             {
                 TenantId = registration.TenantId,
-                Sequence = registration.Sequence,
                 GeneralInfo = new RegistrationGeneralInfo()
                 {
                     Email = registration.RegistrationInfo.Email,
@@ -115,7 +113,8 @@ namespace MarketingBox.Registration.Service.Extensions
                         Token = registration.RouteInfo?.CustomerInfo?.Token,
                     },
                     UpdateMode = registration.RouteInfo.UpdateMode.MapEnum<DepositUpdateMode>(),
-                    AffiliateName = registration.RouteInfo.AffiliateName
+                    AffiliateName = registration.RouteInfo.AffiliateName,
+                    AutologinUsed = registration.RouteInfo.AutologinUsed
                 },
             };
         }
