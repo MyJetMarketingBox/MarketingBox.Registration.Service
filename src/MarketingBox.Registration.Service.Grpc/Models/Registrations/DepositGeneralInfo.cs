@@ -36,7 +36,7 @@ namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
         public DateTime CreatedAt { get; set; }
 
         [DataMember(Order = 8)]
-        public string Country { get; set; }
+        public int CountryId { get; set; }
 
         [DataMember(Order = 9)]
         public long RegistrationId { get; set; }

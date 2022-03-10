@@ -19,7 +19,7 @@ namespace MarketingBox.Registration.Postgres.Extensions
                 Ip = registration.RegistrationInfo.Ip,
                 Password = registration.RegistrationInfo.Password,
                 Phone = registration.RegistrationInfo.Phone,
-                Country = registration.RegistrationInfo.Country,
+                CountryId = registration.RegistrationInfo.CountryId,
                 Id = registration.RegistrationInfo.RegistrationId,
                 UpdatedAt = registration.RegistrationInfo.UpdatedAt,
                 DepositDate = registration.RouteInfo.DepositDate,
@@ -104,7 +104,7 @@ namespace MarketingBox.Registration.Postgres.Extensions
                 Email = registrationEntity.Email,
                 Phone = registrationEntity.Phone,
                 Ip = registrationEntity.Ip,
-                Country = registrationEntity.Country,
+                CountryId = registrationEntity.CountryId,
                 CreatedAt = registrationEntity.CreatedAt,
                 UpdatedAt = registrationEntity.UpdatedAt,
             };

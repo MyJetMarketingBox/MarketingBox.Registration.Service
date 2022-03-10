@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
+using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
+using MarketingBox.Affiliate.Service.MyNoSql.Country;
 using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
@@ -34,10 +36,9 @@ namespace MarketingBox.Registration.Service.Tests
         private const long CampaignRowId2 = 2;
         private const long CampaignRowId3 = 3;
         private const int Priority = 1;
-        private const int Sequence = 0;
         private const int DailyCapValue = 100;
         private const bool EnableTraffic = true;
-        private const string CountryCode = "CH";
+        private const int CountryId = 1;
         private const string TenantId = "default-tenant-id";
         private const CapType CapType = Affiliate.Service.Domain.Models.CampaignRows.CapType.Lead;
 
@@ -76,39 +77,39 @@ namespace MarketingBox.Registration.Service.Tests
         private async Task MakeWholeRoutingCycleAndAssert(List<CampaignRowNoSql> filtered)
         {
             // 1st iteration
-            var campaignBox11 = await _leadRouter.GetCampaignBox(TenantId, BoxId, CountryCode, filtered);
-            var campaignBox12 = await _leadRouter.GetCampaignBox(TenantId, BoxId, CountryCode, filtered);
-            var campaignBox13 = await _leadRouter.GetCampaignBox(TenantId, BoxId, CountryCode, filtered);
+            var campaignBox11 = await _leadRouter.GetCampaignBox(TenantId, BoxId, filtered);
+            var campaignBox12 = await _leadRouter.GetCampaignBox(TenantId, BoxId, filtered);
+            var campaignBox13 = await _leadRouter.GetCampaignBox(TenantId, BoxId, filtered);
             Assert.AreEqual(_campaignBoxNoSql1, campaignBox11);
             Assert.AreEqual(_campaignBoxNoSql2, campaignBox12);
             Assert.AreEqual(_campaignBoxNoSql3, campaignBox13);
 
             // 2nd iteration
-            var campaignBox21 = await _leadRouter.GetCampaignBox(TenantId, BoxId, CountryCode, filtered);
-            var campaignBox22 = await _leadRouter.GetCampaignBox(TenantId, BoxId, CountryCode, filtered);
-            var campaignBox23 = await _leadRouter.GetCampaignBox(TenantId, BoxId, CountryCode, filtered);
+            var campaignBox21 = await _leadRouter.GetCampaignBox(TenantId, BoxId, filtered);
+            var campaignBox22 = await _leadRouter.GetCampaignBox(TenantId, BoxId, filtered);
+            var campaignBox23 = await _leadRouter.GetCampaignBox(TenantId, BoxId, filtered);
             Assert.AreEqual(_campaignBoxNoSql1, campaignBox21);
             Assert.AreEqual(_campaignBoxNoSql2, campaignBox22);
             Assert.AreEqual(_campaignBoxNoSql3, campaignBox23);
 
             // 3rd iteration
-            var campaignBox31 = await _leadRouter.GetCampaignBox(TenantId, BoxId, CountryCode, filtered);
-            var campaignBox32 = await _leadRouter.GetCampaignBox(TenantId, BoxId, CountryCode, filtered);
+            var campaignBox31 = await _leadRouter.GetCampaignBox(TenantId, BoxId, filtered);
+            var campaignBox32 = await _leadRouter.GetCampaignBox(TenantId, BoxId, filtered);
             Assert.AreEqual(_campaignBoxNoSql1, campaignBox31);
             Assert.AreEqual(_campaignBoxNoSql2, campaignBox32);
 
             // 4th iteration
-            var campaignBox41 = await _leadRouter.GetCampaignBox(TenantId, BoxId, CountryCode, filtered);
-            var campaignBox42 = await _leadRouter.GetCampaignBox(TenantId, BoxId, CountryCode, filtered);
+            var campaignBox41 = await _leadRouter.GetCampaignBox(TenantId, BoxId, filtered);
+            var campaignBox42 = await _leadRouter.GetCampaignBox(TenantId, BoxId, filtered);
             Assert.AreEqual(_campaignBoxNoSql1, campaignBox41);
             Assert.AreEqual(_campaignBoxNoSql2, campaignBox42);
 
             // 5th iteration
-            var campaignBox51 = await _leadRouter.GetCampaignBox(TenantId, BoxId, CountryCode, filtered);
+            var campaignBox51 = await _leadRouter.GetCampaignBox(TenantId, BoxId, filtered);
             Assert.AreEqual(_campaignBoxNoSql1, campaignBox51);
 
             // 6th iteration
-            var campaignBox61 = await _leadRouter.GetCampaignBox(TenantId, BoxId, CountryCode, filtered);
+            var campaignBox61 = await _leadRouter.GetCampaignBox(TenantId, BoxId, filtered);
             Assert.AreEqual(_campaignBoxNoSql1, campaignBox61);
         }
         
@@ -127,7 +128,10 @@ namespace MarketingBox.Registration.Service.Tests
                 BoxId,
                 campaignRowId,
                 brandId,
-                CountryCode,
+                new Geo
+                {
+                    CountryIds = new [] { 1 }
+                },
                 Priority,
                 weight,
                 CapType,
@@ -137,8 +141,7 @@ namespace MarketingBox.Registration.Service.Tests
                     GetActivityHours()
                 },
                 null,
-                EnableTraffic,
-                Sequence);
+                EnableTraffic);
         }
 
         private void CreateCampaignBoxes()
@@ -195,6 +198,28 @@ namespace MarketingBox.Registration.Service.Tests
                         _campaignBoxNoSql3
                     })
                 .Verifiable();
+            _autoMocker
+                .Setup<IMyNoSqlServerDataReader<CountriesNoSql>, IReadOnlyList<CountriesNoSql>>(
+                    x => x.Get(
+                        It.Is<string>(p => p == CountriesNoSql.GeneratePartitionKey())))
+                .Returns(() =>
+                    new[]
+                    {
+                        new CountriesNoSql
+                        {
+                            Countries = new[]
+                            {
+                                new Country
+                                {
+                                    Id = 1,
+                                    Name = "test",
+                                    Numeric = "001",
+                                    Alfa2Code = "TE",
+                                    Alfa3Code = "TES"
+                                }
+                            }
+                        }
+                    });
 
             _autoMocker.Setup<IRegistrationRepository, Task<int>>(
                     repository => repository.GetCountForRegistrations(
@@ -245,7 +270,7 @@ namespace MarketingBox.Registration.Service.Tests
         [Test]
         public async Task GetSuitableRoutesAllCampaignsPassTest()
         {
-            var routes = await _leadRouter.GetSuitableRoutes(BoxId, CountryCode);
+            var routes = await _leadRouter.GetSuitableRoutes(BoxId, CountryId);
 
             CollectionAssert.IsNotEmpty(routes);
             Assert.That(routes, Has.Exactly(3).Items);
@@ -262,7 +287,7 @@ namespace MarketingBox.Registration.Service.Tests
         {
             _campaignBoxNoSql1.EnableTraffic = false;
 
-            var routes = await _leadRouter.GetSuitableRoutes(BoxId, CountryCode);
+            var routes = await _leadRouter.GetSuitableRoutes(BoxId, CountryId);
 
             CollectionAssert.IsNotEmpty(routes);
             Assert.That(routes, Has.Exactly(2).Items);
@@ -278,9 +303,12 @@ namespace MarketingBox.Registration.Service.Tests
         [Test]
         public async Task GetSuitableRoutesWrongCountryCodeTest()
         {
-            _campaignBoxNoSql1.CountryCode = "UA";
+            _campaignBoxNoSql1.Geo = new Geo
+            {
+                CountryIds = new[] { 2 }
+            };
 
-            var routes = await _leadRouter.GetSuitableRoutes(BoxId, CountryCode);
+            var routes = await _leadRouter.GetSuitableRoutes(BoxId, CountryId);
 
             CollectionAssert.IsNotEmpty(routes);
             Assert.That(routes, Has.Exactly(2).Items);
@@ -299,7 +327,7 @@ namespace MarketingBox.Registration.Service.Tests
         {
             _campaignBoxNoSql1.ActivityHours = activityHours;
 
-            var routes = await _leadRouter.GetSuitableRoutes(BoxId, CountryCode);
+            var routes = await _leadRouter.GetSuitableRoutes(BoxId, CountryId);
 
             CollectionAssert.IsNotEmpty(routes);
             Assert.That(routes, Has.Exactly(2).Items);
@@ -320,7 +348,7 @@ namespace MarketingBox.Registration.Service.Tests
             _campaignBoxNoSql1.CapType = capType;
             SetupRepository(_campaignBoxNoSql1, 100);
 
-            var routes = await _leadRouter.GetSuitableRoutes(BoxId, CountryCode);
+            var routes = await _leadRouter.GetSuitableRoutes(BoxId, CountryId);
 
             CollectionAssert.IsNotEmpty(routes);
             Assert.That(routes, Has.Exactly(2).Items);

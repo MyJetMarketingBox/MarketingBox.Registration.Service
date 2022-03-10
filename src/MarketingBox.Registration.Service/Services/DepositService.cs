@@ -232,7 +232,7 @@ namespace MarketingBox.Registration.Service.Services
                     UniqueId = registration.RegistrationInfo.RegistrationUid,
                     CrmStatus = registration.RouteInfo.CrmStatus,
                     Status = registration.RouteInfo.Status.MapEnum<RegistrationStatus>(),
-                    Country = registration.RegistrationInfo.Country,
+                    CountryId = registration.RegistrationInfo.CountryId,
                     ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
                     DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
                     UpdatedAt = registration.RegistrationInfo.UpdatedAt.UtcDateTime,

@@ -41,7 +41,7 @@ namespace MarketingBox.Registration.Service.Extensions
                     Ip = registration.RegistrationInfo.Ip,
                     Phone = registration.RegistrationInfo.Phone,
                     Password = registration.RegistrationInfo.Password,
-                    Country = registration.RegistrationInfo.Country,
+                    Country = registration.RegistrationInfo.CountryAlfa2Code,
                 },
                 AdditionalInfo = new Integration.Service.Grpc.Models.Registrations.RegistrationAdditionalInfo()
                 {
@@ -77,7 +77,7 @@ namespace MarketingBox.Registration.Service.Extensions
                     CreatedAt = registration.RegistrationInfo.CreatedAt.UtcDateTime,
                     RegistrationId = registration.RegistrationInfo.RegistrationId,
                     RegistrationUId = registration.RegistrationInfo.RegistrationUid,
-                    Country = registration.RegistrationInfo.Country,
+                    CountryId = registration.RegistrationInfo.CountryId,
                     UpdatedAt = registration.RegistrationInfo.UpdatedAt.UtcDateTime
                 },
                 AdditionalInfo = new RegistrationAdditionalInfo()

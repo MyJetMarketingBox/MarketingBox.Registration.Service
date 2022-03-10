@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MarketingBox.Registration.Service.Client;
+using MarketingBox.Registration.Service.Domain.Models;
 using MarketingBox.Registration.Service.Grpc.Models.Affiliate;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
@@ -39,7 +40,8 @@ namespace TestApp
                     },
                     GeneralInfo = new RegistrationGeneralInfo()
                     {
-                        Country = "UA",
+                        CountryCode = "UA",
+                        CountryCodeType = CountryCodeType.Alfa2Code,
                         Email = $"test.testov.2020.11.08.{i}@mailinator.com",
                         FirstName = "Test",
                         Ip = "99.99.99.99",

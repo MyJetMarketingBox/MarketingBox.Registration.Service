@@ -74,28 +74,28 @@ namespace MarketingBox.Registration.Service.Services
             _logger = logger;
         }
 
-        public async Task<List<CampaignRowNoSql>> GetSuitableRoutes(long campaignId, string country)
+        public async Task<List<CampaignRowNoSql>> GetSuitableRoutes(long campaignId, int countryId)
         {
             var date = DateTime.UtcNow;
-            var campaignBoxes =
+            IReadOnlyList<CampaignRowNoSql> campaignRows =
                 _campaignRowNoSqlServerDataReader.Get(CampaignRowNoSql.GeneratePartitionKey(campaignId));
 
-            var filtered = new List<CampaignRowNoSql>(campaignBoxes.Count);
+            var filtered = new List<CampaignRowNoSql>(campaignRows.Count);
 
-            foreach (var currentCampaign in campaignBoxes)
+            foreach (var currentCampaignRow in campaignRows)
             {
-                if (!currentCampaign.EnableTraffic)
+                if (!currentCampaignRow.EnableTraffic)
                 {
                     continue;
                 }
 
-                if (!string.IsNullOrEmpty(currentCampaign.CountryCode) &&
-                    !currentCampaign.CountryCode.Contains(country, StringComparison.InvariantCultureIgnoreCase))
+                if (!(currentCampaignRow.Geo is null) &&
+                    !currentCampaignRow.Geo.CountryIds.Contains(countryId))
                 {
                     continue;
                 }
 
-                var activityHours = currentCampaign.ActivityHours.FirstOrDefault(x => x.Day == date.DayOfWeek);
+                var activityHours = currentCampaignRow.ActivityHours.FirstOrDefault(x => x.Day == date.DayOfWeek);
                 if (activityHours == null || !activityHours.IsActive)
                 {
                     continue;
@@ -111,21 +111,21 @@ namespace MarketingBox.Registration.Service.Services
                     continue;
                 }
 
-                long currentCap = currentCampaign.CapType switch
+                long currentCap = currentCampaignRow.CapType switch
                 {
                     CapType.Lead => await _registrationRepository.GetCountForRegistrations(date,
-                        currentCampaign.BrandId, currentCampaign.CampaignId, RegistrationStatus.Registered),
-                    CapType.Ftds => await _registrationRepository.GetCountForDeposits(date, currentCampaign.BrandId,
-                        currentCampaign.CampaignId, RegistrationStatus.Approved),
+                        currentCampaignRow.BrandId, currentCampaignRow.CampaignId, RegistrationStatus.Registered),
+                    CapType.Ftds => await _registrationRepository.GetCountForDeposits(date, currentCampaignRow.BrandId,
+                        currentCampaignRow.CampaignId, RegistrationStatus.Approved),
                     _ => 0
                 };
 
-                if (currentCampaign.DailyCapValue <= currentCap)
+                if (currentCampaignRow.DailyCapValue <= currentCap)
                 {
                     continue;
                 }
 
-                filtered.Add(currentCampaign);
+                filtered.Add(currentCampaignRow);
             }
 
             _logger.LogInformation("select From campaigns {@context}", new {CampaignsCount = filtered.Count});
@@ -133,7 +133,9 @@ namespace MarketingBox.Registration.Service.Services
         }
 
 
-        public async Task<CampaignRowNoSql> GetCampaignBox(string tenantId, long campaignId, string country,
+        public async Task<CampaignRowNoSql> GetCampaignBox(
+            string tenantId,
+            long campaignId,
             List<CampaignRowNoSql> filtered)
         {
             await _semaphore.WaitAsync();

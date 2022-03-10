@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MarketingBox.Affiliate.Service.Client;
+using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
@@ -10,6 +12,7 @@ using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.ExternalReferenceProxy.Service.Grpc;
 using MarketingBox.ExternalReferenceProxy.Service.Grpc.Models;
 using MarketingBox.Integration.Service.Client;
+using MarketingBox.Registration.Service.Domain.Models;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Domain.Route;
 using MarketingBox.Registration.Service.Extensions;
@@ -44,6 +47,7 @@ namespace MarketingBox.Registration.Service.Services
         private readonly IRegistrationRepository _repository;
         private readonly IRegistrationRouterService _registrationRouter;
         private readonly IExternalReferenceProxyService _externalReferenceProxyService;
+        private readonly ICountryClient _countryClient;
 
         public RegistrationService(ILogger<RegistrationService> logger,
             IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated,
@@ -54,7 +58,8 @@ namespace MarketingBox.Registration.Service.Services
             IRegistrationRepository repository,
             IRegistrationRouterService registrationRouter,
             IMyNoSqlServerDataReader<AffiliateNoSql> affiliateNoSqlServerDataReader,
-            IExternalReferenceProxyService externalReferenceProxyService)
+            IExternalReferenceProxyService externalReferenceProxyService,
+            ICountryClient countryClient)
         {
             _logger = logger;
             _publisherLeadUpdated = publisherLeadUpdated;
@@ -66,6 +71,7 @@ namespace MarketingBox.Registration.Service.Services
             _registrationRouter = registrationRouter;
             _affiliateNoSqlServerDataReader = affiliateNoSqlServerDataReader;
             _externalReferenceProxyService = externalReferenceProxyService;
+            _countryClient = countryClient;
         }
 
         public async Task<Response<RegistrationContract>> CreateAsync(RegistrationCreateRequest request)
@@ -101,11 +107,15 @@ namespace MarketingBox.Registration.Service.Services
                 var registrationId = await _repository.GenerateRegistrationIdAsync(tenantId,
                     request.GeneratorId());
 
-                var registration = GetRegistration(request, null, tenantId, registrationId, affiliateName);
+                var country =
+                    await GetCountry(request.GeneralInfo.CountryCodeType, request.GeneralInfo.CountryCode);
+                
+                var registration = GetRegistration(request, null, tenantId, registrationId, affiliateName, country);
+
+                
                 Grpc.Models.Registrations.Contracts.Registration response = null;
                 var routes =
-                    await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId,
-                        request.GeneralInfo.Country);
+                    await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId, country.Id);
 
                 if (!routes.Any())
                 {
@@ -115,8 +125,7 @@ namespace MarketingBox.Registration.Service.Services
 
                 while (routes.Count > 0)
                 {
-                    var route = await TryGetSpecificRoute(request.AuthInfo.CampaignId,
-                        request.GeneralInfo.Country, routes);
+                    var route = await TryGetSpecificRoute(request.AuthInfo.CampaignId, request.GeneralInfo.CountryCode, routes);
 
                     if (route == null)
                     {
@@ -159,6 +168,36 @@ namespace MarketingBox.Registration.Service.Services
             }
         }
 
+        private async Task<Country> GetCountry(CountryCodeType countryCodeType, string countryCode)
+        {
+            var countries = await _countryClient.GetCountries();
+            var country = countryCodeType switch
+            {
+                CountryCodeType.Numeric => countries.FirstOrDefault(x => x.Numeric == countryCode),
+                CountryCodeType.Alfa2Code => countries.FirstOrDefault(x => x.Alfa2Code == countryCode),
+                CountryCodeType.Alfa3Code => countries.FirstOrDefault(x => x.Alfa3Code == countryCode),
+                _ => throw new ArgumentOutOfRangeException(nameof(countryCodeType), countryCodeType, null)
+            };
+            if (country is null)
+            {
+                throw new BadRequestException(new Error
+                {
+                    ErrorMessage = BadRequestException.DefaultErrorMessage,
+                    ValidationErrors = new List<ValidationError>
+                    {
+                        new ValidationError
+                        {
+                            ErrorMessage = $"There is no country with code {countryCodeType}:{countryCode}",
+                            ParameterName =nameof(countryCode)
+                        }
+                    }
+                });
+                
+            }
+
+            return country;
+        }
+
         private async Task<Grpc.Models.Registrations.Contracts.Registration> GetRegistrationCreateResponse(
             RegistrationCreateRequest request,
             Domain.Registrations.Registration registration)
@@ -182,7 +221,8 @@ namespace MarketingBox.Registration.Service.Services
             RouteParameters routeParameters,
             string tenantId,
             long registrationId,
-            string affiliateName)
+            string affiliateName,
+            Country country)
         {
             var leadBrandRegistrationInfo = new RegistrationRouteInfo()
             {
@@ -222,7 +262,8 @@ namespace MarketingBox.Registration.Service.Services
                 Email = request.GeneralInfo?.Email,
                 Phone = request.GeneralInfo?.Phone,
                 Ip = request.GeneralInfo?.Ip,
-                Country = request.GeneralInfo?.Country,
+                CountryId = country.Id,
+                CountryAlfa2Code = country.Alfa2Code,
                 CreatedAt = currentDate,
                 UpdatedAt = currentDate
             };
@@ -268,8 +309,7 @@ namespace MarketingBox.Registration.Service.Services
             return partnerApiKey.Equals(apiKey, StringComparison.OrdinalIgnoreCase);
         }
 
-        private async Task<RouteParameters> TryGetSpecificRoute(long campaignId, string country,
-            List<CampaignRowNoSql> filtered)
+        private async Task<RouteParameters> TryGetSpecificRoute(long campaignId, string country, List<CampaignRowNoSql> filtered)
         {
             try
             {
@@ -277,7 +317,7 @@ namespace MarketingBox.Registration.Service.Services
                     .Get(CampaignIndexNoSql.GeneratePartitionKey(campaignId)).FirstOrDefault();
                 var tenantId = boxIndexNoSql?.TenantId;
 
-                var campaignBox = await _registrationRouter.GetCampaignBox(tenantId, campaignId, country, filtered);
+                var campaignBox = await _registrationRouter.GetCampaignBox(tenantId, campaignId, filtered);
 
                 if (campaignBox == null)
                     return null;
@@ -306,7 +346,7 @@ namespace MarketingBox.Registration.Service.Services
             }
             catch (Exception e)
             {
-                _logger.LogWarning("Can't TryGetRouteInfo {@Campaign} {@Country} {@Error}",
+                _logger.LogWarning("Can't TryGetRouteInfo. CampaignId: {@Campaign} countryCode: {@CountryCode} Error: {@Error}",
                     campaignId, country, e.Message);
             }
 

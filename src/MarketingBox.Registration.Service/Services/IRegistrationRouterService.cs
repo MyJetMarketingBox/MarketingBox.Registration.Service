@@ -6,9 +6,8 @@ namespace MarketingBox.Registration.Service.Services
 {
     public interface IRegistrationRouterService
     {
-        Task<List<CampaignRowNoSql>> GetSuitableRoutes(long campaignId, string country);
+        Task<List<CampaignRowNoSql>> GetSuitableRoutes(long campaignId, int countryId);
 
-        Task<CampaignRowNoSql> GetCampaignBox(string tenantId, long campaignId, string country,
-            List<CampaignRowNoSql> filtered);
+        Task<CampaignRowNoSql> GetCampaignBox(string tenantId, long campaignId, List<CampaignRowNoSql> filtered);
     }
 }

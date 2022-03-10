@@ -6,11 +6,12 @@
 
   <ItemGroup>
     <PackageReference Include="Destructurama.Attributed" Version="3.0.0" />
-    <PackageReference Include="MarketingBox.Sdk.Common" Version="1.0.5" />
+    <PackageReference Include="MarketingBox.Sdk.Common" Version="1.0.7" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.9.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MarketingBox.Registration.Service.Domain.Models\MarketingBox.Registration.Service.Domain.Models.csproj" />
     <ProjectReference Include="..\MarketingBox.Registration.Service.Domain\MarketingBox.Registration.Service.Domain.csproj" />
   </ItemGroup>
 
