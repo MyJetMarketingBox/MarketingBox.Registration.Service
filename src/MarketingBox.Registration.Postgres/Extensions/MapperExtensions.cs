@@ -20,6 +20,7 @@ namespace MarketingBox.Registration.Postgres.Extensions
                 Password = registration.RegistrationInfo.Password,
                 Phone = registration.RegistrationInfo.Phone,
                 CountryId = registration.RegistrationInfo.CountryId,
+                Country = registration.RegistrationInfo.CountryAlfa2Code,
                 Id = registration.RegistrationInfo.RegistrationId,
                 UpdatedAt = registration.RegistrationInfo.UpdatedAt,
                 DepositDate = registration.RouteInfo.DepositDate,
