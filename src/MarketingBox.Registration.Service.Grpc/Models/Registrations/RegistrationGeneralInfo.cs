@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using Destructurama.Attributed;
-using MarketingBox.Registration.Service.Domain.Models;
+using MarketingBox.Registration.Service.Domain.Registrations;
 
 namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
 {

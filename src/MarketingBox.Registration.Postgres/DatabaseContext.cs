@@ -2,15 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.Postgres;
-using Newtonsoft.Json;
 
 namespace MarketingBox.Registration.Postgres
 {
     public class DatabaseContext : MyDbContext
     {
-        private static readonly JsonSerializerSettings JsonSerializingSettings =
-            new() { NullValueHandling = NullValueHandling.Ignore };
-
         public const string Schema = "registration-service";
 
         private const string RegistrationTableName = "registrations";
@@ -55,11 +51,6 @@ namespace MarketingBox.Registration.Postgres
             modelBuilder.Entity<RegistrationIdGeneratorEntity>().ToTable(RegistrationIdGeneratorTableName);
             modelBuilder.Entity<RegistrationIdGeneratorEntity>().HasKey(e => new { e.TenantId, e.GeneratorId });
             modelBuilder.Entity<RegistrationIdGeneratorEntity>().Property(p => p.RegistrationId).ValueGeneratedOnAdd();
-        }
-
-        public override void Dispose()
-        {
-            base.Dispose();
         }
     }
 }

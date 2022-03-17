@@ -12,7 +12,7 @@ using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.ExternalReferenceProxy.Service.Grpc;
 using MarketingBox.ExternalReferenceProxy.Service.Grpc.Models;
 using MarketingBox.Integration.Service.Client;
-using MarketingBox.Registration.Service.Domain.Models;
+using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Domain.Route;
 using MarketingBox.Registration.Service.Extensions;
