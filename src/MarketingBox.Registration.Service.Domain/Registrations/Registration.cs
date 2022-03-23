@@ -1,59 +1,77 @@
-﻿using System;
+﻿using MarketingBox.Registration.Service.Domain.Crm;
+using System;
 
 namespace MarketingBox.Registration.Service.Domain.Registrations
 {
     public class Registration
     {
         public string TenantId { get; }
-        public long Sequence { get; private set; }
-        public RegistrationGeneralInfo RegistrationInfo { get; private set; }
-        public RegistrationAdditionalInfo AdditionalInfo { get; private set; }
-        public RegistrationRouteInfo RouteInfo { get; private set; }
+        public RegistrationGeneralInfo RegistrationInfo { get; }
+        public RegistrationAdditionalInfo AdditionalInfo { get; }
+        public RegistrationRouteInfo RouteInfo { get; }
 
-        private Registration(string tenantId, long sequence, RegistrationGeneralInfo registrationGeneralInfo, 
+        private Registration(string tenantId, RegistrationGeneralInfo registrationGeneralInfo,
              RegistrationRouteInfo routeInfo, RegistrationAdditionalInfo additionalInfo)
         {
             TenantId = tenantId;
-            Sequence = sequence;
             RegistrationInfo = registrationGeneralInfo;
             RouteInfo = routeInfo;
             AdditionalInfo = additionalInfo;
         }
 
-        private void ChangeStatus(RegistrationStatus from, RegistrationStatus to)
+        public void UpdateCrmStatus(CrmStatus crmStatus)
         {
-            if (RouteInfo.Status != from)
-                throw new Exception($"Transfer lead from {from} type to {to}, current status {RouteInfo.Status}");
+            RouteInfo.CrmStatus = crmStatus;
+            RegistrationInfo.UpdatedAt = DateTimeOffset.UtcNow;
+        }
 
-            Sequence++;
+        private void ChangeStatus(RegistrationStatus to)
+        {
             RouteInfo.Status = to;
             RegistrationInfo.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
         public void Register(RegistrationCustomerInfo customerInfo)
         {
-            ChangeStatus(RegistrationStatus.Created, RegistrationStatus.Registered);
+            ChangeStatus(RegistrationStatus.Registered);
             RouteInfo.CustomerInfo = customerInfo;
         }
 
-        public void Deposit(DateTimeOffset depositDate)
+        public void UpdateStatus(DepositUpdateMode type, RegistrationStatus newStatus)
         {
-            ChangeStatus(RegistrationStatus.Registered, RegistrationStatus.Deposited);
-            RouteInfo.DepositDate = depositDate;
+            switch (newStatus)
+            {
+                case RegistrationStatus.Created:
+                    break;
+                case RegistrationStatus.Registered:
+                    ChangeStatus(RegistrationStatus.Registered);
+                    RouteInfo.UpdateMode = type;
+                    RouteInfo.ConversionDate = null;
+                    break;
+                case RegistrationStatus.Deposited:
+                    ChangeStatus(RegistrationStatus.Deposited);
+                    RouteInfo.DepositDate = DateTime.UtcNow;
+                    break;
+                case RegistrationStatus.Approved:
+                    ChangeStatus(RegistrationStatus.Approved);
+                    RouteInfo.UpdateMode = type;
+                    RouteInfo.ConversionDate = DateTime.UtcNow;
+                    break;
+                case RegistrationStatus.Declined:
+                    ChangeStatus(RegistrationStatus.Declined);
+                    RouteInfo.UpdateMode = type;
+                    RouteInfo.ConversionDate = null;
+                    break;
+                default:
+                    break;
+            }
         }
-
-        public void Approved(DateTimeOffset depositDate)
-        {
-            ChangeStatus(RegistrationStatus.Deposited, RegistrationStatus.Approved);
-            RouteInfo.ConversionDate = depositDate;
-        }
-
-        public static Registration Restore(string tenantId, long sequence, RegistrationGeneralInfo registrationGeneralInfo, 
+        
+        public static Registration Restore(string tenantId, RegistrationGeneralInfo registrationGeneralInfo,
             RegistrationRouteInfo routeInfo, RegistrationAdditionalInfo additionalInfo)
         {
             return new Registration(
                 tenantId,
-                sequence,
                 registrationGeneralInfo,
                 routeInfo,
                 additionalInfo

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MarketingBox.Registration.Service.Client;
+using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.Grpc.Models.Affiliate;
-using MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
 using Microsoft.Extensions.Logging;
 using ProtoBuf.Grpc.Client;
+using RegistrationAdditionalInfo = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationAdditionalInfo;
+using RegistrationGeneralInfo = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationGeneralInfo;
 
 namespace TestApp
 {
@@ -22,7 +23,7 @@ namespace TestApp
             var factory = new RegistrationServiceClientFactory("http://localhost:12121");
             var leadService = factory.GetRegistrationService();
             var depositService = factory.GetDepositService();
-            var testTenant = "default-tenant-id";
+            //var testTenant = "default-tenant-id";
             var logger = LoggerFactory.Create((x) => x.AddConsole()).CreateLogger<Program>();
 
             for (int i = 0; i < 12; i++)
@@ -40,7 +41,8 @@ namespace TestApp
                     },
                     GeneralInfo = new RegistrationGeneralInfo()
                     {
-                        Country = "UA",
+                        CountryCode = "UA",
+                        CountryCodeType = CountryCodeType.Alfa2Code,
                         Email = $"test.testov.2020.11.08.{i}@mailinator.com",
                         FirstName = "Test",
                         Ip = "99.99.99.99",

@@ -1,4 +1,5 @@
 ﻿using System;
+using MarketingBox.Registration.Service.Domain.Crm;
 using MarketingBox.Registration.Service.Domain.Registrations;
 
 namespace MarketingBox.Registration.Postgres.Entities.Registration
@@ -14,35 +15,37 @@ namespace MarketingBox.Registration.Postgres.Entities.Registration
         public string Email { get; set; }
         public string Phone { get; set; }
         public string Ip { get; set; }
+        public int CountryId { get; set; }
         public string Country { get; set; }
-        public long RouteInfoAffiliateId { get; set; }
-        public long RouteInfoBrandId { get; set; }
-        public long RouteInfoCampaignId { get; set; }
-        public string RouteInfoIntegration { get; set; }
-        public long RouteInfoIntegrationId { get; set; }
-        public RegistrationStatus RouteInfoStatus { get; set; }
-        public RegistrationApprovedType RouteInfoApprovedType { get; set; }
-        public string AdditionalInfoSo { get; set; }
-        public string AdditionalInfoSub { get; set; }
-        public string AdditionalInfoSub1 { get; set; }
-        public string AdditionalInfoSub2 { get; set; }
-        public string AdditionalInfoSub3 { get; set; }
-        public string AdditionalInfoSub4 { get; set; }
-        public string AdditionalInfoSub5 { get; set; }
-        public string AdditionalInfoSub6 { get; set; }
-        public string AdditionalInfoSub7 { get; set; }
-        public string AdditionalInfoSub8 { get; set; }
-        public string AdditionalInfoSub9 { get; set; }
-        public string AdditionalInfoSub10 { get; set; }
-        public string RouteInfoCustomerInfoCustomerId { get; set; }
-        public string RouteInfoCustomerInfoToken { get; set; }
-        public string RouteInfoCustomerInfoLoginUrl { get; set; }
-        public string RouteInfoCustomerInfoBrand { get; set; }
-        public string RouteInfoCrmStatus { get; set; }
+        public long AffiliateId { get; set; }
+        public long? BrandId { get; set; }
+        public long CampaignId { get; set; }
+        public string Integration { get; set; }
+        public long? IntegrationId { get; set; }
+        public RegistrationStatus Status { get; set; }
+        public DepositUpdateMode ApprovedType { get; set; }
+        public string Funnel { get; set; }
+        public string AffCode { get; set; }
+        public string Sub1 { get; set; }
+        public string Sub2 { get; set; }
+        public string Sub3 { get; set; }
+        public string Sub4 { get; set; }
+        public string Sub5 { get; set; }
+        public string Sub6 { get; set; }
+        public string Sub7 { get; set; }
+        public string Sub8 { get; set; }
+        public string Sub9 { get; set; }
+        public string Sub10 { get; set; }
+        public string CustomerId { get; set; }
+        public string CustomerToken { get; set; }
+        public string CustomerLoginUrl { get; set; }
+        public string CustomerBrand { get; set; }
+        public CrmStatus CrmStatus { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
-        public DateTimeOffset? RouteInfoDepositDate { get; set; }
-        public DateTimeOffset? RouteInfoConversionDate { get; set; }
+        public DateTimeOffset? DepositDate { get; set; }
+        public DateTimeOffset? ConversionDate { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
-        public long Sequence { get; set; }
+        public string AffiliateName { get; set; }
+        public bool AutologinUsed { get; set; }
     }
 }

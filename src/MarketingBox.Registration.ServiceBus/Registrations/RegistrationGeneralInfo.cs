@@ -32,12 +32,13 @@ namespace MarketingBox.Registration.Service.Messages.Registrations
         public string Ip { get; set; }
 
         [DataMember(Order = 7)]
-        public string Country { get; set; }
+        public int CountryId { get; set; }
 
         [DataMember(Order = 8)]
         public long RegistrationId { get; set; }
 
         [DataMember(Order = 9)]
+        [ObsoleteAttribute("This property is obsolete. Use RegistrationUId instead.", false)]
         public string UniqueId { get; set; }
         
         [DataMember(Order = 10)]
@@ -46,5 +47,7 @@ namespace MarketingBox.Registration.Service.Messages.Registrations
         [DataMember(Order = 11)]
         public DateTime UpdatedAt { get; set; }
 
+        [DataMember(Order = 12)]
+        public string RegistrationUId { get; set; }
     }
 }

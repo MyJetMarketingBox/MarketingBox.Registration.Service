@@ -1,5 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using Destructurama.Attributed;
+using MarketingBox.Registration.Service.Domain.Registrations;
 
 namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
 {
@@ -31,6 +32,9 @@ namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
         public string Ip { get; set; }
 
         [DataMember(Order = 7)]
-        public string Country { get; set; }
+        public CountryCodeType CountryCodeType { get; set; }
+        
+        [DataMember(Order = 8)]
+        public string CountryCode { get; set; }
     }
 }

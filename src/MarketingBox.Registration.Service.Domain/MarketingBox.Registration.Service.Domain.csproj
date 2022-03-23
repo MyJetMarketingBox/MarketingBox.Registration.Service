@@ -4,4 +4,8 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MarketingBox.Registration.Service.Domain.Models\MarketingBox.Registration.Service.Domain.Models.csproj" />
+  </ItemGroup>
+
 </Project>

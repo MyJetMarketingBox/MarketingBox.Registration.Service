@@ -1,28 +1,37 @@
-﻿using MarketingBox.Affiliate.Service.MyNoSql.Brands;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using MarketingBox.Affiliate.Service.Client;
+using MarketingBox.Affiliate.Service.Domain.Models.Country;
+using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
+using MarketingBox.Affiliate.Service.MyNoSql.Brands;
+using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
+using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
+using MarketingBox.ExternalReferenceProxy.Service.Grpc;
+using MarketingBox.ExternalReferenceProxy.Service.Grpc.Models;
+using MarketingBox.Integration.Service.Client;
+using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.Domain.Repositories;
+using MarketingBox.Registration.Service.Domain.Route;
 using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc;
-using MarketingBox.Registration.Service.Grpc.Models.Common;
+using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
+using MarketingBox.Registration.Service.Messages.Registrations;
+using MarketingBox.Sdk.Common.Exceptions;
+using MarketingBox.Sdk.Common.Extensions;
+using MarketingBox.Sdk.Common.Models;
+using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
-using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
-using MarketingBox.Integration.Service.Client;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
-using MarketingBox.Registration.Service.Messages.Registrations;
-using MarketingBox.Registration.Service.MyNoSql.Registrations;
 using RegistrationAdditionalInfo = MarketingBox.Registration.Service.Domain.Registrations.RegistrationAdditionalInfo;
 using RegistrationBrandInfo = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationBrandInfo;
 using RegistrationCustomerInfo = MarketingBox.Registration.Service.Domain.Registrations.RegistrationCustomerInfo;
-using RegistrationGeneralInfo = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationGeneralInfo;
 using RegistrationRouteInfo = MarketingBox.Registration.Service.Domain.Registrations.RegistrationRouteInfo;
 using RegistrationStatus = MarketingBox.Registration.Service.Domain.Registrations.RegistrationStatus;
-
+using RegistrationContract = MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts.Registration;
 
 namespace MarketingBox.Registration.Service.Services
 {
@@ -30,28 +39,29 @@ namespace MarketingBox.Registration.Service.Services
     {
         private readonly ILogger<RegistrationService> _logger;
         private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisherLeadUpdated;
-        private readonly IMyNoSqlServerDataWriter<RegistrationNoSqlEntity> _registrationNoSqlServerDataWriter;
         private readonly IMyNoSqlServerDataReader<CampaignIndexNoSql> _campaignIndexNoSqlServerDataReader;
         private readonly IMyNoSqlServerDataReader<IntegrationNoSql> _integrationNoSqlServerDataReader;
         private readonly IMyNoSqlServerDataReader<BrandNoSql> _brandNoSqlServerDataReader;
         private readonly IMyNoSqlServerDataReader<AffiliateNoSql> _affiliateNoSqlServerDataReader;
         private readonly IIntegrationService _integrationService;
         private readonly IRegistrationRepository _repository;
-        private readonly RegistrationRouter _registrationRouter;
+        private readonly IRegistrationRouterService _registrationRouter;
+        private readonly IExternalReferenceProxyService _externalReferenceProxyService;
+        private readonly ICountryClient _countryClient;
 
         public RegistrationService(ILogger<RegistrationService> logger,
             IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated,
-            IMyNoSqlServerDataWriter<RegistrationNoSqlEntity> registrationNoSqlServerDataWriter,
             IMyNoSqlServerDataReader<CampaignIndexNoSql> campaignIndexNoSqlServerDataReader,
             IMyNoSqlServerDataReader<IntegrationNoSql> integrationNoSqlServerDataReader,
             IMyNoSqlServerDataReader<BrandNoSql> brandNoSqlServerDataReader,
-            IIntegrationService integrationService, 
+            IIntegrationService integrationService,
             IRegistrationRepository repository,
-            RegistrationRouter registrationRouter, 
-            IMyNoSqlServerDataReader<AffiliateNoSql> affiliateNoSqlServerDataReader)
+            IRegistrationRouterService registrationRouter,
+            IMyNoSqlServerDataReader<AffiliateNoSql> affiliateNoSqlServerDataReader,
+            IExternalReferenceProxyService externalReferenceProxyService,
+            ICountryClient countryClient)
         {
             _logger = logger;
-            _registrationNoSqlServerDataWriter = registrationNoSqlServerDataWriter;
             _publisherLeadUpdated = publisherLeadUpdated;
             _campaignIndexNoSqlServerDataReader = campaignIndexNoSqlServerDataReader;
             _integrationNoSqlServerDataReader = integrationNoSqlServerDataReader;
@@ -60,165 +70,254 @@ namespace MarketingBox.Registration.Service.Services
             _repository = repository;
             _registrationRouter = registrationRouter;
             _affiliateNoSqlServerDataReader = affiliateNoSqlServerDataReader;
+            _externalReferenceProxyService = externalReferenceProxyService;
+            _countryClient = countryClient;
         }
 
-        public async Task<RegistrationCreateResponse> CreateAsync(RegistrationCreateRequest request)
+        public async Task<Response<RegistrationContract>> CreateAsync(RegistrationCreateRequest request)
         {
-            _logger.LogInformation("Creating new Registration {@context}", request);
-
-            //Validate Affiliate ApiKey
-            if (!IsAffiliateApiKeyValid(request.AuthInfo.CampaignId, 
-                request.AuthInfo.AffiliateId, 
-                request.AuthInfo.ApiKey))
-            {
-                return await Task.FromResult<RegistrationCreateResponse>(
-                    new RegistrationCreateResponse()
-                {
-                    Status = ResultCode.RequiredAuthentication,
-                    Error = new Error()
-                    {
-                        Message = $"Require '{request.AuthInfo.AffiliateId}' authentication",
-                        Type = ErrorType.InvalidAffiliateInfo
-                    }
-                });
-            }
-
-            //Get Affiliate Full Info
-            var affiliateInfo = await TryGetAffiliateInfo(request.AuthInfo.CampaignId, request.GeneralInfo.Country);
-            if (affiliateInfo == null)
-            {
-                return RegisterFailedMapToGrpc(request.GeneralInfo);
-            }
-
             try
             {
-                var registrationId = await _repository.GenerateRegistrationIdAsync(affiliateInfo.TenantId, 
-                    request.GeneratorId());
-                var leadBrandRegistrationInfo = new RegistrationRouteInfo()
+                _logger.LogInformation("Creating new Registration {@context}", request);
+
+                var tenantId = GetTenantId(request.AuthInfo.CampaignId);
+                if (tenantId == null)
                 {
-                    IntegrationId = affiliateInfo.IntegrationId,
-                    BrandId = affiliateInfo.BrandId,
-                    Integration = affiliateInfo.BrandName,
-                    CampaignId = request.AuthInfo.CampaignId,
-                    AffiliateId = request.AuthInfo.AffiliateId,
-                    Status = RegistrationStatus.Created,
-                    CustomerInfo = new RegistrationCustomerInfo()
+                    throw new BadRequestException(new Sdk.Common.Models.Error
                     {
-
-                    }
-                };
-                var leadAdditionalInfo = new RegistrationAdditionalInfo()
-                {
-                    So = request.AdditionalInfo.So,
-                    Sub = request.AdditionalInfo.Sub,
-                    Sub1 = request.AdditionalInfo.Sub1,
-                    Sub2 = request.AdditionalInfo.Sub2,
-                    Sub3 = request.AdditionalInfo.Sub3,
-                    Sub4 = request.AdditionalInfo.Sub4,
-                    Sub5 = request.AdditionalInfo.Sub5,
-                    Sub6 = request.AdditionalInfo.Sub6,
-                    Sub7 = request.AdditionalInfo.Sub7,
-                    Sub8 = request.AdditionalInfo.Sub8,
-                    Sub9 = request.AdditionalInfo.Sub9,
-                    Sub10 = request.AdditionalInfo.Sub10,
-
-                };
-                var currentDate = DateTimeOffset.UtcNow;
-                var leadGeneralInfo = new Domain.Registrations.RegistrationGeneralInfo()
-                {
-                    UniqueId = UniqueIdGenerator.GetNextId(),
-                    RegistrationId = registrationId,
-                    FirstName = request.GeneralInfo?.FirstName,
-                    LastName = request.GeneralInfo?.LastName,
-                    Password = request.GeneralInfo?.Password,
-                    Email = request.GeneralInfo?.Email,
-                    Phone = request.GeneralInfo?.Phone,
-                    Ip = request.GeneralInfo?.Ip,
-                    Country = request.GeneralInfo?.Country,
-                    CreatedAt = currentDate,
-                    UpdatedAt = currentDate,
-                };
-
-                var registration = Domain.Registrations.Registration.Restore(affiliateInfo.TenantId, 0, leadGeneralInfo, leadBrandRegistrationInfo, leadAdditionalInfo);
-
-                await _repository.SaveAsync(registration);
-
-                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
-                _logger.LogInformation("Sent original created registration to service bus {@context}", request);
-
-                await _registrationNoSqlServerDataWriter.InsertOrReplaceAsync(registration.MapToNoSql());
-                _logger.LogInformation("Sent registration update to MyNoSql {@context}", request);
-
-                var brandResponse = await BrandRegisterAsync(registration);
-
-                if (brandResponse.Status != ResultCode.CompletedSuccessfully)
-                {
-                    _logger.LogInformation("Failed to register on brand {@context} {@response}", request, brandResponse);
-                    return FailedMapToGrpc(new Error()
+                        ErrorMessage = BadRequestException.DefaultErrorMessage,
+                        ValidationErrors = new List<ValidationError>
                         {
-                            Message = "Can't register on brand",
-                            Type = ErrorType.InvalidPersonalData
-                        },
-                        request.GeneralInfo);
+                            new ValidationError
+                            {
+                                ParameterName = nameof(request.AuthInfo.CampaignId),
+                                ErrorMessage = $"Incorrect offerid '{request.AuthInfo.CampaignId}'"
+                            }
+                        }
+                    });
                 }
 
-                registration.Register(new RegistrationCustomerInfo()
+                if (!IsAffiliateApiKeyValid(tenantId, request.AuthInfo.AffiliateId,
+                        request.AuthInfo.ApiKey, out var affiliateName))
                 {
-                    CustomerId = brandResponse.Data.CustomerId,
-                    LoginUrl = brandResponse.Data.LoginUrl,
-                    Token = brandResponse.Data.Token,
-                    Brand = brandResponse.Data.Brand
-                });
+                    throw new UnauthorizedException(
+                        $"Required authentication for affiliate '{request.AuthInfo.AffiliateId}'");
+                }
 
-                await _repository.SaveAsync(registration);
+                var registrationId = await _repository.GenerateRegistrationIdAsync(tenantId,
+                    request.GeneratorId());
 
-                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
-                _logger.LogInformation("Sent original created to service bus {@context}", request);
+                var country =
+                    await GetCountry(request.GeneralInfo.CountryCodeType, request.GeneralInfo.CountryCode);
+                
+                var registration = GetRegistration(request, null, tenantId, registrationId, affiliateName, country);
 
-                await _registrationNoSqlServerDataWriter.InsertOrReplaceAsync(registration.MapToNoSql());
-                _logger.LogInformation("Sent original update to MyNoSql {@context}", request);
+                
+                Grpc.Models.Registrations.Contracts.Registration response = null;
+                var routes =
+                    await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId, country.Id);
 
+                if (!routes.Any())
+                {
+                    await _repository.SaveAsync(registration);
+                    throw new Exception("Can't register on brand");
+                }
 
-                return brandResponse.Status == ResultCode.CompletedSuccessfully ?
-                    SuccessfullMapToGrpc(registration) : FailedMapToGrpc(new Error()
+                while (routes.Count > 0)
+                {
+                    var route = await TryGetSpecificRoute(request.AuthInfo.CampaignId, request.GeneralInfo.CountryCode, routes);
+
+                    if (route == null)
                     {
-                        Message = "Can't register on brand",
-                        Type = ErrorType.InvalidPersonalData
-                    },
-                    request.GeneralInfo);
-                ;
+                        await SaveAndPublishRegistration(request, registration);
+                        throw new Exception("Can't register on brand");
+                    }
+
+                    routes.RemoveAll(x =>
+                        (x.BrandId == route.BrandId &&
+                         x.CampaignId == route.CampaignId &&
+                         x.CampaignRowId == route.CampaignRowId));
+
+                    registration.RouteInfo.BrandId = route.BrandId;
+                    registration.RouteInfo.CampaignId = route.CampaignId;
+                    registration.RouteInfo.Integration = route.BrandName;
+                    registration.RouteInfo.IntegrationId = route.IntegrationId;
+                    try
+                    {
+                        response = await GetRegistrationCreateResponse(request, registration);
+                        break;
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+                }
+
+                await SaveAndPublishRegistration(request, registration);
+                return new Response<RegistrationContract>
+                {
+                    Data = response,
+                    Status = ResponseStatus.Ok
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error creating original {@context}", request);
 
-                return new RegistrationCreateResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<RegistrationContract>();
             }
         }
 
-        private bool IsAffiliateApiKeyValid(long campaignId, long affiliateId, string apiKey)
+        private async Task<Country> GetCountry(CountryCodeType countryCodeType, string countryCode)
+        {
+            var countries = await _countryClient.GetCountries();
+            var country = countryCodeType switch
+            {
+                CountryCodeType.Numeric => countries.FirstOrDefault(x => x.Numeric == countryCode),
+                CountryCodeType.Alfa2Code => countries.FirstOrDefault(x => x.Alfa2Code == countryCode),
+                CountryCodeType.Alfa3Code => countries.FirstOrDefault(x => x.Alfa3Code == countryCode),
+                _ => throw new ArgumentOutOfRangeException(nameof(countryCodeType), countryCodeType, null)
+            };
+            if (country is null)
+            {
+                throw new BadRequestException(new Error
+                {
+                    ErrorMessage = BadRequestException.DefaultErrorMessage,
+                    ValidationErrors = new List<ValidationError>
+                    {
+                        new ValidationError
+                        {
+                            ErrorMessage = $"There is no country with code {countryCodeType}:{countryCode}",
+                            ParameterName =nameof(countryCode)
+                        }
+                    }
+                });
+                
+            }
+
+            return country;
+        }
+
+        private async Task<Grpc.Models.Registrations.Contracts.Registration> GetRegistrationCreateResponse(
+            RegistrationCreateRequest request,
+            Domain.Registrations.Registration registration)
+        {
+            var brandResponse = await BrandRegisterAsync(registration);
+
+            _logger.LogInformation("Brand request: {@context}. Brand response: {@response}", request, brandResponse);
+
+            registration.Register(new RegistrationCustomerInfo()
+            {
+                CustomerId = brandResponse.Data.CustomerId,
+                LoginUrl = brandResponse.Data.LoginUrl,
+                Token = brandResponse.Data.Token,
+                Brand = brandResponse.Data.Brand
+            });
+            return MapToGrpc(registration);
+        }
+
+        private Domain.Registrations.Registration GetRegistration(
+            RegistrationCreateRequest request,
+            RouteParameters routeParameters,
+            string tenantId,
+            long registrationId,
+            string affiliateName,
+            Country country)
+        {
+            var leadBrandRegistrationInfo = new RegistrationRouteInfo()
+            {
+                IntegrationId = routeParameters?.IntegrationId,
+                BrandId = routeParameters?.BrandId,
+                Integration = routeParameters?.BrandName ?? string.Empty,
+                CampaignId = request.AuthInfo.CampaignId,
+                AffiliateId = request.AuthInfo.AffiliateId,
+                AffiliateName = affiliateName,
+                CrmStatus = Domain.Crm.CrmStatus.New,
+                Status = RegistrationStatus.Created,
+                CustomerInfo = new RegistrationCustomerInfo()
+            };
+            var additionalInfo = new RegistrationAdditionalInfo()
+            {
+                Funnel = request.AdditionalInfo.Funnel,
+                AffCode = request.AdditionalInfo.AffCode,
+                Sub1 = request.AdditionalInfo.Sub1,
+                Sub2 = request.AdditionalInfo.Sub2,
+                Sub3 = request.AdditionalInfo.Sub3,
+                Sub4 = request.AdditionalInfo.Sub4,
+                Sub5 = request.AdditionalInfo.Sub5,
+                Sub6 = request.AdditionalInfo.Sub6,
+                Sub7 = request.AdditionalInfo.Sub7,
+                Sub8 = request.AdditionalInfo.Sub8,
+                Sub9 = request.AdditionalInfo.Sub9,
+                Sub10 = request.AdditionalInfo.Sub10,
+            };
+            var currentDate = DateTimeOffset.UtcNow;
+            var generalInfo = new Domain.Registrations.RegistrationGeneralInfo()
+            {
+                RegistrationUid = UniqueIdGenerator.GetNextId(),
+                RegistrationId = registrationId,
+                FirstName = request.GeneralInfo?.FirstName,
+                LastName = request.GeneralInfo?.LastName,
+                Password = request.GeneralInfo?.Password,
+                Email = request.GeneralInfo?.Email,
+                Phone = request.GeneralInfo?.Phone,
+                Ip = request.GeneralInfo?.Ip,
+                CountryId = country.Id,
+                CountryAlfa2Code = country.Alfa2Code,
+                CreatedAt = currentDate,
+                UpdatedAt = currentDate
+            };
+            var registration = Domain.Registrations.Registration.Restore(tenantId, generalInfo,
+                leadBrandRegistrationInfo, additionalInfo);
+
+            return registration;
+        }
+
+        private async Task SaveAndPublishRegistration(RegistrationCreateRequest request,
+            Domain.Registrations.Registration registration)
+        {
+            await _repository.SaveAsync(registration);
+
+            await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
+            _logger.LogInformation("Sent original created registration to service bus {@context}", request);
+        }
+
+        private string GetTenantId(long campaignId)
         {
             var boxIndexNoSql = _campaignIndexNoSqlServerDataReader
                 .Get(CampaignIndexNoSql.GeneratePartitionKey(campaignId)).FirstOrDefault();
 
+            return boxIndexNoSql?.TenantId;
+        }
+
+        private bool IsAffiliateApiKeyValid(string tenantId, long affiliateId, string apiKey, out string affiliateName)
+        {
             var partner =
-                _affiliateNoSqlServerDataReader.Get(AffiliateNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
+                _affiliateNoSqlServerDataReader.Get(AffiliateNoSql.GeneratePartitionKey(tenantId),
                     AffiliateNoSql.GenerateRowKey(affiliateId));
 
+            if (partner == null)
+            {
+                affiliateName = string.Empty;
+                return false;
+            }
+
             var partnerApiKey = partner.GeneralInfo.ApiKey;
+
+            affiliateName = partner.GeneralInfo.Username;
 
             return partnerApiKey.Equals(apiKey, StringComparison.OrdinalIgnoreCase);
         }
 
-        private async Task<AffiliateInfo> TryGetAffiliateInfo(long campaignId, string country)
+        private async Task<RouteParameters> TryGetSpecificRoute(long campaignId, string country, List<CampaignRowNoSql> filtered)
         {
             try
             {
                 var boxIndexNoSql = _campaignIndexNoSqlServerDataReader
                     .Get(CampaignIndexNoSql.GeneratePartitionKey(campaignId)).FirstOrDefault();
-                string tenantId = boxIndexNoSql?.TenantId;
+                var tenantId = boxIndexNoSql?.TenantId;
 
-                var campaignBox = await _registrationRouter.GetCampaignBox(tenantId, campaignId, country);
+                var campaignBox = await _registrationRouter.GetCampaignBox(tenantId, campaignId, filtered);
 
                 if (campaignBox == null)
                     return null;
@@ -227,75 +326,79 @@ namespace MarketingBox.Registration.Service.Services
                     BrandNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
                     BrandNoSql.GenerateRowKey(campaignBox.BrandId));
 
-                long brandId = brandNoSql.Id;
+                var brandId = brandNoSql.Id;
 
-                var integrationNoSql = _integrationNoSqlServerDataReader.Get(IntegrationNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
+                var integrationNoSql = _integrationNoSqlServerDataReader.Get(
+                    IntegrationNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
                     IntegrationNoSql.GenerateRowKey(brandNoSql.IntegrationId));
 
-                string brandName = integrationNoSql.Name;
-                long integrationId = integrationNoSql.IntegrationId;
-                return new AffiliateInfo()
+                var brandName = integrationNoSql.Name;
+                var integrationId = integrationNoSql.IntegrationId;
+                return new RouteParameters()
                 {
                     IntegrationId = integrationId,
                     BrandName = brandName,
                     BrandId = brandId,
-                    TenantId = tenantId
+                    TenantId = tenantId,
+                    CampaignId = campaignId,
+                    CampaignRowId = campaignBox.CampaignRowId,
                 };
             }
             catch (Exception e)
             {
-                _logger.LogWarning("Can't TryGetRouteInfo {@Campaign} {@Country} {@Error}", 
+                _logger.LogWarning("Can't TryGetRouteInfo. CampaignId: {@Campaign} countryCode: {@CountryCode} Error: {@Error}",
                     campaignId, country, e.Message);
             }
 
             return null;
         }
 
-        public static class UniqueIdGenerator
+        private static class UniqueIdGenerator
         {
             public static string GetNextId()
             {
-                return Guid.NewGuid().ToString();
+                return Guid.NewGuid().ToString("N");
             }
         }
 
-        private static Random random = new Random();
-        public static string RandomString(int length)
-        {
-            const string chars = "123456789";
-            return new string(Enumerable.Repeat(chars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
-        }
-
-
-        public async Task<RegistrationBrandInfo> BrandRegisterAsync(Domain.Registrations.Registration registration)
+        private async Task<RegistrationBrandInfo> BrandRegisterAsync(Domain.Registrations.Registration registration)
         {
             var request = registration.CreateIntegrationRequest();
             var response = await _integrationService.SendRegisterationAsync(request);
 
+            var proxyLoginRef = await _externalReferenceProxyService.GetProxyRefAsync(new GetProxyRefRequest()
+            {
+                RegistrationId = registration.RegistrationInfo.RegistrationId,
+                RegistrationUId = registration.RegistrationInfo.RegistrationUid,
+                TenantId = registration.TenantId,
+                BrandLink = response.Data?.Customer?.LoginUrl
+            });
+            if (proxyLoginRef.Status != ResponseStatus.Ok)
+            {
+                _logger.LogError(proxyLoginRef.Error.ErrorMessage);
+                throw new Exception(proxyLoginRef.Error.ErrorMessage);
+            }
+
             var brandInfo = new RegistrationBrandInfo()
             {
-                Status = (ResultCode)response.Status,
                 Data = new Grpc.Models.Registrations.RegistrationCustomerInfo()
                 {
-                    LoginUrl = response.Customer?.LoginUrl,
-                    CustomerId = response.Customer?.CustomerId,
-                    Token = response.Customer?.Token,
+                    LoginUrl = proxyLoginRef.Data,
+                    CustomerId = response.Data?.Customer?.CustomerId,
+                    Token = response.Data?.Customer?.Token,
                 }
             };
-
             return brandInfo;
         }
 
-        private static RegistrationCreateResponse SuccessfullMapToGrpc(Domain.Registrations.Registration registration)
+        private static Grpc.Models.Registrations.Contracts.Registration MapToGrpc(
+            Domain.Registrations.Registration registration)
         {
-            return new RegistrationCreateResponse()
+            return new Grpc.Models.Registrations.Contracts.Registration()
             {
-                Status = ResultCode.CompletedSuccessfully,
                 Message = registration.RouteInfo.CustomerInfo.LoginUrl,
                 BrandInfo = new RegistrationBrandInfo()
                 {
-                    Status = ResultCode.CompletedSuccessfully,
                     Data = new Grpc.Models.Registrations.RegistrationCustomerInfo()
                     {
                         CustomerId = registration.RouteInfo.CustomerInfo.CustomerId,
@@ -306,42 +409,7 @@ namespace MarketingBox.Registration.Service.Services
                 },
                 FallbackUrl = string.Empty,
                 RegistrationId = registration.RegistrationInfo.RegistrationId,
-                UniqueId = registration.RegistrationInfo.UniqueId
-            };
-        }
-
-        private static RegistrationCreateResponse RegisterFailedMapToGrpc(
-            RegistrationGeneralInfo reneralInfo)
-        {
-            return FailedMapToGrpc(
-                new Error()
-                {
-                    Message = "Can't get partner info",
-                    Type = ErrorType.Unknown
-                },
-                reneralInfo
-            );
-        }
-
-
-        private static RegistrationCreateResponse FailedMapToGrpc(Error error,
-            RegistrationGeneralInfo original)
-        {
-            return new RegistrationCreateResponse()
-            {
-                Status = ResultCode.Failed,
-                Error = error,
-                Message = error.Message,
-                OriginalData = new RegistrationGeneralInfo()
-                {
-                    Email = original.Email,
-                    Password = original.Password,
-                    FirstName = original.FirstName,
-                    Ip = original.Ip,
-                    LastName = original.LastName,
-                    Phone = original.Phone,
-                    Country = original.Country
-                }
+                RegistrationUId = registration.RegistrationInfo.RegistrationUid
             };
         }
     }

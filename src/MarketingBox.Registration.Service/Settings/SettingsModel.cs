@@ -34,5 +34,11 @@ namespace MarketingBox.Registration.Service.Settings
 
         [YamlProperty("MarketingBoxRegistrationService.ReportingServiceUrl")]
         public string ReportingServiceUrl { get; set; }
+
+        [YamlProperty("MarketingBoxRegistrationService.ExternalReferenceProxyServiceUrl")]
+        public string ExternalReferenceProxyServiceUrl { get; set; }
+
+        [YamlProperty("MarketingBoxRegistrationService.AffiliateServiceUrl")]
+        public string AffiliateServiceUrl { get; set; }
     }
 }

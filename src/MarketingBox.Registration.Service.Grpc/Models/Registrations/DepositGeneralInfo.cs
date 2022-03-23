@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 using Destructurama.Attributed;
+using MarketingBox.Registration.Service.Domain.Crm;
 
 namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
 {
@@ -35,7 +36,7 @@ namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
         public DateTime CreatedAt { get; set; }
 
         [DataMember(Order = 8)]
-        public string Country { get; set; }
+        public int CountryId { get; set; }
 
         [DataMember(Order = 9)]
         public long RegistrationId { get; set; }
@@ -46,6 +47,7 @@ namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
         [DataMember(Order = 11)]
         public RegistrationStatus Status { get; set; }
 
+        [ObsoleteAttribute("This property is obsolete. Use CrmStatus instead.", false)]
         [DataMember(Order = 12)]
         public string CrmCrmStatus { get; set; }
 
@@ -57,5 +59,15 @@ namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
 
         [DataMember(Order = 15)]
         public DateTime UpdatedAt { get; set; }
+
+        [DataMember(Order = 16)]
+        public CrmStatus CrmStatus { get; set; }
+
+        [DataMember(Order = 17)]
+        [LogMasked(PreserveLength = true, ShowFirst = 2, ShowLast = 2)]
+        public string AffiliateName { get; set; }
+
+        [DataMember(Order = 18)]
+        public long AffiliateId { get; set; }
     }
 }
