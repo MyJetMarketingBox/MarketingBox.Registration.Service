@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using MarketingBox.Registration.Service.Domain.Crm;
-using MarketingBox.Registration.Service.Domain.Registrations;
-using MarketingBox.Registration.Service.Messages.Common;
+using MarketingBox.Registration.Service.Domain.Models;
+using MarketingBox.Registration.Service.Domain.Models.Common;
+using MarketingBox.Registration.Service.Grpc.Models.Registrations;
 
 namespace MarketingBox.Registration.Service.Messages.Registrations
 {
@@ -38,7 +38,7 @@ namespace MarketingBox.Registration.Service.Messages.Registrations
         public DateTime? ConversionDate { get; set; }
 
         [DataMember(Order = 10)]
-        public RegistrationCustomerInfo CustomerInfo { get; set; }
+        public RegistrationBrandInfo BrandInfo { get; set; }
 
         [DataMember(Order = 11)]
         public DepositUpdateMode UpdateMode { get; set; }

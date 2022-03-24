@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
+using MarketingBox.Registration.Service.Domain.Models;
+using MarketingBox.Registration.Service.Domain.Models.Common;
 using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
@@ -27,7 +29,7 @@ namespace MarketingBox.Registration.Service.Services
         private int GetIndexForNextBrand(
             string tenantId,
             long campaignId,
-            IList<CampaignRowNoSql> campaigns)
+            IList<CampaignRowMessage> campaigns)
         {
             var leadRouter = _dataReader.Get(RegistrationRouterNoSqlEntity.GeneratePartitionKey(tenantId),
                 RegistrationRouterNoSqlEntity.GenerateRowKey(campaignId));
@@ -74,15 +76,15 @@ namespace MarketingBox.Registration.Service.Services
             _logger = logger;
         }
 
-        public async Task<List<CampaignRowNoSql>> GetSuitableRoutes(long campaignId, int countryId)
+        public async Task<List<CampaignRowMessage>> GetSuitableRoutes(long campaignId, int countryId)
         {
             var date = DateTime.UtcNow;
-            IReadOnlyList<CampaignRowNoSql> campaignRows =
+            var campaignRows =
                 _campaignRowNoSqlServerDataReader.Get(CampaignRowNoSql.GeneratePartitionKey(campaignId));
 
-            var filtered = new List<CampaignRowNoSql>(campaignRows.Count);
+            var filtered = new List<CampaignRowMessage>(campaignRows.Count);
 
-            foreach (var currentCampaignRow in campaignRows)
+            foreach (var currentCampaignRow in campaignRows.Select(x=>x.CampaignRow))
             {
                 if (!currentCampaignRow.EnableTraffic)
                 {
@@ -96,7 +98,7 @@ namespace MarketingBox.Registration.Service.Services
                 }
 
                 var activityHours = currentCampaignRow.ActivityHours.FirstOrDefault(x => x.Day == date.DayOfWeek);
-                if (activityHours == null || !activityHours.IsActive)
+                if (!(activityHours is {IsActive: true}))
                 {
                     continue;
                 }
@@ -128,15 +130,15 @@ namespace MarketingBox.Registration.Service.Services
                 filtered.Add(currentCampaignRow);
             }
 
-            _logger.LogInformation("select From campaigns {@context}", new {CampaignsCount = filtered.Count});
+            _logger.LogInformation("CampaignRows were selected {@Context}", filtered.Count);
             return filtered;
         }
 
 
-        public async Task<CampaignRowNoSql> GetCampaignBox(
+        public async Task<CampaignRowMessage> GetCampaignRow(
             string tenantId,
             long campaignId,
-            List<CampaignRowNoSql> filtered)
+            List<CampaignRowMessage> filtered)
         {
             await _semaphore.WaitAsync();
 
@@ -151,11 +153,11 @@ namespace MarketingBox.Registration.Service.Services
                 if (capacitors == null || !capacitors.Any())
                 {
                     saveAll = true;
-                    countDict = filtered.ToDictionary(x => x.CampaignRowId,
+                    countDict = filtered.ToDictionary(x => x.Id,
                         y => RegistrationRouterCapacitorBoxNoSqlEntity.Create(new RegistrationRouteCapacitorNoSqlInfo()
                         {
                             CampaignId = campaignId,
-                            CampaignRowId = y.CampaignRowId,
+                            CampaignRowId = y.Id,
                             ProcessedRegistration = 0
                         }));
                 }
@@ -184,13 +186,13 @@ namespace MarketingBox.Registration.Service.Services
                         {
                             var campaign = campaigns[GetIndexForNextBrand(tenantId, campaignId, campaigns)];
 
-                            if (!countDict.TryGetValue(campaign.CampaignRowId, out var capacitor))
+                            if (!countDict.TryGetValue(campaign.Id, out var capacitor))
                             {
                                 capacitor = RegistrationRouterCapacitorBoxNoSqlEntity.Create(
                                     new RegistrationRouteCapacitorNoSqlInfo()
                                     {
                                         CampaignId = campaignId,
-                                        CampaignRowId = campaign.CampaignRowId,
+                                        CampaignRowId = campaign.Id,
                                         ProcessedRegistration = 0
                                     });
                                 await _capacitorWriter.InsertOrReplaceAsync(capacitor);

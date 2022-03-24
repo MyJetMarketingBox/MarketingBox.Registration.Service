@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc;
-using MarketingBox.Registration.Service.Grpc.Models.Crm;
+using MarketingBox.Registration.Service.Grpc.Requests.Crm;
 using MarketingBox.Registration.Service.Messages.Registrations;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;

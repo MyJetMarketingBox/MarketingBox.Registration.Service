@@ -10,12 +10,12 @@
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.42.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
-    <PackageReference Include="MarketingBox.Affiliate.Service.Client" Version="2.1.15" />
+    <PackageReference Include="MarketingBox.Affiliate.Service.Client" Version="2.2.3" />
     <PackageReference Include="MarketingBox.ExternalReferenceProxy.Api.Client" Version="1.0.1" />
     <PackageReference Include="MarketingBox.ExternalReferenceProxy.Service.Client" Version="1.0.3" />
     <PackageReference Include="MarketingBox.Integration.Service.Client" Version="2.2.0" />
     <PackageReference Include="MarketingBox.Reporting.Service.Client" Version="3.3.9" />
-    <PackageReference Include="MarketingBox.Sdk.Common" Version="1.0.7" />
+    <PackageReference Include="MarketingBox.Sdk.Common" Version="1.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
@@ -47,6 +47,10 @@
     <None Update="Dockerfile">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="MapperProfiles" />
   </ItemGroup>
 
 </Project>

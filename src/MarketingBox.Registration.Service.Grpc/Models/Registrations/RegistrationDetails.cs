@@ -1,7 +1,7 @@
-using MarketingBox.Registration.Service.Domain.Crm;
-using MarketingBox.Registration.Service.Domain.Registrations;
 using System;
 using System.Runtime.Serialization;
+using MarketingBox.Registration.Service.Domain.Models;
+using MarketingBox.Registration.Service.Domain.Models.Common;
 
 namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
 {

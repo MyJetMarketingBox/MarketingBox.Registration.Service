@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
+using MarketingBox.Registration.Service.Domain.Models;
+using MarketingBox.Registration.Service.Domain.Models.Common;
 using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.Domain.Repositories;
 
@@ -10,12 +12,12 @@ namespace MarketingBox.Registration.Service.Tests
         public int LeadCount { get; set; } = 0;
 
         public int FtdCount { get; set; } = 0;
-        public Task SaveAsync(Domain.Registrations.Registration registration)
+        public Task SaveAsync(Domain.Models.Registrations.Registration_nogrpc registrationNogrpc)
         {
-            if (registration.RouteInfo.Status == RegistrationStatus.Registered)
+            if (registrationNogrpc.RouteInfo.Status == RegistrationStatus.Registered)
                 LeadCount++;
 
-            if (registration.RouteInfo.Status == RegistrationStatus.Approved)
+            if (registrationNogrpc.RouteInfo.Status == RegistrationStatus.Approved)
                 FtdCount++;
 
             return Task.CompletedTask;
@@ -26,17 +28,17 @@ namespace MarketingBox.Registration.Service.Tests
             throw new NotImplementedException();
         }
 
-        public Task<Domain.Registrations.Registration> RestoreAsync(long registrationId)
+        public Task<Domain.Models.Registrations.Registration_nogrpc> RestoreAsync(long registrationId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Domain.Registrations.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId)
+        public Task<Domain.Models.Registrations.Registration_nogrpc> GetLeadByCustomerIdAsync(string tenantId, string customerId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Domain.Registrations.Registration> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
+        public Task<Domain.Models.Registrations.Registration_nogrpc> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
         {
             throw new NotImplementedException();
         }

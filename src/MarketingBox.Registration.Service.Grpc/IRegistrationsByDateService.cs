@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.ServiceModel;
 using System.Threading.Tasks;
 using MarketingBox.Registration.Service.Grpc.Models.Registrations;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
+using MarketingBox.Registration.Service.Grpc.Requests.Registration;
 using MarketingBox.Sdk.Common.Models.Grpc;
 
 namespace MarketingBox.Registration.Service.Grpc

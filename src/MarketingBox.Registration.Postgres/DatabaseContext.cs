@@ -1,4 +1,4 @@
-﻿using MarketingBox.Registration.Postgres.Entities.Registration;
+﻿using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.Postgres;

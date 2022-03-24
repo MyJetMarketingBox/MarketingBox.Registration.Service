@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Registration.Service.Domain.Extensions;
 using MarketingBox.Registration.Service.Grpc;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
+using MarketingBox.Registration.Service.Grpc.Requests.Registration;
 using MarketingBox.Reporting.Service.Domain.Models;
 using MarketingBox.Reporting.Service.Grpc;
 using MarketingBox.Reporting.Service.Grpc.Models.RegistrationsByAffiliate;
@@ -16,7 +16,9 @@ using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
 using Newtonsoft.Json;
-using CrmStatus = MarketingBox.Registration.Service.Domain.Crm.CrmStatus;
+using CrmStatus = MarketingBox.Registration.Service.Domain.Models.CrmStatus;
+using DepositUpdateMode = MarketingBox.Registration.Service.Domain.Models.Common.DepositUpdateMode;
+using RegistrationStatus = MarketingBox.Registration.Service.Domain.Models.Common.RegistrationStatus;
 using RegistrationDetails = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationDetails;
 using ReportingRegistrationDetails = MarketingBox.Reporting.Service.Domain.Models.RegistrationDetails;
 
@@ -41,7 +43,9 @@ namespace MarketingBox.Registration.Service.Services
 
         private bool CheckAuth(long affiliateId, string apiKey, out string tenantId)
         {
-            var affiliates = _affiliateNoSqlServerDataReader.Get();
+            var affiliates = _affiliateNoSqlServerDataReader
+                .Get()
+                .Select(x=>x.Affiliate);
             var affiliate = affiliates.FirstOrDefault(e => e.AffiliateId == affiliateId);
             tenantId = affiliate?.TenantId;
             return affiliate?.GeneralInfo != null && affiliate.GeneralInfo.ApiKey.Equals(apiKey, StringComparison.OrdinalIgnoreCase);
@@ -67,7 +71,7 @@ namespace MarketingBox.Registration.Service.Services
                 CrmStatus = details.CrmStatus.MapEnum<CrmStatus>(),
                 AffCode = details.AffCode,
                 AffiliateName = details.AffiliateName,
-                ApprovedType = details.UpdateMode.MapEnum<MarketingBox.Registration.Service.Domain.Registrations.DepositUpdateMode>(),
+                ApprovedType = details.UpdateMode.MapEnum<DepositUpdateMode>(),
                 CustomerBrand = details.CustomerBrand,
                 CustomerId = details.CustomerId,
                 CustomerLoginUrl = details.CustomerLoginUrl,
@@ -86,7 +90,7 @@ namespace MarketingBox.Registration.Service.Services
                 Integration = details.Integration,
                 IntegrationId = details.IntegrationId,
                 RegistrationId = details.RegistrationId,
-                Status = details.Status.MapEnum<MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationStatus>()
+                Status = details.Status.MapEnum<RegistrationStatus>()
             };
         }
         
@@ -111,7 +115,7 @@ namespace MarketingBox.Registration.Service.Services
                 CrmStatus = details.CrmStatus.MapEnum<CrmStatus>(),
                 AffCode = details.AffCode,
                 AffiliateName = details.AffiliateName,
-                ApprovedType = details.UpdateMode.MapEnum<MarketingBox.Registration.Service.Domain.Registrations.DepositUpdateMode>(),
+                ApprovedType = details.UpdateMode.MapEnum<DepositUpdateMode>(),
                 CustomerBrand = details.CustomerBrand,
                 CustomerId = details.CustomerId,
                 CustomerLoginUrl = details.CustomerLoginUrl,
@@ -130,7 +134,7 @@ namespace MarketingBox.Registration.Service.Services
                 Integration = details.Integration,
                 IntegrationId = details.IntegrationId,
                 RegistrationId = details.RegistrationId,
-                Status = details.Status.MapEnum<MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationStatus>()
+                Status = details.Status.MapEnum<RegistrationStatus>()
             }).ToList();
         }
         

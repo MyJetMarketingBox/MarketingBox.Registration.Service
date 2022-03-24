@@ -1,12 +1,11 @@
+using System;
 using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integration;
 using MarketingBox.Registration.Service.Domain.Extensions;
-using MarketingBox.Registration.Service.Domain.Registrations;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
 using MarketingBox.Registration.Service.Messages.Registrations;
-using System;
-using RegistrationAdditionalInfo = MarketingBox.Registration.Service.Messages.Registrations.RegistrationAdditionalInfo;
-using RegistrationCustomerInfo = MarketingBox.Registration.Service.Messages.Registrations.RegistrationCustomerInfo;
-using RegistrationGeneralInfo = MarketingBox.Registration.Service.Messages.Registrations.RegistrationGeneralInfo;
+using MarketingBox.Registration.Service.Domain.Models.Common;
+using MarketingBox.Registration.Service.Domain.Models.Registrations;
+using MarketingBox.Registration.Service.Grpc.Models.Registrations;
+using MarketingBox.Registration.Service.Grpc.Requests.Registration;
 using RegistrationRouteInfo = MarketingBox.Registration.Service.Messages.Registrations.RegistrationRouteInfo;
 
 namespace MarketingBox.Registration.Service.Extensions
@@ -23,98 +22,98 @@ namespace MarketingBox.Registration.Service.Extensions
                    DateTime.UtcNow.ToString("O");
         }
         public static RegistrationRequest CreateIntegrationRequest(
-            this Domain.Registrations.Registration registration)
+            this Domain.Models.Registrations.Registration_nogrpc registrationNogrpc)
         {
             return new RegistrationRequest()
             {
-                TenantId = registration.TenantId,
-                RegistrationId = registration.RegistrationInfo.RegistrationId,
-                RegistrationUniqueId = registration.RegistrationInfo.RegistrationUid,
-                IntegrationName = registration.RouteInfo.Integration,
-                IntegrationId = registration.RouteInfo.IntegrationId ?? default,
-                AffiliateId = registration.RouteInfo.AffiliateId,
+                TenantId = registrationNogrpc.TenantId,
+                RegistrationId = registrationNogrpc.RegistrationInfoNotgrpc.RegistrationId,
+                RegistrationUniqueId = registrationNogrpc.RegistrationInfoNotgrpc.RegistrationUid,
+                IntegrationName = registrationNogrpc.RouteInfo.Integration,
+                IntegrationId = registrationNogrpc.RouteInfo.IntegrationId ?? default,
+                AffiliateId = registrationNogrpc.RouteInfo.AffiliateId,
                 Info = new Integration.Service.Grpc.Models.Registrations.RegistrationInfo()
                 {
-                    FirstName = registration.RegistrationInfo.FirstName,
-                    LastName = registration.RegistrationInfo.LastName,
-                    Email = registration.RegistrationInfo.Email,
-                    Ip = registration.RegistrationInfo.Ip,
-                    Phone = registration.RegistrationInfo.Phone,
-                    Password = registration.RegistrationInfo.Password,
-                    Country = registration.RegistrationInfo.CountryAlfa2Code,
+                    FirstName = registrationNogrpc.RegistrationInfoNotgrpc.FirstName,
+                    LastName = registrationNogrpc.RegistrationInfoNotgrpc.LastName,
+                    Email = registrationNogrpc.RegistrationInfoNotgrpc.Email,
+                    Ip = registrationNogrpc.RegistrationInfoNotgrpc.Ip,
+                    Phone = registrationNogrpc.RegistrationInfoNotgrpc.Phone,
+                    Password = registrationNogrpc.RegistrationInfoNotgrpc.Password,
+                    Country = registrationNogrpc.RegistrationInfoNotgrpc.CountryAlfa2Code,
                 },
                 AdditionalInfo = new Integration.Service.Grpc.Models.Registrations.RegistrationAdditionalInfo()
                 {
-                    So = registration.AdditionalInfo?.Funnel,
-                    Sub = registration.AdditionalInfo?.AffCode,
-                    Sub1 = registration.AdditionalInfo?.Sub1,
-                    Sub2 = registration.AdditionalInfo?.Sub2,
-                    Sub3 = registration.AdditionalInfo?.Sub3,
-                    Sub4 = registration.AdditionalInfo?.Sub4,
-                    Sub5 = registration.AdditionalInfo?.Sub5,
-                    Sub6 = registration.AdditionalInfo?.Sub6,
-                    Sub7 = registration.AdditionalInfo?.Sub7,
-                    Sub8 = registration.AdditionalInfo?.Sub8,
-                    Sub9 = registration.AdditionalInfo?.Sub9,
-                    Sub10 = registration.AdditionalInfo?.Sub10,
+                    So = registrationNogrpc.AdditionalInfo?.Funnel,
+                    Sub = registrationNogrpc.AdditionalInfo?.AffCode,
+                    Sub1 = registrationNogrpc.AdditionalInfo?.Sub1,
+                    Sub2 = registrationNogrpc.AdditionalInfo?.Sub2,
+                    Sub3 = registrationNogrpc.AdditionalInfo?.Sub3,
+                    Sub4 = registrationNogrpc.AdditionalInfo?.Sub4,
+                    Sub5 = registrationNogrpc.AdditionalInfo?.Sub5,
+                    Sub6 = registrationNogrpc.AdditionalInfo?.Sub6,
+                    Sub7 = registrationNogrpc.AdditionalInfo?.Sub7,
+                    Sub8 = registrationNogrpc.AdditionalInfo?.Sub8,
+                    Sub9 = registrationNogrpc.AdditionalInfo?.Sub9,
+                    Sub10 = registrationNogrpc.AdditionalInfo?.Sub10,
                 },
             };
         }
 
-        public static RegistrationUpdateMessage MapToMessage(this Domain.Registrations.Registration registration)
+        public static RegistrationUpdateMessage MapToMessage(this Domain.Models.Registrations.Registration_nogrpc registrationNogrpc)
         {
             return new RegistrationUpdateMessage()
             {
-                TenantId = registration.TenantId,
-                GeneralInfo = new RegistrationGeneralInfo()
+                TenantId = registrationNogrpc.TenantId,
+                GeneralInfoNotgrpc = new RegistrationGeneralInfo_notgrpc()
                 {
-                    Email = registration.RegistrationInfo.Email,
-                    FirstName = registration.RegistrationInfo.FirstName,
-                    LastName = registration.RegistrationInfo.LastName,
-                    Phone = registration.RegistrationInfo.Phone,
-                    Ip = registration.RegistrationInfo.Ip,
-                    Password = registration.RegistrationInfo.Password,
-                    CreatedAt = registration.RegistrationInfo.CreatedAt.UtcDateTime,
-                    RegistrationId = registration.RegistrationInfo.RegistrationId,
-                    RegistrationUId = registration.RegistrationInfo.RegistrationUid,
-                    CountryId = registration.RegistrationInfo.CountryId,
-                    UpdatedAt = registration.RegistrationInfo.UpdatedAt.UtcDateTime
+                    Email = registrationNogrpc.RegistrationInfoNotgrpc.Email,
+                    FirstName = registrationNogrpc.RegistrationInfoNotgrpc.FirstName,
+                    LastName = registrationNogrpc.RegistrationInfoNotgrpc.LastName,
+                    Phone = registrationNogrpc.RegistrationInfoNotgrpc.Phone,
+                    Ip = registrationNogrpc.RegistrationInfoNotgrpc.Ip,
+                    Password = registrationNogrpc.RegistrationInfoNotgrpc.Password,
+                    CreatedAt = registrationNogrpc.RegistrationInfoNotgrpc.CreatedAt.UtcDateTime,
+                    RegistrationId = registrationNogrpc.RegistrationInfoNotgrpc.RegistrationId,
+                    RegistrationUid = registrationNogrpc.RegistrationInfoNotgrpc.RegistrationUid,
+                    CountryId = registrationNogrpc.RegistrationInfoNotgrpc.CountryId,
+                    UpdatedAt = registrationNogrpc.RegistrationInfoNotgrpc.UpdatedAt.UtcDateTime
                 },
                 AdditionalInfo = new RegistrationAdditionalInfo()
                 {
-                    Funnel = registration.AdditionalInfo.Funnel,
-                    AffCode = registration.AdditionalInfo.AffCode,
-                    Sub1 = registration.AdditionalInfo.Sub1,
-                    Sub2 = registration.AdditionalInfo.Sub2,
-                    Sub3 = registration.AdditionalInfo.Sub3,
-                    Sub4 = registration.AdditionalInfo.Sub4,
-                    Sub5 = registration.AdditionalInfo.Sub5,
-                    Sub6 = registration.AdditionalInfo.Sub6,
-                    Sub7 = registration.AdditionalInfo.Sub7,
-                    Sub8 = registration.AdditionalInfo.Sub8,
-                    Sub9 = registration.AdditionalInfo.Sub9,
-                    Sub10 = registration.AdditionalInfo.Sub10,
+                    Funnel = registrationNogrpc.AdditionalInfo.Funnel,
+                    AffCode = registrationNogrpc.AdditionalInfo.AffCode,
+                    Sub1 = registrationNogrpc.AdditionalInfo.Sub1,
+                    Sub2 = registrationNogrpc.AdditionalInfo.Sub2,
+                    Sub3 = registrationNogrpc.AdditionalInfo.Sub3,
+                    Sub4 = registrationNogrpc.AdditionalInfo.Sub4,
+                    Sub5 = registrationNogrpc.AdditionalInfo.Sub5,
+                    Sub6 = registrationNogrpc.AdditionalInfo.Sub6,
+                    Sub7 = registrationNogrpc.AdditionalInfo.Sub7,
+                    Sub8 = registrationNogrpc.AdditionalInfo.Sub8,
+                    Sub9 = registrationNogrpc.AdditionalInfo.Sub9,
+                    Sub10 = registrationNogrpc.AdditionalInfo.Sub10,
                 },
                 RouteInfo = new RegistrationRouteInfo()
                 {
-                    AffiliateId = registration.RouteInfo.AffiliateId,
-                    CampaignId = registration.RouteInfo.CampaignId,
-                    Integration = registration.RouteInfo.Integration,
-                    BrandId = registration.RouteInfo.BrandId ?? default,
-                    IntegrationId = registration.RouteInfo.IntegrationId ?? default,
-                    ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
-                    DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
-                    CrmStatus = registration.RouteInfo.CrmStatus,
-                    Status = registration.RouteInfo.Status.MapEnum<RegistrationStatus>(),
-                    CustomerInfo = new RegistrationCustomerInfo()
+                    AffiliateId = registrationNogrpc.RouteInfo.AffiliateId,
+                    CampaignId = registrationNogrpc.RouteInfo.CampaignId,
+                    Integration = registrationNogrpc.RouteInfo.Integration,
+                    BrandId = registrationNogrpc.RouteInfo.BrandId ?? default,
+                    IntegrationId = registrationNogrpc.RouteInfo.IntegrationId ?? default,
+                    ConversionDate = registrationNogrpc.RouteInfo.ConversionDate?.UtcDateTime,
+                    DepositDate = registrationNogrpc.RouteInfo.DepositDate?.UtcDateTime,
+                    CrmStatus = registrationNogrpc.RouteInfo.CrmStatus,
+                    Status = registrationNogrpc.RouteInfo.Status.MapEnum<RegistrationStatus>(),
+                    BrandInfo = new RegistrationBrandInfo()
                     {
-                        CustomerId = registration.RouteInfo?.CustomerInfo?.CustomerId,
-                        LoginUrl = registration.RouteInfo?.CustomerInfo?.LoginUrl,
-                        Token = registration.RouteInfo?.CustomerInfo?.Token,
+                        CustomerId = registrationNogrpc.RouteInfo?.BrandInfo?.CustomerId,
+                        LoginUrl = registrationNogrpc.RouteInfo?.BrandInfo?.LoginUrl,
+                        Token = registrationNogrpc.RouteInfo?.BrandInfo?.Token,
                     },
-                    UpdateMode = registration.RouteInfo.UpdateMode.MapEnum<DepositUpdateMode>(),
-                    AffiliateName = registration.RouteInfo.AffiliateName,
-                    AutologinUsed = registration.RouteInfo.AutologinUsed
+                    UpdateMode = registrationNogrpc.RouteInfo.UpdateMode.MapEnum<DepositUpdateMode>(),
+                    AffiliateName = registrationNogrpc.RouteInfo.AffiliateName,
+                    AutologinUsed = registrationNogrpc.RouteInfo.AutologinUsed
                 },
             };
         }

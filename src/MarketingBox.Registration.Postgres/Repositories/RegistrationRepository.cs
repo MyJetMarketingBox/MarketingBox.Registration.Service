@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketingBox.Registration.Postgres.Entities.Registration;
-using MarketingBox.Registration.Postgres.Extensions;
-using MarketingBox.Registration.Service.Domain.Registrations;
+using MarketingBox.Registration.Service.Domain.Extensions;
+using MarketingBox.Registration.Service.Domain.Models.Common;
+using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
+using MarketingBox.Registration.Service.Domain.Models.Extensions;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
@@ -19,10 +20,10 @@ namespace MarketingBox.Registration.Postgres.Repositories
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
         }
 
-        public async Task SaveAsync(Service.Domain.Registrations.Registration registration)
+        public async Task SaveAsync(Service.Domain.Models.Registrations.Registration_nogrpc registrationNogrpc)
         {
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
-            var entity = registration.CreateRegistrationEntity();
+            var entity = registrationNogrpc.CreateRegistrationEntity();
             var rowsCount = await ctx.Registrations.Upsert(entity)
                 .AllowIdentityMatch()
                 .RunAsync();
@@ -30,7 +31,7 @@ namespace MarketingBox.Registration.Postgres.Repositories
             if (rowsCount == 0)
             {
                 throw new BadRequestException(
-                    $"Registration {registration.RegistrationInfo.RegistrationId} already updated, try to use most recent version");
+                    $"Registration {registrationNogrpc.RegistrationInfoNotgrpc.RegistrationId} already updated, try to use most recent version");
             }
         }
 
@@ -47,12 +48,12 @@ namespace MarketingBox.Registration.Postgres.Repositories
             return entity.RegistrationId;
         }
 
-        public Task<Service.Domain.Registrations.Registration> RestoreAsync(long registrationId)
+        public Task<Service.Domain.Models.Registrations.Registration_nogrpc> RestoreAsync(long registrationId)
         {
             throw new System.NotImplementedException();
         }
 
-        public async Task<Service.Domain.Registrations.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId)
+        public async Task<Service.Domain.Models.Registrations.Registration_nogrpc> GetLeadByCustomerIdAsync(string tenantId, string customerId)
         {
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var existingLeadEntity = await ctx.Registrations.FirstOrDefaultAsync(x => x.TenantId == tenantId &&
@@ -66,7 +67,7 @@ namespace MarketingBox.Registration.Postgres.Repositories
             return existingLeadEntity.RestoreRegistration();
         }
 
-        public async Task<Service.Domain.Registrations.Registration> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
+        public async Task<Service.Domain.Models.Registrations.Registration_nogrpc> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
         {
             await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
             var existingLeadEntity = await ctx.Registrations

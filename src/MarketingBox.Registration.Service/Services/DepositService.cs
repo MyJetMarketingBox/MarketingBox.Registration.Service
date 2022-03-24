@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MarketingBox.Registration.Service.Domain.Extensions;
-using MarketingBox.Registration.Service.Domain.Registrations;
+using MarketingBox.Registration.Service.Domain.Models;
+using MarketingBox.Registration.Service.Domain.Models.Common;
+using MarketingBox.Registration.Service.Domain.Models.Deposit;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc;
-using MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations;
+using MarketingBox.Registration.Service.Grpc.Requests.Deposits;
 using MarketingBox.Registration.Service.Messages.Registrations;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
-using RegistrationStatus = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationStatus;
 
 namespace MarketingBox.Registration.Service.Services
 {
@@ -38,7 +38,7 @@ namespace MarketingBox.Registration.Service.Services
             try
             {
                 var registration = await _repository.GetLeadByCustomerIdAsync(request.TenantId, request.CustomerId);
-                registration.UpdateStatus(DepositUpdateMode.Automatically, Domain.Registrations.RegistrationStatus.Deposited);
+                registration.UpdateStatus(DepositUpdateMode.Automatically, RegistrationStatus.Deposited);
 
                 await _repository.SaveAsync(registration);
 
@@ -84,30 +84,30 @@ namespace MarketingBox.Registration.Service.Services
             }
         }
 
-        private static Deposit MapToGrpc(Domain.Registrations.Registration registration)
+        private static Deposit MapToGrpc(Domain.Models.Registrations.Registration_nogrpc registrationNogrpc)
         {
             return new Deposit()
             {
-                TenantId = registration.TenantId,
+                TenantId = registrationNogrpc.TenantId,
                 GeneralInfo = new DepositGeneralInfo()
                 {
-                    Email = registration.RegistrationInfo.Email,
-                    FirstName = registration.RegistrationInfo.FirstName,
-                    LastName = registration.RegistrationInfo.LastName,
-                    Phone = registration.RegistrationInfo.Phone,
-                    Ip = registration.RegistrationInfo.Ip,
-                    Password = registration.RegistrationInfo.Password,
-                    CreatedAt = registration.RegistrationInfo.CreatedAt.UtcDateTime,
-                    RegistrationId = registration.RegistrationInfo.RegistrationId,
-                    UniqueId = registration.RegistrationInfo.RegistrationUid,
-                    CrmStatus = registration.RouteInfo.CrmStatus,
-                    Status = registration.RouteInfo.Status.MapEnum<RegistrationStatus>(),
-                    CountryId = registration.RegistrationInfo.CountryId,
-                    ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
-                    DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
-                    UpdatedAt = registration.RegistrationInfo.UpdatedAt.UtcDateTime,
-                    AffiliateId = registration.RouteInfo.AffiliateId,
-                    AffiliateName = registration.RouteInfo.AffiliateName,
+                    Email = registrationNogrpc.RegistrationInfoNotgrpc.Email,
+                    FirstName = registrationNogrpc.RegistrationInfoNotgrpc.FirstName,
+                    LastName = registrationNogrpc.RegistrationInfoNotgrpc.LastName,
+                    Phone = registrationNogrpc.RegistrationInfoNotgrpc.Phone,
+                    Ip = registrationNogrpc.RegistrationInfoNotgrpc.Ip,
+                    Password = registrationNogrpc.RegistrationInfoNotgrpc.Password,
+                    CreatedAt = registrationNogrpc.RegistrationInfoNotgrpc.CreatedAt.UtcDateTime,
+                    RegistrationId = registrationNogrpc.RegistrationInfoNotgrpc.RegistrationId,
+                    UniqueId = registrationNogrpc.RegistrationInfoNotgrpc.RegistrationUid,
+                    CrmStatus = registrationNogrpc.RouteInfo.CrmStatus,
+                    Status = registrationNogrpc.RouteInfo.Status.MapEnum<RegistrationStatus>(),
+                    CountryId = registrationNogrpc.RegistrationInfoNotgrpc.CountryId,
+                    ConversionDate = registrationNogrpc.RouteInfo.ConversionDate?.UtcDateTime,
+                    DepositDate = registrationNogrpc.RouteInfo.DepositDate?.UtcDateTime,
+                    UpdatedAt = registrationNogrpc.RegistrationInfoNotgrpc.UpdatedAt.UtcDateTime,
+                    AffiliateId = registrationNogrpc.RouteInfo.AffiliateId,
+                    AffiliateName = registrationNogrpc.RouteInfo.AffiliateName,
                 }
             };
         }
