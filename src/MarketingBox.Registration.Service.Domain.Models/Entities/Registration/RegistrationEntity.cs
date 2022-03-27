@@ -30,6 +30,8 @@ namespace MarketingBox.Registration.Service.Domain.Models.Entities.Registration
         public DateTimeOffset? ConversionDate { get; set; }
         public DateTimeOffset UpdatedAt { get; set; }
         
+        public string Integration{ get; set; }
+        public long? IntegrationId { get; set; }
         
         public string Funnel { get; set; }
         public string AffCode { get; set; }

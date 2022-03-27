@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AutoMapper;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc;
@@ -15,17 +16,19 @@ namespace MarketingBox.Registration.Service.Services
     public class CrmService : ICrmService
     {
         private readonly ILogger<CrmService> _logger;
+        private readonly IMapper _mapper;
 
         private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisherLeadUpdated;
         private readonly IRegistrationRepository _repository;
 
         public CrmService(ILogger<CrmService> logger,
             IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated, 
-            IRegistrationRepository repository)
+            IRegistrationRepository repository, IMapper mapper)
         {
             _logger = logger;
             _publisherLeadUpdated = publisherLeadUpdated;
             _repository = repository;
+            _mapper = mapper;
         }
 
         public async Task<Response<bool>> SetCrmStatusAsync(UpdateCrmStatusRequest request)
@@ -33,12 +36,14 @@ namespace MarketingBox.Registration.Service.Services
             _logger.LogInformation("Update crm status {@context}", request);
             try
             {
+                request.ValidateEntity();
+                
                 var registration = await _repository.GetLeadByCustomerIdAsync(request.TenantId, request.CustomerId);
-                registration.UpdateCrmStatus(request.Crm);
-
+                registration.CrmStatus = request.Crm;
+                registration.UpdatedAt = DateTimeOffset.UtcNow;
                 await _repository.SaveAsync(registration);
 
-                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
+                await _publisherLeadUpdated.PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
                 _logger.LogInformation("Sent crm status to service bus {@context}", request);
                 return new Response<bool>
                 {

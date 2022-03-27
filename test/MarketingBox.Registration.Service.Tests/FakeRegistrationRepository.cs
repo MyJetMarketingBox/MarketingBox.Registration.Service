@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using MarketingBox.Registration.Service.Domain.Models;
 using MarketingBox.Registration.Service.Domain.Models.Common;
-using MarketingBox.Registration.Service.Domain.Registrations;
+using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
 using MarketingBox.Registration.Service.Domain.Repositories;
 
 namespace MarketingBox.Registration.Service.Tests
@@ -12,12 +12,12 @@ namespace MarketingBox.Registration.Service.Tests
         public int LeadCount { get; set; } = 0;
 
         public int FtdCount { get; set; } = 0;
-        public Task SaveAsync(Domain.Models.Registrations.Registration_nogrpc registrationNogrpc)
+        public Task SaveAsync(RegistrationEntity registration)
         {
-            if (registrationNogrpc.RouteInfo.Status == RegistrationStatus.Registered)
+            if (registration.Status == RegistrationStatus.Registered)
                 LeadCount++;
 
-            if (registrationNogrpc.RouteInfo.Status == RegistrationStatus.Approved)
+            if (registration.Status == RegistrationStatus.Approved)
                 FtdCount++;
 
             return Task.CompletedTask;
@@ -28,17 +28,17 @@ namespace MarketingBox.Registration.Service.Tests
             throw new NotImplementedException();
         }
 
-        public Task<Domain.Models.Registrations.Registration_nogrpc> RestoreAsync(long registrationId)
+        public Task<RegistrationEntity> RestoreAsync(long registrationId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Domain.Models.Registrations.Registration_nogrpc> GetLeadByCustomerIdAsync(string tenantId, string customerId)
+        public Task<RegistrationEntity> GetLeadByCustomerIdAsync(string tenantId, string customerId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Domain.Models.Registrations.Registration_nogrpc> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
+        public Task<RegistrationEntity> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
         {
             throw new NotImplementedException();
         }

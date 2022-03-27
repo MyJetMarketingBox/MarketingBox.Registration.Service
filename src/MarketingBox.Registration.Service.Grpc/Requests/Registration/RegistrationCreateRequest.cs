@@ -1,12 +1,12 @@
 ﻿using System.Runtime.Serialization;
+using MarketingBox.Registration.Service.Domain.Models.Affiliate;
 using MarketingBox.Registration.Service.Domain.Models.Registrations;
-using MarketingBox.Registration.Service.Grpc.Models.Affiliate;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations;
+using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Registration.Service.Grpc.Requests.Registration
 {
     [DataContract]
-    public class RegistrationCreateRequest
+    public class RegistrationCreateRequest : ValidatableEntity
     {
         [DataMember(Order = 1)]
         public RegistrationGeneralInfo GeneralInfo { get; set; }

@@ -28,7 +28,7 @@ namespace MarketingBox.Registration.Service
             services.AddDatabase(DatabaseContext.Schema, 
                 Program.Settings.PostgresConnectionString, 
                 o => new DatabaseContext(o));
-            
+            services.AddAutoMapper(typeof(Startup));
             services.AddMyTelemetry("MB-", Program.Settings.JaegerUrl);
         }
 

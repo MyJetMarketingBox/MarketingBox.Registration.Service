@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace MarketingBox.Registration.Service.Grpc.Models.Registrations
+namespace MarketingBox.Registration.Service.Domain.Models.Registrations
 {
     [DataContract]
     public class RegistrationBrandInfo

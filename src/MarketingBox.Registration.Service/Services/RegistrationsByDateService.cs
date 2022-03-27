@@ -16,10 +16,10 @@ using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
 using Newtonsoft.Json;
-using CrmStatus = MarketingBox.Registration.Service.Domain.Models.CrmStatus;
+using CrmStatus = MarketingBox.Registration.Service.Domain.Models.Common.CrmStatus;
 using DepositUpdateMode = MarketingBox.Registration.Service.Domain.Models.Common.DepositUpdateMode;
 using RegistrationStatus = MarketingBox.Registration.Service.Domain.Models.Common.RegistrationStatus;
-using RegistrationDetails = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationDetails;
+using RegistrationDetails = MarketingBox.Registration.Service.Domain.Models.Registrations.RegistrationDetails;
 using ReportingRegistrationDetails = MarketingBox.Reporting.Service.Domain.Models.RegistrationDetails;
 
 namespace MarketingBox.Registration.Service.Services
@@ -151,6 +151,8 @@ namespace MarketingBox.Registration.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+                
                 _logger.LogInformation($"RegistrationsByDateService.GetRegistrationsAsync receive request : {JsonConvert.SerializeObject(request)}");
 
                 var isAuth = CheckAuth(request.AffiliateId, request.ApiKey, out var tenantId);
@@ -215,6 +217,8 @@ namespace MarketingBox.Registration.Service.Services
         {
             try
             {
+                request.ValidateEntity();
+                
                 _logger.LogInformation($"RegistrationsByDateService.GetRegistrationAsync receive request : {JsonConvert.SerializeObject(request)}");
                 
                 var isAuth = CheckAuth(request.AffiliateId, request.ApiKey, out var tenantId);

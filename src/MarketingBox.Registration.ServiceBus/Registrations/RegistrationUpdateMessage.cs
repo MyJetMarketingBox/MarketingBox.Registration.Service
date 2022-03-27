@@ -12,7 +12,7 @@ namespace MarketingBox.Registration.Service.Messages.Registrations
         public string TenantId { get; set; }
       
         [DataMember(Order = 2)]
-        public RegistrationGeneralInfo_notgrpc GeneralInfoNotgrpc { get; set; }
+        public RegistrationGeneralInfoInternal GeneralInfoInternal { get; set; }
 
         [DataMember(Order = 3)]
         public RegistrationRouteInfo RouteInfo { get; set; }

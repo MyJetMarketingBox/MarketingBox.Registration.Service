@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MarketingBox.Registration.Service.Client;
-using MarketingBox.Registration.Service.Domain.Registrations;
-using MarketingBox.Registration.Service.Grpc.Models.Affiliate;
+using MarketingBox.Registration.Service.Domain.Models.Affiliate;
+using MarketingBox.Registration.Service.Domain.Models.Common;
 using MarketingBox.Registration.Service.Grpc.Requests.Registration;
 using Microsoft.Extensions.Logging;
 using ProtoBuf.Grpc.Client;
 using RegistrationAdditionalInfo = MarketingBox.Registration.Service.Domain.Models.Registrations.RegistrationAdditionalInfo;
-using RegistrationGeneralInfo = MarketingBox.Registration.Service.Grpc.Models.Registrations.RegistrationGeneralInfo;
+using RegistrationGeneralInfo = MarketingBox.Registration.Service.Domain.Models.Registrations.RegistrationGeneralInfo;
 
 namespace TestApp
 {

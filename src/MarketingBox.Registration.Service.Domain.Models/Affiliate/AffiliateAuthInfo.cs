@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace MarketingBox.Registration.Service.Grpc.Models.Affiliate
+namespace MarketingBox.Registration.Service.Domain.Models.Affiliate
 {
     [DataContract]
     public class AffiliateAuthInfo

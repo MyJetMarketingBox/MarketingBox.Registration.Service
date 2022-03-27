@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using MarketingBox.Registration.Service.Domain.Models;
 using MarketingBox.Registration.Service.Domain.Models.Common;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations;
+using MarketingBox.Registration.Service.Domain.Models.Registrations;
 
 namespace MarketingBox.Registration.Service.Messages.Registrations
 {
@@ -22,7 +21,7 @@ namespace MarketingBox.Registration.Service.Messages.Registrations
         public string Integration { get; set; }
 
         [DataMember(Order = 5)]
-        public long IntegrationId { get; set; }
+        public long? IntegrationId { get; set; }
 
         [DataMember(Order = 6)]
         public RegistrationStatus Status { get; set; }

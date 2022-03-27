@@ -1,6 +1,5 @@
 ﻿using System;
 using MarketingBox.Registration.Service.Domain.Models.Common;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations;
 
 namespace MarketingBox.Registration.Service.Domain.Models.Registrations
 {

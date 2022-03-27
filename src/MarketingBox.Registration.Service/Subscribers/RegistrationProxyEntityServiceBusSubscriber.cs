@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Autofac;
+using AutoMapper;
 using DotNetCoreDecorators;
 using MarketingBox.ExternalReferenceProxy.Api.Domain.Models;
 using MarketingBox.Registration.Service.Domain.Repositories;
@@ -16,16 +17,18 @@ namespace MarketingBox.Registration.Service.Subscribers
         private readonly ILogger<RegistrationProxyEntityServiceBusSubscriber> _logger;
         private readonly IRegistrationRepository _repository;
         private readonly IServiceBusPublisher<RegistrationUpdateMessage> _serviceBusPublisher;
+        private readonly IMapper _mapper;
 
         public RegistrationProxyEntityServiceBusSubscriber(
             ISubscriber<RegistrationProxyEntityServiceBus> subscriber,
             ILogger<RegistrationProxyEntityServiceBusSubscriber> logger, 
             IRegistrationRepository repository, 
-            IServiceBusPublisher<RegistrationUpdateMessage> serviceBusPublisher)
+            IServiceBusPublisher<RegistrationUpdateMessage> serviceBusPublisher, IMapper mapper)
         {
             _logger = logger;
             _repository = repository;
             _serviceBusPublisher = serviceBusPublisher;
+            _mapper = mapper;
             subscriber.Subscribe(Handle);
         }
 
@@ -35,9 +38,9 @@ namespace MarketingBox.Registration.Service.Subscribers
             try
             {
                 var registration = await _repository.GetLeadByRegistrationIdAsync(message.TenantId, message.RegistrationId);
-                registration.RouteInfo.AutologinUsed = true;
+                registration.AutologinUsed = true;
                 await _repository.SaveAsync(registration);
-                await _serviceBusPublisher.PublishAsync(registration.MapToMessage());
+                await _serviceBusPublisher.PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
             }
             catch (Exception e)
             {

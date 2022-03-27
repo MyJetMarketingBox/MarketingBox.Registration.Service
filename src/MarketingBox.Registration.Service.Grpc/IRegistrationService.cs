@@ -9,6 +9,6 @@ namespace MarketingBox.Registration.Service.Grpc
     public interface IRegistrationService
     {
         [OperationContract]
-        Task<Response<Registration>> CreateAsync(RegistrationCreateRequest request);
+        Task<Response<Domain.Models.Registrations.Registration>> CreateAsync(RegistrationCreateRequest request);
     }
 }

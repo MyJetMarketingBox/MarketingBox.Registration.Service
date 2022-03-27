@@ -8,7 +8,6 @@ using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.Country;
 using MarketingBox.Registration.Service.Domain.Models;
 using MarketingBox.Registration.Service.Domain.Models.Common;
-using MarketingBox.Registration.Service.Domain.Registrations;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
 using MarketingBox.Registration.Service.Services;

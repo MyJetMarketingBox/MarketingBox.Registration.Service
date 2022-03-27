@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using MarketingBox.Registration.Service.Domain.Extensions;
-using MarketingBox.Registration.Service.Domain.Models;
+using AutoMapper;
 using MarketingBox.Registration.Service.Domain.Models.Common;
 using MarketingBox.Registration.Service.Domain.Models.Deposit;
+using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
 using MarketingBox.Registration.Service.Domain.Repositories;
-using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Requests.Deposits;
 using MarketingBox.Registration.Service.Messages.Registrations;
@@ -22,14 +21,16 @@ namespace MarketingBox.Registration.Service.Services
 
         private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisherLeadUpdated;
         private readonly IRegistrationRepository _repository;
+        private readonly IMapper _mapper;
 
         public DepositService(ILogger<DepositService> logger,
-            IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated, 
-            IRegistrationRepository repository)
+            IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated,
+            IRegistrationRepository repository, IMapper mapper)
         {
             _logger = logger;
             _publisherLeadUpdated = publisherLeadUpdated;
             _repository = repository;
+            _mapper = mapper;
         }
 
         public async Task<Response<Deposit>> RegisterDepositAsync(DepositCreateRequest request)
@@ -37,18 +38,20 @@ namespace MarketingBox.Registration.Service.Services
             _logger.LogInformation("Creating new deposit {@context}", request);
             try
             {
+                request.ValidateEntity();
+                
                 var registration = await _repository.GetLeadByCustomerIdAsync(request.TenantId, request.CustomerId);
-                registration.UpdateStatus(DepositUpdateMode.Automatically, RegistrationStatus.Deposited);
+                UpdateStatus(registration, DepositUpdateMode.Automatically, RegistrationStatus.Deposited);
 
                 await _repository.SaveAsync(registration);
 
-                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
+                await _publisherLeadUpdated.PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
                 _logger.LogInformation("Sent deposit register to service bus {@context}", request);
 
                 return new Response<Deposit>
                 {
                     Status = ResponseStatus.Ok,
-                    Data = MapToGrpc(registration)
+                    Data = _mapper.Map<Deposit>(registration) //MapToGrpc(registration)
                 };
             }
             catch (Exception e)
@@ -63,17 +66,20 @@ namespace MarketingBox.Registration.Service.Services
             _logger.LogInformation("Approving a deposit {@context}", request);
             try
             {
-                var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
-                registration.UpdateStatus(request.Mode, request.NewStatus);
+                request.ValidateEntity();
+                
+                var registration =
+                    await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
+                UpdateStatus(registration, request.Mode, request.NewStatus);
                 await _repository.SaveAsync(registration);
 
-                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
+                await _publisherLeadUpdated.PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
                 _logger.LogInformation("Sent deposit approve to service bus {@context}", request);
 
                 return new Response<Deposit>
                 {
                     Status = ResponseStatus.Ok,
-                    Data = MapToGrpc(registration)
+                    Data = _mapper.Map<Deposit>(registration) //MapToGrpc(registration)
                 };
             }
             catch (Exception e)
@@ -84,32 +90,41 @@ namespace MarketingBox.Registration.Service.Services
             }
         }
 
-        private static Deposit MapToGrpc(Domain.Models.Registrations.Registration_nogrpc registrationNogrpc)
+        private static void UpdateStatus(
+            RegistrationEntity registrationEntity,
+            DepositUpdateMode type,
+            RegistrationStatus newStatus)
         {
-            return new Deposit()
+            switch (newStatus)
             {
-                TenantId = registrationNogrpc.TenantId,
-                GeneralInfo = new DepositGeneralInfo()
-                {
-                    Email = registrationNogrpc.RegistrationInfoNotgrpc.Email,
-                    FirstName = registrationNogrpc.RegistrationInfoNotgrpc.FirstName,
-                    LastName = registrationNogrpc.RegistrationInfoNotgrpc.LastName,
-                    Phone = registrationNogrpc.RegistrationInfoNotgrpc.Phone,
-                    Ip = registrationNogrpc.RegistrationInfoNotgrpc.Ip,
-                    Password = registrationNogrpc.RegistrationInfoNotgrpc.Password,
-                    CreatedAt = registrationNogrpc.RegistrationInfoNotgrpc.CreatedAt.UtcDateTime,
-                    RegistrationId = registrationNogrpc.RegistrationInfoNotgrpc.RegistrationId,
-                    UniqueId = registrationNogrpc.RegistrationInfoNotgrpc.RegistrationUid,
-                    CrmStatus = registrationNogrpc.RouteInfo.CrmStatus,
-                    Status = registrationNogrpc.RouteInfo.Status.MapEnum<RegistrationStatus>(),
-                    CountryId = registrationNogrpc.RegistrationInfoNotgrpc.CountryId,
-                    ConversionDate = registrationNogrpc.RouteInfo.ConversionDate?.UtcDateTime,
-                    DepositDate = registrationNogrpc.RouteInfo.DepositDate?.UtcDateTime,
-                    UpdatedAt = registrationNogrpc.RegistrationInfoNotgrpc.UpdatedAt.UtcDateTime,
-                    AffiliateId = registrationNogrpc.RouteInfo.AffiliateId,
-                    AffiliateName = registrationNogrpc.RouteInfo.AffiliateName,
-                }
-            };
+                case RegistrationStatus.Created:
+                    break;
+                case RegistrationStatus.Registered:
+                    registrationEntity.Status = RegistrationStatus.Registered;
+                    registrationEntity.ApprovedType = type;
+                    registrationEntity.ConversionDate = null;
+                    registrationEntity.UpdatedAt = DateTimeOffset.UtcNow;
+                    break;
+                case RegistrationStatus.Deposited:
+                    registrationEntity.Status = RegistrationStatus.Deposited;
+                    registrationEntity.DepositDate = DateTime.UtcNow;
+                    registrationEntity.UpdatedAt = DateTimeOffset.UtcNow;
+                    break;
+                case RegistrationStatus.Approved:
+                    registrationEntity.Status = RegistrationStatus.Approved;
+                    registrationEntity.ApprovedType = type;
+                    registrationEntity.ConversionDate = DateTime.UtcNow;
+                    registrationEntity.UpdatedAt = DateTimeOffset.UtcNow;
+                    break;
+                case RegistrationStatus.Declined:
+                    registrationEntity.Status = RegistrationStatus.Declined;
+                    registrationEntity.ApprovedType = type;
+                    registrationEntity.ConversionDate = null;
+                    registrationEntity.UpdatedAt = DateTimeOffset.UtcNow;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(newStatus), newStatus, null);
+            }
         }
     }
 }

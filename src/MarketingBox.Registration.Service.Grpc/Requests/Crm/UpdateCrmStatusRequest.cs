@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using MarketingBox.Registration.Service.Domain.Models;
+using MarketingBox.Registration.Service.Domain.Models.Common;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Registration.Service.Grpc.Requests.Crm;

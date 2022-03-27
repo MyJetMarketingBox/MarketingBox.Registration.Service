@@ -23,7 +23,7 @@ namespace MarketingBox.Registration.Postgres.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("MarketingBox.Registration.Postgres.Entities.Registration.RegistrationEntity", b =>
+            modelBuilder.Entity("MarketingBox.Registration.Service.Domain.Models.Entities.Registration.RegistrationEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -164,7 +164,7 @@ namespace MarketingBox.Registration.Postgres.Migrations
                     b.ToTable("registrations", "registration-service");
                 });
 
-            modelBuilder.Entity("MarketingBox.Registration.Postgres.Entities.Registration.RegistrationIdGeneratorEntity", b =>
+            modelBuilder.Entity("MarketingBox.Registration.Service.Domain.Models.Entities.Registration.RegistrationIdGeneratorEntity", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasColumnType("text");

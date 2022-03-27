@@ -2,7 +2,7 @@
 
 namespace MarketingBox.Registration.Service.Domain.Models.Registrations
 {
-    public class RegistrationGeneralInfo_notgrpc
+    public class RegistrationGeneralInfoInternal
     {
         public string RegistrationUid { get; set; }
         public long RegistrationId { get; set; }

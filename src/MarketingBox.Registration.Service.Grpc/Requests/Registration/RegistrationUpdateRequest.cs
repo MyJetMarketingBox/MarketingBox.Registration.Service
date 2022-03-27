@@ -1,10 +1,11 @@
 ﻿using System.Runtime.Serialization;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations;
+using MarketingBox.Registration.Service.Domain.Models.Registrations;
+using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Registration.Service.Grpc.Requests.Registration
 {
     [DataContract]
-    public class RegistrationUpdateRequest
+    public class RegistrationUpdateRequest : ValidatableEntity
     {
         [DataMember(Order = 1)]
         public long RegistrationId { get; set; }

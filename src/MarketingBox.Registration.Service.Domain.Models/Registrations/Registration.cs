@@ -1,7 +1,6 @@
 ﻿using System.Runtime.Serialization;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations;
 
-namespace MarketingBox.Registration.Service.Grpc
+namespace MarketingBox.Registration.Service.Domain.Models.Registrations
 {
     [DataContract]
     public class Registration
@@ -11,9 +10,6 @@ namespace MarketingBox.Registration.Service.Grpc
 
         [DataMember(Order = 3)]
         public RegistrationBrandInfo BrandInfo{ get; set; }
-
-        [DataMember(Order = 4)]
-        public string FallbackUrl { get; set; }
 
         [DataMember(Order = 5)]
         public RegistrationGeneralInfo OriginalData { get; set; }
