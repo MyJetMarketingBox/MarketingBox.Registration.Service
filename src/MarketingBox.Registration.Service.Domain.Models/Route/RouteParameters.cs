@@ -1,4 +1,4 @@
-﻿namespace MarketingBox.Registration.Service.Domain.Route
+﻿namespace MarketingBox.Registration.Service.Domain.Models.Route
 {
     public class RouteParameters
     {

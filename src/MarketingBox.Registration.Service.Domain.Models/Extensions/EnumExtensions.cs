@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MarketingBox.Registration.Service.Domain.Extensions
+namespace MarketingBox.Registration.Service.Domain.Models.Extensions
 {
     public static class EnumExtensions
     {

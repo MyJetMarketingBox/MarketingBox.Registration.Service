@@ -17,8 +17,8 @@ using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integ
 using MarketingBox.Registration.Service.Domain.Models.Common;
 using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
 using MarketingBox.Registration.Service.Domain.Models.Registrations;
+using MarketingBox.Registration.Service.Domain.Models.Route;
 using MarketingBox.Registration.Service.Domain.Repositories;
-using MarketingBox.Registration.Service.Domain.Route;
 using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Requests.Registration;

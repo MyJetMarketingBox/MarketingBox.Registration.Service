@@ -21,7 +21,7 @@ namespace MarketingBox.Registration.Service.Domain.Models.Registrations
         [DataMember(Order = 12)] public long CampaignId { get; set; }
         [DataMember(Order = 13)] public string AffiliateName { get; set; }
         [DataMember(Order = 14)] public DateTime? ConversionDate { get; set; }
-        [DataMember(Order = 15)] public long Sequence { get; set; }
+        [DataMember(Order = 15)] public DateTime? DepositDate { get; set; }
         [DataMember(Order = 16)] public CrmStatus CrmStatus { get; set; }
         [DataMember(Order = 17)] public long RegistrationId { get; set; }
         [DataMember(Order = 18)] public string Integration { get; set; }
