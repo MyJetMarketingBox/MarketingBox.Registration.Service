@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Registration.Service.Domain.Repositories;
-using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Requests.Crm;
 using MarketingBox.Registration.Service.Messages.Registrations;
@@ -39,7 +38,7 @@ namespace MarketingBox.Registration.Service.Services
                 request.ValidateEntity();
                 
                 var registration = await _repository.GetLeadByCustomerIdAsync(request.TenantId, request.CustomerId);
-                registration.CrmStatus = request.Crm;
+                registration.CrmStatus = request.Crm.Value;
                 registration.UpdatedAt = DateTimeOffset.UtcNow;
                 await _repository.SaveAsync(registration);
 

@@ -11,7 +11,6 @@ using MarketingBox.Reporting.Service.Grpc;
 using MarketingBox.Reporting.Service.Grpc.Models.RegistrationsByAffiliate;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
-using MarketingBox.Sdk.Common.Models;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
@@ -155,51 +154,21 @@ namespace MarketingBox.Registration.Service.Services
                 
                 _logger.LogInformation($"RegistrationsByDateService.GetRegistrationsAsync receive request : {JsonConvert.SerializeObject(request)}");
 
-                var isAuth = CheckAuth(request.AffiliateId, request.ApiKey, out var tenantId);
+                var isAuth = CheckAuth(request.AffiliateId.Value, request.ApiKey, out var tenantId);
                 if (!isAuth)
-                    throw new UnauthorizedException("Affiliate", request.AffiliateId);
-
-                var validateionErrors = new List<ValidationError>();
-                if (request.From == DateTime.MinValue)
-                    validateionErrors.Add(new ValidationError
-                    {
-                        ParameterName = nameof(request.From),
-                        ErrorMessage = "Should not be empty."
-                    });
-                if (request.To == DateTime.MinValue)
-                    validateionErrors.Add(new ValidationError
-                    {
-                        ParameterName = nameof(request.To),
-                        ErrorMessage = "Should not be empty."
-                    });
-                if (validateionErrors.Any())
-                {
-                    throw new BadRequestException(new Sdk.Common.Models.Error
-                    {
-                        ErrorMessage = BadRequestException.DefaultErrorMessage,
-                        ValidationErrors = validateionErrors
-                    });
-                }
+                    throw new UnauthorizedException("Affiliate", request.AffiliateId.Value);
 
                 var reportResponse = await _customerReportService.GetRegistrations(new RegistrationsByAffiliateRequest()
                 {
-                    From = request.From,
-                    To = request.To,
-                    Type = GetCustomersReportType(request.Type),
-                    AffiliateId = request.AffiliateId,
+                    From = request.From.Value,
+                    To = request.To.Value,
+                    Type = GetCustomersReportType(request.Type.Value),
+                    AffiliateId = request.AffiliateId.Value,
                     TenantId = tenantId,
                 });
 
-                _logger.LogInformation($"ReportService.GetRegistrations response is : {JsonConvert.SerializeObject(reportResponse)}");
-
-                if (reportResponse.Status != ResponseStatus.Ok)
-                {
-                    return new Response<IReadOnlyCollection<RegistrationDetails>>()
-                    {
-                        Status = reportResponse.Status,
-                        Error = reportResponse.Error
-                    };
-                }
+                _logger.LogInformation(@"ReportService.GetRegistrations response is: {@Request}", request);
+                reportResponse.Process();
                 return new Response<IReadOnlyCollection<RegistrationDetails>>()
                 {
                     Status = ResponseStatus.Ok,
@@ -219,28 +188,23 @@ namespace MarketingBox.Registration.Service.Services
             {
                 request.ValidateEntity();
                 
-                _logger.LogInformation($"RegistrationsByDateService.GetRegistrationAsync receive request : {JsonConvert.SerializeObject(request)}");
+                var affiliateId = request.AffiliateId.Value;
+                _logger.LogInformation("RegistrationsByDateService.GetRegistrationAsync receive request: {@Request}",
+                    request);
                 
-                var isAuth = CheckAuth(request.AffiliateId, request.ApiKey, out var tenantId);
+                var isAuth = CheckAuth(affiliateId, request.ApiKey, out var tenantId);
                 if (!isAuth)
-                    throw new UnauthorizedException("Affiliate", request.AffiliateId);
+                    throw new UnauthorizedException("Affiliate", affiliateId);
                 var reportResponse = await _customerReportService.GetRegistration(new RegistrationByAffiliateRequest()
                 {
                     RegistrationUid = request.RegistrationUId,
-                    AffiliateId = request.AffiliateId,
+                    AffiliateId = affiliateId,
                     TenantId = tenantId
                 });
 
-                _logger.LogInformation($"ReportService.GetRegistration response is : {JsonConvert.SerializeObject(reportResponse)}");
+                _logger.LogInformation("ReportService.GetRegistration response is: {@Request}", request);
 
-                if (reportResponse.Status != ResponseStatus.Ok)
-                {
-                    return new Response<RegistrationDetails>
-                    {
-                        Status = reportResponse.Status,
-                        Error = reportResponse.Error
-                    };
-                }
+                reportResponse.Process();
                 return new Response<RegistrationDetails>()
                 {
                     Status = ResponseStatus.Ok,

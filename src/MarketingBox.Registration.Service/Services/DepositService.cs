@@ -69,8 +69,8 @@ namespace MarketingBox.Registration.Service.Services
                 request.ValidateEntity();
                 
                 var registration =
-                    await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
-                UpdateStatus(registration, request.Mode, request.NewStatus);
+                    await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId.Value);
+                UpdateStatus(registration, request.Mode.Value, request.NewStatus.Value);
                 await _repository.SaveAsync(registration);
 
                 await _publisherLeadUpdated.PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
@@ -107,13 +107,13 @@ namespace MarketingBox.Registration.Service.Services
                     break;
                 case RegistrationStatus.Deposited:
                     registrationEntity.Status = RegistrationStatus.Deposited;
-                    registrationEntity.DepositDate = DateTime.UtcNow;
+                    registrationEntity.DepositDate = DateTimeOffset.UtcNow;
                     registrationEntity.UpdatedAt = DateTimeOffset.UtcNow;
                     break;
                 case RegistrationStatus.Approved:
                     registrationEntity.Status = RegistrationStatus.Approved;
                     registrationEntity.ApprovedType = type;
-                    registrationEntity.ConversionDate = DateTime.UtcNow;
+                    registrationEntity.ConversionDate = DateTimeOffset.UtcNow;
                     registrationEntity.UpdatedAt = DateTimeOffset.UtcNow;
                     break;
                 case RegistrationStatus.Declined:

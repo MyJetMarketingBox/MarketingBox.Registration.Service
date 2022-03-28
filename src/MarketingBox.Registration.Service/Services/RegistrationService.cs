@@ -30,7 +30,6 @@ using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
-using RegistrationRouteInfo = MarketingBox.Registration.Service.Domain.Models.Registrations.RegistrationRouteInfo;
 
 namespace MarketingBox.Registration.Service.Services
 {
@@ -109,7 +108,7 @@ namespace MarketingBox.Registration.Service.Services
                     request.GeneratorId());
 
                 var country =
-                    await GetCountry(request.GeneralInfo.CountryCodeType, request.GeneralInfo.CountryCode);
+                    await GetCountry(request.GeneralInfo.CountryCodeType.Value, request.GeneralInfo.CountryCode);
 
                 var registration = _mapper.Map<RegistrationEntity>(request);
                 registration.UniqueId = UniqueIdGenerator.GetNextId();

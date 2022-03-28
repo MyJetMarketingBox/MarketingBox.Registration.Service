@@ -70,7 +70,7 @@ namespace MarketingBox.Registration.Service.Domain.Models.Deposit
         [DataMember(Order = 18)]
         public long AffiliateId { get; set; }
         
-        [DataMember(Order = 1)]
+        [DataMember(Order = 19)]
         public string TenantId { get; set; }
     }
 }
