@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MarketingBox.Registration.Postgres;
 using MarketingBox.Registration.Service.Domain.Models.Common;
 using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
-using MarketingBox.Registration.Service.Domain.Models.Registrations;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
-namespace MarketingBox.Registration.Postgres.Repositories
+namespace MarketingBox.Registration.Service.Repositories
 {
     public class RegistrationRepository : IRegistrationRepository
     {
@@ -49,7 +49,7 @@ namespace MarketingBox.Registration.Postgres.Repositories
 
         public Task<RegistrationEntity> RestoreAsync(long registrationId)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public async Task<RegistrationEntity> GetLeadByCustomerIdAsync(string tenantId, string customerId)
