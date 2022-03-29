@@ -29,11 +29,11 @@ namespace MarketingBox.Registration.Service.Domain.Models.Registrations
 
         [DataMember(Order = 4)]
         [Required]
-        [StringLength(128, MinimumLength = 1)]
+        [EmailAddress]
         [LogMasked(PreserveLength = true, ShowFirst = 2, ShowLast = 2)]
         public string Email { get; set; }
 
-        [DataMember(Order = 5)]
+        [DataMember(Order = 5), Phone]
         [LogMasked(PreserveLength = true, ShowFirst = 2, ShowLast = 2)]
         public string Phone { get; set; }
 

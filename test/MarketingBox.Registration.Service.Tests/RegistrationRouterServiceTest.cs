@@ -58,7 +58,7 @@ namespace MarketingBox.Registration.Service.Tests
 
         private static object[] _wrongActivityHours =
         {
-            new object[] {Enumerable.Empty<ActivityHours>()},
+            new object[] {Enumerable.Empty<ActivityHours>().ToList()},
             new object[]
             {
                 new List<ActivityHours>()
@@ -81,37 +81,37 @@ namespace MarketingBox.Registration.Service.Tests
             var campaignBox11 = await _leadRouter.GetCampaignRow(TenantId, BoxId, filtered);
             var campaignBox12 = await _leadRouter.GetCampaignRow(TenantId, BoxId, filtered);
             var campaignBox13 = await _leadRouter.GetCampaignRow(TenantId, BoxId, filtered);
-            Assert.AreEqual(_campaignRowNoSql1, campaignBox11);
-            Assert.AreEqual(_campaignRowNoSql2, campaignBox12);
-            Assert.AreEqual(_campaignRowNoSql3, campaignBox13);
+            Assert.AreEqual(_campaignRowNoSql1.CampaignRow, campaignBox11);
+            Assert.AreEqual(_campaignRowNoSql2.CampaignRow, campaignBox12);
+            Assert.AreEqual(_campaignRowNoSql3.CampaignRow, campaignBox13);
 
             // 2nd iteration
             var campaignBox21 = await _leadRouter.GetCampaignRow(TenantId, BoxId, filtered);
             var campaignBox22 = await _leadRouter.GetCampaignRow(TenantId, BoxId, filtered);
             var campaignBox23 = await _leadRouter.GetCampaignRow(TenantId, BoxId, filtered);
-            Assert.AreEqual(_campaignRowNoSql1, campaignBox21);
-            Assert.AreEqual(_campaignRowNoSql2, campaignBox22);
-            Assert.AreEqual(_campaignRowNoSql3, campaignBox23);
+            Assert.AreEqual(_campaignRowNoSql1.CampaignRow, campaignBox21);
+            Assert.AreEqual(_campaignRowNoSql2.CampaignRow, campaignBox22);
+            Assert.AreEqual(_campaignRowNoSql3.CampaignRow, campaignBox23);
 
             // 3rd iteration
             var campaignBox31 = await _leadRouter.GetCampaignRow(TenantId, BoxId, filtered);
             var campaignBox32 = await _leadRouter.GetCampaignRow(TenantId, BoxId, filtered);
-            Assert.AreEqual(_campaignRowNoSql1, campaignBox31);
-            Assert.AreEqual(_campaignRowNoSql2, campaignBox32);
+            Assert.AreEqual(_campaignRowNoSql1.CampaignRow, campaignBox31);
+            Assert.AreEqual(_campaignRowNoSql2.CampaignRow, campaignBox32);
 
             // 4th iteration
             var campaignBox41 = await _leadRouter.GetCampaignRow(TenantId, BoxId, filtered);
             var campaignBox42 = await _leadRouter.GetCampaignRow(TenantId, BoxId, filtered);
-            Assert.AreEqual(_campaignRowNoSql1, campaignBox41);
-            Assert.AreEqual(_campaignRowNoSql2, campaignBox42);
+            Assert.AreEqual(_campaignRowNoSql1.CampaignRow, campaignBox41);
+            Assert.AreEqual(_campaignRowNoSql2.CampaignRow, campaignBox42);
 
             // 5th iteration
             var campaignBox51 = await _leadRouter.GetCampaignRow(TenantId, BoxId, filtered);
-            Assert.AreEqual(_campaignRowNoSql1, campaignBox51);
+            Assert.AreEqual(_campaignRowNoSql1.CampaignRow, campaignBox51);
 
             // 6th iteration
             var campaignBox61 = await _leadRouter.GetCampaignRow(TenantId, BoxId, filtered);
-            Assert.AreEqual(_campaignRowNoSql1, campaignBox61);
+            Assert.AreEqual(_campaignRowNoSql1.CampaignRow, campaignBox61);
         }
 
         private void NoOtherCalls()

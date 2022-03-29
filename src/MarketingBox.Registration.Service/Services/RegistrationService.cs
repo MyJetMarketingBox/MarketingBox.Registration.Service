@@ -84,7 +84,7 @@ namespace MarketingBox.Registration.Service.Services
                 
                 _logger.LogInformation("Creating new Registration {@context}", request);
 
-                var tenantId = GetTenantId(request.AuthInfo.CampaignId);
+                var tenantId = GetTenantId(request.AuthInfo.CampaignId.Value);
                 if (tenantId == null)
                     throw new BadRequestException(new Error
                     {
@@ -99,7 +99,7 @@ namespace MarketingBox.Registration.Service.Services
                         }
                     });
 
-                if (!IsAffiliateApiKeyValid(tenantId, request.AuthInfo.AffiliateId,
+                if (!IsAffiliateApiKeyValid(tenantId, request.AuthInfo.AffiliateId.Value,
                         request.AuthInfo.ApiKey, out var affiliateName))
                     throw new UnauthorizedException(
                         $"Required authentication for affiliate '{request.AuthInfo.AffiliateId}'");
@@ -119,7 +119,7 @@ namespace MarketingBox.Registration.Service.Services
 
                 Domain.Models.Registrations.Registration response = null;
                 var routes =
-                    await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId, country.Id);
+                    await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId.Value, country.Id);
 
                 if (!routes.Any())
                 {
@@ -129,7 +129,7 @@ namespace MarketingBox.Registration.Service.Services
 
                 while (routes.Count > 0)
                 {
-                    var route = await TryGetSpecificRoute(request.AuthInfo.CampaignId, request.GeneralInfo.CountryCode,
+                    var route = await TryGetSpecificRoute(request.AuthInfo.CampaignId.Value, request.GeneralInfo.CountryCode,
                         routes);
 
                     if (route == null)
