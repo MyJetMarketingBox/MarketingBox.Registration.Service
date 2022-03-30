@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using Destructurama.Attributed;
 using MarketingBox.Registration.Service.Domain.Models.Common;
 
-namespace MarketingBox.Registration.Service.Domain.Models.Deposit
+namespace MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit
 {
     [DataContract]
     public class Deposit

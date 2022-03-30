@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Registration.Postgres;
 using MarketingBox.Registration.Service.Domain.Models.Common;
 using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
+using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
@@ -12,17 +14,16 @@ namespace MarketingBox.Registration.Service.Repositories
 {
     public class RegistrationRepository : IRegistrationRepository
     {
-        private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
+        private readonly DatabaseContextFactory _contextFactory;
 
-        public RegistrationRepository(
-            DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder)
+        public RegistrationRepository(DatabaseContextFactory contextFactory)
         {
-            _dbContextOptionsBuilder = dbContextOptionsBuilder;
+            _contextFactory = contextFactory;
         }
 
         public async Task SaveAsync(RegistrationEntity registration)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = _contextFactory.Create();
             var rowsCount = await ctx.Registrations.Upsert(registration)
                 .AllowIdentityMatch()
                 .RunAsync();
@@ -36,7 +37,7 @@ namespace MarketingBox.Registration.Service.Repositories
 
         public async Task<long> GenerateRegistrationIdAsync(string tenantId, string generatorId)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = _contextFactory.Create();
             var entity = new RegistrationIdGeneratorEntity()
             {
                 TenantId = tenantId,
@@ -54,7 +55,7 @@ namespace MarketingBox.Registration.Service.Repositories
 
         public async Task<RegistrationEntity> GetLeadByCustomerIdAsync(string tenantId, string customerId)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = _contextFactory.Create();
             var existingLeadEntity = await ctx.Registrations.FirstOrDefaultAsync(x => x.TenantId == tenantId &&
                                                                               x.CustomerId == customerId);
 
@@ -66,9 +67,9 @@ namespace MarketingBox.Registration.Service.Repositories
             return existingLeadEntity;
         }
 
-        public async Task<RegistrationEntity> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
+        public async Task<RegistrationEntity> GetRegistrationByIdAsync(string tenantId, long registrationId)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = _contextFactory.Create();
             var existingLeadEntity = await ctx.Registrations
                 .FirstOrDefaultAsync(x => x.TenantId == tenantId &&
                                           x.Id == registrationId);
@@ -87,7 +88,7 @@ namespace MarketingBox.Registration.Service.Repositories
             long campaignId,
             RegistrationStatus registrationStatus)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = _contextFactory.Create();
             var nextDate = date.AddDays(1).Date;
             var count = await ctx.Registrations.Where(x => x.Status == registrationStatus &&
                                                    x.BrandId == brandId &&
@@ -103,7 +104,7 @@ namespace MarketingBox.Registration.Service.Repositories
             long campaignId,
             RegistrationStatus registrationStatus)
         {
-            await using var ctx = new DatabaseContext(_dbContextOptionsBuilder.Options);
+            await using var ctx = _contextFactory.Create();
             var nextDate = date.AddDays(1).Date;
             var count = await ctx.Registrations.Where(x => x.Status == registrationStatus &&
                                                    x.BrandId == brandId &&
@@ -112,6 +113,29 @@ namespace MarketingBox.Registration.Service.Repositories
                                                    x.ConversionDate.Value >= date.Date && x.ConversionDate.Value < nextDate).CountAsync();
 
             return count;
+        }
+
+        public async Task SaveStatusChangeLogAsync(StatusChangeLog log)
+        {
+            await using var ctx = _contextFactory.Create();
+            await ctx.StatusChangeLogs.AddAsync(log);
+            await ctx.SaveChangesAsync();
+        }
+
+        public async Task<List<StatusChangeLog>> GetStatusChangeLogAsync(GetStatusChangeLogRequest request)
+        {
+            await using var ctx = _contextFactory.Create();
+
+            IQueryable<StatusChangeLog> query = ctx.StatusChangeLogs;
+
+            if (request.Mode.HasValue)
+                query = query.Where(e => e.Mode == request.Mode);
+            if (request.UserId.HasValue)
+                query = query.Where(e => e.UserId == request.UserId);
+            if (request.RegistrationId.HasValue)
+                query = query.Where(e => e.RegistrationId == request.RegistrationId);
+
+            return await query.ToListAsync();
         }
     }
 }

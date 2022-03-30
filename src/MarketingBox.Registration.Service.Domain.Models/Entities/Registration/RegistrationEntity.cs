@@ -23,7 +23,7 @@ namespace MarketingBox.Registration.Service.Domain.Models.Entities.Registration
         public string Country { get; set; }
         public string AffiliateName { get; set; }
         public RegistrationStatus Status { get; set; }
-        public DepositUpdateMode ApprovedType { get; set; }
+        public UpdateMode ApprovedType { get; set; }
         public CrmStatus CrmStatus { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset? DepositDate { get; set; }

@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using MarketingBox.Registration.Postgres;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Repositories;
 using MarketingBox.Registration.Service.Services;
@@ -10,6 +11,7 @@ namespace MarketingBox.Registration.Service.Modules
     {
         protected override void Load(ContainerBuilder builder)
         {
+            builder.RegisterType<DatabaseContextFactory>().AsSelf().SingleInstance();
             builder.RegisterType<RegistrationRouterService>().As<IRegistrationRouterService>().SingleInstance();
             builder.RegisterType<RegistrationRepository>().As<IRegistrationRepository>().InstancePerDependency();
 

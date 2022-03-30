@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Registration.Service.Domain.Models.Common;
-using MarketingBox.Registration.Service.Domain.Models.Deposit;
 using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
+using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Requests.Deposits;
@@ -12,24 +12,24 @@ using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
+using Newtonsoft.Json;
 
 namespace MarketingBox.Registration.Service.Services
 {
     public class DepositService : IDepositService
     {
         private readonly ILogger<DepositService> _logger;
-
         private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisherLeadUpdated;
-        private readonly IRegistrationRepository _repository;
+        private readonly IRegistrationRepository _registrationRepository;
         private readonly IMapper _mapper;
 
         public DepositService(ILogger<DepositService> logger,
             IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated,
-            IRegistrationRepository repository, IMapper mapper)
+            IRegistrationRepository registrationRepository, IMapper mapper)
         {
             _logger = logger;
             _publisherLeadUpdated = publisherLeadUpdated;
-            _repository = repository;
+            _registrationRepository = registrationRepository;
             _mapper = mapper;
         }
 
@@ -40,10 +40,10 @@ namespace MarketingBox.Registration.Service.Services
             {
                 request.ValidateEntity();
                 
-                var registration = await _repository.GetLeadByCustomerIdAsync(request.TenantId, request.CustomerId);
-                UpdateStatus(registration, DepositUpdateMode.Automatically, RegistrationStatus.Deposited);
+                var registration = await _registrationRepository.GetLeadByCustomerIdAsync(request.TenantId, request.CustomerId);
+                UpdateStatus(registration, UpdateMode.Automatically, RegistrationStatus.Deposited);
 
-                await _repository.SaveAsync(registration);
+                await _registrationRepository.SaveAsync(registration);
 
                 await _publisherLeadUpdated.PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
                 _logger.LogInformation("Sent deposit register to service bus {@context}", request);
@@ -63,36 +63,71 @@ namespace MarketingBox.Registration.Service.Services
 
         public async Task<Response<Deposit>> UpdateDepositStatusAsync(UpdateDepositStatusRequest request)
         {
-            _logger.LogInformation("Approving a deposit {@context}", request);
             try
             {
+                _logger.LogInformation("UpdateDepositStatusAsync receive request : {requestJson}", 
+                    JsonConvert.SerializeObject(request));
+                
                 request.ValidateEntity();
                 
                 var registration =
-                    await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId.Value);
-                UpdateStatus(registration, request.Mode.Value, request.NewStatus.Value);
-                await _repository.SaveAsync(registration);
+                    await _registrationRepository.GetRegistrationByIdAsync(request.TenantId, request.RegistrationId);
 
-                await _publisherLeadUpdated.PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
-                _logger.LogInformation("Sent deposit approve to service bus {@context}", request);
+                var oldStatus = registration.Status;
+
+                UpdateStatus(registration, request.Mode, request.NewStatus);
+                
+                await _registrationRepository.SaveAsync(registration);
+                
+                await _registrationRepository.SaveStatusChangeLogAsync(new StatusChangeLog()
+                {
+                    Date = DateTime.UtcNow,
+                    UserId = request.UserId,
+                    RegistrationId = request.RegistrationId,
+                    Mode = request.Mode,
+                    Comment = request.Comment,
+                    OldStatus = oldStatus,
+                    NewStatus = request.NewStatus
+                });
 
                 return new Response<Deposit>
                 {
                     Status = ResponseStatus.Ok,
-                    Data = _mapper.Map<Deposit>(registration) //MapToGrpc(registration)
+                    Data = _mapper.Map<Deposit>(registration)
                 };
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error approving a deposit {@context}", request);
-
+                _logger.LogError(e, "Error updating deposit status {@context}", request);
                 return e.FailedResponse<Deposit>();
+            }
+        }
+
+        public async Task<Response<StatusChangeLog>> GetStatusChangeLogAsync(GetStatusChangeLogRequest request)
+        {
+            try
+            {
+                _logger.LogInformation("GetStatusChangeLogAsync receive request : {requestJson}", 
+                    JsonConvert.SerializeObject(request));
+
+                var logs = await _registrationRepository.GetStatusChangeLogAsync(request);
+                
+                return new Response<StatusChangeLog>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = _mapper.Map<StatusChangeLog>(logs)
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error getting status change log {@context}", request);
+                return e.FailedResponse<StatusChangeLog>();
             }
         }
 
         private static void UpdateStatus(
             RegistrationEntity registrationEntity,
-            DepositUpdateMode type,
+            UpdateMode type,
             RegistrationStatus newStatus)
         {
             switch (newStatus)

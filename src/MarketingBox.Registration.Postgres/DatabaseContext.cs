@@ -1,6 +1,6 @@
 ﻿using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
+using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.Postgres;
 
 namespace MarketingBox.Registration.Postgres
@@ -10,8 +10,10 @@ namespace MarketingBox.Registration.Postgres
         public const string Schema = "registration-service";
 
         private const string RegistrationTableName = "registrations";
+        private const string StatusChangeLogTableName = "status-change-log";
 
         public DbSet<RegistrationEntity> Registrations { get; set; }
+        public DbSet<StatusChangeLog> StatusChangeLogs { get; set; }
 
         private const string RegistrationIdGeneratorTableName = "registration_id_generator";
 
@@ -34,12 +36,25 @@ namespace MarketingBox.Registration.Postgres
         {
             modelBuilder.HasDefaultSchema(Schema);
 
-            SetEntities(modelBuilder);
+            SetRegistrationEntity(modelBuilder);
+            SetStatusChangeLogEntity(modelBuilder);
 
             base.OnModelCreating(modelBuilder);
         }
 
-        private void SetEntities(ModelBuilder modelBuilder)
+        private void SetStatusChangeLogEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<StatusChangeLog>().ToTable(StatusChangeLogTableName);
+            
+            modelBuilder.Entity<StatusChangeLog>().HasKey(e => e.Id);
+            modelBuilder.Entity<StatusChangeLog>().Property(e => e.Id).UseIdentityColumn();
+            
+            modelBuilder.Entity<StatusChangeLog>().HasIndex(e => e.Mode);
+            modelBuilder.Entity<StatusChangeLog>().HasIndex(e => e.UserId);
+            modelBuilder.Entity<StatusChangeLog>().HasIndex(e => e.RegistrationId);
+        }
+
+        private void SetRegistrationEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<RegistrationEntity>().ToTable(RegistrationTableName);
             modelBuilder.Entity<RegistrationEntity>().HasKey(e => e.Id);

@@ -37,7 +37,7 @@ namespace MarketingBox.Registration.Service.Subscribers
             _logger.LogInformation("Consuming message {@context}", message);
             try
             {
-                var registration = await _repository.GetLeadByRegistrationIdAsync(message.TenantId, message.RegistrationId);
+                var registration = await _repository.GetRegistrationByIdAsync(message.TenantId, message.RegistrationId);
                 registration.AutologinUsed = true;
                 await _repository.SaveAsync(registration);
                 await _serviceBusPublisher.PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));

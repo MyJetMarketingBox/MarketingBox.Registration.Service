@@ -39,7 +39,7 @@ namespace MarketingBox.Registration.Service.Domain.Models.Registrations
         public RegistrationBrandInfo BrandInfo { get; set; }
 
         [DataMember(Order = 11)]
-        public DepositUpdateMode UpdateMode { get; set; }
+        public UpdateMode UpdateMode { get; set; }
 
         [DataMember(Order = 12)]
         public CrmStatus CrmStatus { get; set; }

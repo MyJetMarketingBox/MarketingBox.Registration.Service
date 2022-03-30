@@ -3,9 +3,9 @@ using AutoMapper;
 using MarketingBox.Integration.Service.Grpc.Models.Registrations;
 using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integration;
 using MarketingBox.Registration.Service.Domain.Models.Affiliate;
-using MarketingBox.Registration.Service.Domain.Models.Deposit;
 using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
 using MarketingBox.Registration.Service.Domain.Models.Registrations;
+using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 using MarketingBox.Registration.Service.Grpc.Requests.Registration;
 using MarketingBox.Registration.Service.Messages.Registrations;
 using RegistrationAdditionalInfo =

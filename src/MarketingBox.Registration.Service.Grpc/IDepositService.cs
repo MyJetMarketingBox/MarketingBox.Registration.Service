@@ -1,7 +1,6 @@
 ﻿using System.ServiceModel;
 using System.Threading.Tasks;
-using MarketingBox.Registration.Service.Domain.Models;
-using MarketingBox.Registration.Service.Domain.Models.Deposit;
+using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 using MarketingBox.Registration.Service.Grpc.Requests.Deposits;
 using MarketingBox.Sdk.Common.Models.Grpc;
 
@@ -15,5 +14,8 @@ namespace MarketingBox.Registration.Service.Grpc
 
         [OperationContract]
         Task<Response<Deposit>> UpdateDepositStatusAsync(UpdateDepositStatusRequest request);
+        
+        [OperationContract]
+        Task<Response<StatusChangeLog>> GetStatusChangeLogAsync(GetStatusChangeLogRequest request);
     }
 }

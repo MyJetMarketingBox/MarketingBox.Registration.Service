@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using MarketingBox.Registration.Service.Domain.Models;
 using MarketingBox.Registration.Service.Domain.Models.Common;
 using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
+using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 using MarketingBox.Registration.Service.Domain.Repositories;
 
 namespace MarketingBox.Registration.Service.Tests
@@ -38,7 +39,7 @@ namespace MarketingBox.Registration.Service.Tests
             throw new NotImplementedException();
         }
 
-        public Task<RegistrationEntity> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
+        public Task<RegistrationEntity> GetRegistrationByIdAsync(string tenantId, long registrationId)
         {
             throw new NotImplementedException();
         }
@@ -51,6 +52,16 @@ namespace MarketingBox.Registration.Service.Tests
         public Task<int> GetCountForDeposits(DateTime date, long brandId, long campaignId, RegistrationStatus registrationStatus)
         {
             return Task.FromResult(FtdCount);
+        }
+
+        public Task SaveStatusChangeLogAsync(StatusChangeLog log)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<StatusChangeLog>> GetStatusChangeLogAsync(GetStatusChangeLogRequest request)
+        {
+            throw new NotImplementedException();
         }
     }
 }
