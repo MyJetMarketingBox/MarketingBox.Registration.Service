@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Registration.Service.Domain.Models.Common;
@@ -103,7 +104,7 @@ namespace MarketingBox.Registration.Service.Services
             }
         }
 
-        public async Task<Response<StatusChangeLog>> GetStatusChangeLogAsync(GetStatusChangeLogRequest request)
+        public async Task<Response<List<StatusChangeLog>>> GetStatusChangeLogAsync(GetStatusChangeLogRequest request)
         {
             try
             {
@@ -112,16 +113,16 @@ namespace MarketingBox.Registration.Service.Services
 
                 var logs = await _registrationRepository.GetStatusChangeLogAsync(request);
                 
-                return new Response<StatusChangeLog>
+                return new Response<List<StatusChangeLog>>
                 {
                     Status = ResponseStatus.Ok,
-                    Data = _mapper.Map<StatusChangeLog>(logs)
+                    Data = _mapper.Map<List<StatusChangeLog>>(logs)
                 };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error getting status change log {@context}", request);
-                return e.FailedResponse<StatusChangeLog>();
+                return e.FailedResponse<List<StatusChangeLog>>();
             }
         }
 
