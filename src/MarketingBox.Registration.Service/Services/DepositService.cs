@@ -116,7 +116,7 @@ namespace MarketingBox.Registration.Service.Services
                 return new Response<List<StatusChangeLog>>
                 {
                     Status = ResponseStatus.Ok,
-                    Data = _mapper.Map<List<StatusChangeLog>>(logs)
+                    Data = logs
                 };
             }
             catch (Exception e)

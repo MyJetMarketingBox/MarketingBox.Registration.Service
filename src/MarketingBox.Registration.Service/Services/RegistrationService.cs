@@ -94,7 +94,7 @@ namespace MarketingBox.Registration.Service.Services
                             new()
                             {
                                 ParameterName = nameof(request.AuthInfo.CampaignId),
-                                ErrorMessage = $"Incorrect offerid '{request.AuthInfo.CampaignId}'"
+                                ErrorMessage = $"Incorrect {nameof(request.AuthInfo.CampaignId)} '{request.AuthInfo.CampaignId}'"
                             }
                         }
                     });

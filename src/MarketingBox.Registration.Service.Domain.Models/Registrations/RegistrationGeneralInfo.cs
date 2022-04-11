@@ -2,6 +2,7 @@
 using System.Runtime.Serialization;
 using Destructurama.Attributed;
 using MarketingBox.Registration.Service.Domain.Models.Common;
+using MarketingBox.Sdk.Common.Attributes;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Registration.Service.Domain.Models.Registrations
@@ -11,25 +12,26 @@ namespace MarketingBox.Registration.Service.Domain.Models.Registrations
     {
         [DataMember(Order = 1)]
         [Required]
-        [StringLength(128, MinimumLength = 1)]
+        [StringLength(50, MinimumLength = 1)]
         [LogMasked(PreserveLength = true, ShowFirst = 2, ShowLast = 2)]
         public string FirstName { get; set; }
 
         [DataMember(Order = 2)]
         [Required]
-        [StringLength(128, MinimumLength = 1)]
+        [StringLength(50, MinimumLength = 1)]
         [LogMasked(PreserveLength = true, ShowFirst = 2, ShowLast = 2)]
         public string LastName { get; set; }
 
         [DataMember(Order = 3)]
         [Required]
-        [StringLength(128, MinimumLength = 1)]
+        [IsValidPassword]
+        [StringLength(128, MinimumLength = 6)]
         [LogMasked(PreserveLength = true)]
         public string Password { get; set; }
 
         [DataMember(Order = 4)]
         [Required]
-        [EmailAddress]
+        [IsValidEmail]
         [LogMasked(PreserveLength = true, ShowFirst = 2, ShowLast = 2)]
         public string Email { get; set; }
 
@@ -44,7 +46,8 @@ namespace MarketingBox.Registration.Service.Domain.Models.Registrations
         public string Ip { get; set; }
 
         [DataMember(Order = 7)] 
-        [Required] 
+        [Required]
+        [IsEnum]
         public CountryCodeType? CountryCodeType { get; set; }
 
         [DataMember(Order = 8)]
