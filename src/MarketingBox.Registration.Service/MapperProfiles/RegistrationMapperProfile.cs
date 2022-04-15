@@ -44,7 +44,13 @@ namespace MarketingBox.Registration.Service.MapperProfiles
                 .IncludeMembers(
                     x => x.AdditionalInfo,
                     x => x.AuthInfo,
-                    x => x.GeneralInfo);
+                    x => x.GeneralInfo,
+                    x => x.BrandInfo);
+            CreateMap<RegistrationBrandInfo, RegistrationEntity>()
+                .ForMember(x => x.CustomerId, x => x.MapFrom(z => z.CustomerId))
+                .ForMember(x => x.CustomerToken, x => x.MapFrom(z => z.Token))
+                .ForMember(x => x.CustomerLoginUrl, x => x.MapFrom(z => z.LoginUrl))
+                .ForMember(x => x.CustomerBrand, x => x.MapFrom(z => z.Brand));
             CreateMap<RegistrationAdditionalInfo, RegistrationEntity>();
             CreateMap<AffiliateAuthInfo, RegistrationEntity>();
             CreateMap<RegistrationGeneralInfo, RegistrationEntity>();

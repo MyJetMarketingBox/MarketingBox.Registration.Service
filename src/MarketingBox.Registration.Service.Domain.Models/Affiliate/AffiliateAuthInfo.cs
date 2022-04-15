@@ -14,7 +14,7 @@ namespace MarketingBox.Registration.Service.Domain.Models.Affiliate
         [DataMember(Order = 2), Required, StringLength(128, MinimumLength = 1)]
         public string ApiKey { get; set; }
 
-        [DataMember(Order = 3), Required, AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
+        [DataMember(Order = 3), AdvancedCompare(ComparisonType.GreaterThanOrEqual, 1)]
         public long? CampaignId { get; set; }
     }
 }

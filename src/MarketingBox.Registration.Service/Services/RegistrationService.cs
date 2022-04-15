@@ -14,7 +14,6 @@ using MarketingBox.ExternalReferenceProxy.Service.Grpc;
 using MarketingBox.ExternalReferenceProxy.Service.Grpc.Models;
 using MarketingBox.Integration.Service.Client;
 using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integration;
-using MarketingBox.Registration.Service.Domain.Models.Common;
 using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
 using MarketingBox.Registration.Service.Domain.Models.Registrations;
 using MarketingBox.Registration.Service.Domain.Models.Route;
@@ -23,6 +22,7 @@ using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Requests.Registration;
 using MarketingBox.Registration.Service.Messages.Registrations;
+using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models;
@@ -30,6 +30,7 @@ using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
+using CountryCodeType = MarketingBox.Registration.Service.Domain.Models.Common.CountryCodeType;
 
 namespace MarketingBox.Registration.Service.Services
 {
@@ -47,6 +48,9 @@ namespace MarketingBox.Registration.Service.Services
         private readonly IRegistrationRouterService _registrationRouter;
         private readonly IRegistrationRepository _repository;
         private readonly IMapper _mapper;
+
+        // Todo: implement proper logic for multi-tenancy and get rid of this constant.
+        private const string TenantId = "default-tenant-id";
 
         public RegistrationService(ILogger<RegistrationService> logger,
             IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated,
@@ -81,82 +85,92 @@ namespace MarketingBox.Registration.Service.Services
             try
             {
                 request.ValidateEntity();
-                
                 _logger.LogInformation("Creating new Registration {@context}", request);
+                // var tenantId = GetTenantId(request.AuthInfo.CampaignId.Value);
+                // if (tenantId == null)
+                //     throw new BadRequestException(new Error
+                //     {
+                //         ErrorMessage = BadRequestException.DefaultErrorMessage,
+                //         ValidationErrors = new List<ValidationError>
+                //         {
+                //             new()
+                //             {
+                //                 ParameterName = nameof(request.AuthInfo.CampaignId),
+                //                 ErrorMessage = $"Incorrect {nameof(request.AuthInfo.CampaignId)} '{request.AuthInfo.CampaignId}'"
+                //             }
+                //         }
+                //     });
 
-                var tenantId = GetTenantId(request.AuthInfo.CampaignId.Value);
-                if (tenantId == null)
-                    throw new BadRequestException(new Error
-                    {
-                        ErrorMessage = BadRequestException.DefaultErrorMessage,
-                        ValidationErrors = new List<ValidationError>
-                        {
-                            new()
-                            {
-                                ParameterName = nameof(request.AuthInfo.CampaignId),
-                                ErrorMessage = $"Incorrect {nameof(request.AuthInfo.CampaignId)} '{request.AuthInfo.CampaignId}'"
-                            }
-                        }
-                    });
-
-                if (!IsAffiliateApiKeyValid(tenantId, request.AuthInfo.AffiliateId.Value,
+                if (!IsAffiliateApiKeyValid(TenantId, request.AuthInfo.AffiliateId.Value,
                         request.AuthInfo.ApiKey, out var affiliateName))
                     throw new UnauthorizedException(
                         $"Required authentication for affiliate '{request.AuthInfo.AffiliateId}'");
 
-                var registrationId = await _repository.GenerateRegistrationIdAsync(tenantId,
+                var registrationId = await _repository.GenerateRegistrationIdAsync(TenantId,
                     request.GeneratorId());
 
-                var country =
-                    await GetCountry(request.GeneralInfo.CountryCodeType.Value, request.GeneralInfo.CountryCode);
+                var country = await GetCountry(
+                    request.GeneralInfo.CountryCodeType.Value,
+                    request.GeneralInfo.CountryCode);
 
                 var registration = _mapper.Map<RegistrationEntity>(request);
                 registration.UniqueId = UniqueIdGenerator.GetNextId();
                 registration.Country = country.Alfa2Code;
                 registration.AffiliateName = affiliateName;
                 registration.Id = registrationId;
-                registration.TenantId = tenantId;
+                registration.TenantId = TenantId;
 
                 Domain.Models.Registrations.Registration response = null;
-                var routes =
-                    await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId.Value, country.Id);
 
-                if (!routes.Any())
+                if (request.RegistrationMode == RegistrationMode.Auto)
                 {
-                    await _repository.SaveAsync(registration);
-                    throw new Exception("Can't register on brand");
-                }
+                    var routes =
+                        await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId.Value, country.Id);
 
-                while (routes.Count > 0)
-                {
-                    var route = await TryGetSpecificRoute(request.AuthInfo.CampaignId.Value, request.GeneralInfo.CountryCode,
-                        routes);
-
-                    if (route == null)
+                    if (!routes.Any())
                     {
-                        await SaveAndPublishRegistration(request, registration);
+                        await _repository.SaveAsync(registration);
                         throw new Exception("Can't register on brand");
                     }
 
-                    routes.RemoveAll(x =>
-                        x.BrandId == route.BrandId &&
-                        x.CampaignId == route.CampaignId &&
-                        x.Id == route.CampaignRowId);
+                    while (routes.Count > 0)
+                    {
+                        var route = await TryGetSpecificRoute(request.AuthInfo.CampaignId.Value,
+                            request.GeneralInfo.CountryCode,
+                            routes);
 
-                    registration.BrandId = route.BrandId;
-                    registration.CampaignId = route.CampaignId;
-                    try
-                    {
-                        response = await GetRegistrationCreateResponse(request, registration);
-                        break;
-                    }
-                    catch
-                    {
-                        // ignored
+                        if (route == null)
+                        {
+                            await SaveAndPublishRegistration(request, registration);
+                            throw new Exception("Can't register on brand");
+                        }
+
+                        routes.RemoveAll(x =>
+                            x.BrandId == route.BrandId &&
+                            x.CampaignId == route.CampaignId &&
+                            x.Id == route.CampaignRowId);
+
+                        registration.BrandId = route.BrandId;
+                        registration.CampaignId = route.CampaignId;
+                        try
+                        {
+                            response = await GetRegistrationCreateResponse(request, registration);
+                            break;
+                        }
+                        catch
+                        {
+                            // ignored
+                        }
                     }
                 }
 
                 await SaveAndPublishRegistration(request, registration);
+
+                if (request.RegistrationMode == RegistrationMode.S2S)
+                {
+                    response = _mapper.Map<Domain.Models.Registrations.Registration>(registration);
+                }
+
                 return new Response<Domain.Models.Registrations.Registration>
                 {
                     Data = response,
@@ -222,10 +236,10 @@ namespace MarketingBox.Registration.Service.Services
             _logger.LogInformation("Sent original created registration to service bus {@context}", request);
         }
 
-        private string GetTenantId(long campaignId)
+        private string GetTenantId(long affiliateId)
         {
             var boxIndexNoSql = _campaignIndexNoSqlServerDataReader
-                .Get(CampaignIndexNoSql.GeneratePartitionKey(campaignId))
+                .Get(CampaignIndexNoSql.GeneratePartitionKey(affiliateId))
                 .FirstOrDefault()
                 ?.Campaign;
 
@@ -302,7 +316,8 @@ namespace MarketingBox.Registration.Service.Services
         private async Task<RegistrationBrandInfo> BrandRegisterAsync(
             RegistrationEntity registrationEntity)
         {
-            var request = _mapper.Map<RegistrationRequest>(registrationEntity); //registrationNogrpc.CreateIntegrationRequest();
+            var request =
+                _mapper.Map<RegistrationRequest>(registrationEntity); //registrationNogrpc.CreateIntegrationRequest();
             var response = await _integrationService.SendRegisterationAsync(request);
 
             var proxyLoginRef = await _externalReferenceProxyService.GetProxyRefAsync(new GetProxyRefRequest

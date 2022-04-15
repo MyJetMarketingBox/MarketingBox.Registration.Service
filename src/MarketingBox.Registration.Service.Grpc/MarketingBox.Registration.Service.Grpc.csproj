@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Destructurama.Attributed" Version="3.0.0" />
-    <PackageReference Include="MarketingBox.Sdk.Common" Version="1.0.10" />
+    <PackageReference Include="MarketingBox.Sdk.Common" Version="1.0.12" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="4.9.0" />
   </ItemGroup>
 

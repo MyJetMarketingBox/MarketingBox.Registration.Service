@@ -21,5 +21,8 @@
     <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="2.2.2" />
     <PackageReference Include="MyNoSqlServer.Abstractions" Version="1.2.6" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MarketingBox.Registration.Service.Domain\MarketingBox.Registration.Service.Domain.csproj" />
+  </ItemGroup>
 
 </Project>
