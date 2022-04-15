@@ -30,7 +30,6 @@ using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
-using CountryCodeType = MarketingBox.Registration.Service.Domain.Models.Common.CountryCodeType;
 
 namespace MarketingBox.Registration.Service.Services
 {
@@ -116,6 +115,7 @@ namespace MarketingBox.Registration.Service.Services
                 var registration = _mapper.Map<RegistrationEntity>(request);
                 registration.UniqueId = UniqueIdGenerator.GetNextId();
                 registration.Country = country.Alfa2Code;
+                registration.CountryId = country.Id;
                 registration.AffiliateName = affiliateName;
                 registration.Id = registrationId;
                 registration.TenantId = TenantId;
@@ -169,6 +169,7 @@ namespace MarketingBox.Registration.Service.Services
                 if (request.RegistrationMode == RegistrationMode.S2S)
                 {
                     response = _mapper.Map<Domain.Models.Registrations.Registration>(registration);
+                    response.OriginalData.CountryCodeType = request.GeneralInfo.CountryCodeType;
                 }
 
                 return new Response<Domain.Models.Registrations.Registration>

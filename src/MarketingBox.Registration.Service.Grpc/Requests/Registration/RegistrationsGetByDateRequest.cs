@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using MarketingBox.Registration.Service.Domain.Models.Attributes;
+using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Registration.Service.Grpc.Requests.Registration;
@@ -29,13 +30,5 @@ public class RegistrationsGetByDateRequest : ValidatableEntity
 
     [DataMember(Order = 5)]
     [Required]
-    public RegistrationType? Type { get; set; }
-}
-
-[DataContract]
-public enum RegistrationType
-{
-    [DataMember(Order = 1)] Registrations,
-    [DataMember(Order = 2)] QFTDepositors, //TODO Rename
-    [DataMember(Order = 3)] All
+    public RegistrationsReportType? Type { get; set; }
 }

@@ -6,16 +6,14 @@ using AutoMapper;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Requests.Registration;
-using MarketingBox.Reporting.Service.Domain.Models;
 using MarketingBox.Reporting.Service.Grpc;
-using MarketingBox.Reporting.Service.Grpc.Models.RegistrationsByAffiliate;
+using MarketingBox.Reporting.Service.Grpc.Requests.Registrations;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
 using RegistrationDetails = MarketingBox.Registration.Service.Domain.Models.Registrations.RegistrationDetails;
-using ReportingRegistrationDetails = MarketingBox.Reporting.Service.Domain.Models.RegistrationDetails;
 
 namespace MarketingBox.Registration.Service.Services
 {
@@ -25,17 +23,6 @@ namespace MarketingBox.Registration.Service.Services
         private readonly IAffiliateService _customerReportService;
         private readonly IMyNoSqlServerDataReader<AffiliateNoSql> _affiliateNoSqlServerDataReader;
         private readonly IMapper _mapper;
-
-        private static RegistrationsReportType GetCustomersReportType(RegistrationType requestType)
-        {
-            return requestType switch
-            {
-                RegistrationType.Registrations => RegistrationsReportType.Registrations,
-                RegistrationType.QFTDepositors => RegistrationsReportType.Ftd,
-                RegistrationType.All => RegistrationsReportType.All,
-                _ => throw new Exception()
-            };
-        }
 
         private bool CheckAuth(long affiliateId, string apiKey, out string tenantId)
         {
@@ -73,7 +60,7 @@ namespace MarketingBox.Registration.Service.Services
                 {
                     From = request.From.Value,
                     To = request.To.Value,
-                    Type = GetCustomersReportType(request.Type.Value),
+                    Type = request.Type.Value,
                     AffiliateId = request.AffiliateId.Value,
                     TenantId = tenantId,
                 });

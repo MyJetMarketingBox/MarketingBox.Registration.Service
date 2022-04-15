@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 using Destructurama.Attributed;
-using MarketingBox.Registration.Service.Domain.Models.Common;
+using MarketingBox.Sdk.Common.Enums;
 
 namespace MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit
 {

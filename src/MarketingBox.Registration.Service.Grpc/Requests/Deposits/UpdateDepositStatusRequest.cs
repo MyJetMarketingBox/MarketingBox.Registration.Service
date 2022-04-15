@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
-using MarketingBox.Registration.Service.Domain.Models.Common;
+using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Registration.Service.Grpc.Requests.Deposits
@@ -18,7 +18,7 @@ namespace MarketingBox.Registration.Service.Grpc.Requests.Deposits
         public long RegistrationId { get; set; }
 
         [DataMember(Order = 4), Required]
-        public UpdateMode Mode { get; set; }
+        public DepositUpdateMode Mode { get; set; }
         
         [DataMember(Order = 5), Required]
         public RegistrationStatus NewStatus { get; set; }

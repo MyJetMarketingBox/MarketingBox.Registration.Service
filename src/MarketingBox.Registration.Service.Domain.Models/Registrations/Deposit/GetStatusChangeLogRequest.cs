@@ -1,5 +1,5 @@
 using System.Runtime.Serialization;
-using MarketingBox.Registration.Service.Domain.Models.Common;
+using MarketingBox.Sdk.Common.Enums;
 
 namespace MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 
@@ -8,5 +8,5 @@ public class GetStatusChangeLogRequest
 {
     [DataMember(Order = 1)] public long? UserId { get; set; }
     [DataMember(Order = 2)] public long? RegistrationId { get; set; }
-    [DataMember(Order = 3)] public UpdateMode? Mode { get; set; }
+    [DataMember(Order = 3)] public DepositUpdateMode? Mode { get; set; }
 }

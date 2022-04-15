@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
-using MarketingBox.Registration.Service.Domain.Models.Common;
+using MarketingBox.Sdk.Common.Enums;
 
 namespace MarketingBox.Registration.Service.Domain.Models.Registrations
 {
@@ -30,22 +30,23 @@ namespace MarketingBox.Registration.Service.Domain.Models.Registrations
         public string CrmCrmStatus { get; set; }
 
         [DataMember(Order = 8)]
-        public DateTimeOffset? DepositDate { get; set; }
+        public DateTime? DepositDate { get; set; }
 
         [DataMember(Order = 9)]
-        public DateTimeOffset? ConversionDate { get; set; }
+        public DateTime? ConversionDate { get; set; }
 
         [DataMember(Order = 10)]
         public RegistrationBrandInfo BrandInfo { get; set; }
 
         [DataMember(Order = 11)]
-        public UpdateMode UpdateMode { get; set; }
+        public DepositUpdateMode UpdateMode { get; set; }
 
         [DataMember(Order = 12)]
         public CrmStatus CrmStatus { get; set; }
 
         [DataMember(Order = 13)]
         public string AffiliateName { get; set; }
+        
         [DataMember(Order = 14)]
         public bool AutologinUsed { get; set; }
 

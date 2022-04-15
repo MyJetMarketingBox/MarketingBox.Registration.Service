@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MarketingBox.Registration.Postgres;
-using MarketingBox.Registration.Service.Domain.Models.Common;
 using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
 using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 using MarketingBox.Registration.Service.Domain.Repositories;
+using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 

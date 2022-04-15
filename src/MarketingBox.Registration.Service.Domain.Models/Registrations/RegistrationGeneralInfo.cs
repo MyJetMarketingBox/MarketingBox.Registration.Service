@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using Destructurama.Attributed;
-using MarketingBox.Registration.Service.Domain.Models.Common;
 using MarketingBox.Sdk.Common.Attributes;
+using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Models;
 
 namespace MarketingBox.Registration.Service.Domain.Models.Registrations

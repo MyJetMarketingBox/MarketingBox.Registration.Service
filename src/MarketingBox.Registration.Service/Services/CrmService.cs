@@ -37,9 +37,9 @@ namespace MarketingBox.Registration.Service.Services
             {
                 request.ValidateEntity();
                 
-                var registration = await _repository.GetLeadByCustomerIdAsync(request.TenantId, request.CustomerId);
+                var registration = await _repository.GetRegistrationByIdAsync(request.TenantId, request.RegistrationId.Value);
                 registration.CrmStatus = request.Crm.Value;
-                registration.UpdatedAt = DateTimeOffset.UtcNow;
+                registration.UpdatedAt = DateTime.UtcNow;
                 await _repository.SaveAsync(registration);
 
                 await _publisherLeadUpdated.PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));

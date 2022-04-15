@@ -5,9 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
-using MarketingBox.Registration.Service.Domain.Models.Common;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
+using MarketingBox.Sdk.Common.Enums;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
 

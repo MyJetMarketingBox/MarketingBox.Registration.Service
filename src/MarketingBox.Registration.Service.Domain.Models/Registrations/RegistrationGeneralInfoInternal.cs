@@ -3,6 +3,7 @@ using System.Runtime.Serialization;
 
 namespace MarketingBox.Registration.Service.Domain.Models.Registrations
 {
+    [DataContract]
     public class RegistrationGeneralInfoInternal
     {
         [DataMember(Order = 1)] public string RegistrationUid { get; set; }
@@ -15,7 +16,7 @@ namespace MarketingBox.Registration.Service.Domain.Models.Registrations
         [DataMember(Order = 8)] public string Ip { get; set; }
         [DataMember(Order = 9)] public int CountryId { get; set; }
         [DataMember(Order = 10)] public string CountryAlfa2Code { get; set; }
-        [DataMember(Order = 11)] public DateTimeOffset CreatedAt { get; set; }
-        [DataMember(Order = 12)] public DateTimeOffset UpdatedAt { get; set; }
+        [DataMember(Order = 11)] public DateTime CreatedAt { get; set; }
+        [DataMember(Order = 12)] public DateTime UpdatedAt { get; set; }
     }
 }

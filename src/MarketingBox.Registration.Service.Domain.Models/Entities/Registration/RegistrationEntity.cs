@@ -1,5 +1,5 @@
 ﻿using System;
-using MarketingBox.Registration.Service.Domain.Models.Common;
+using MarketingBox.Sdk.Common.Enums;
 
 namespace MarketingBox.Registration.Service.Domain.Models.Entities.Registration
 {
@@ -23,12 +23,12 @@ namespace MarketingBox.Registration.Service.Domain.Models.Entities.Registration
         public string Country { get; set; }
         public string AffiliateName { get; set; }
         public RegistrationStatus Status { get; set; }
-        public UpdateMode ApprovedType { get; set; }
+        public DepositUpdateMode ApprovedType { get; set; }
         public CrmStatus CrmStatus { get; set; }
-        public DateTimeOffset CreatedAt { get; set; }
-        public DateTimeOffset? DepositDate { get; set; }
-        public DateTimeOffset? ConversionDate { get; set; }
-        public DateTimeOffset UpdatedAt { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? DepositDate { get; set; }
+        public DateTime? ConversionDate { get; set; }
+        public DateTime UpdatedAt { get; set; }
         
         public string Integration{ get; set; }
         public long? IntegrationId { get; set; }

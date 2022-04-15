@@ -45,7 +45,9 @@ namespace MarketingBox.Registration.Service.MapperProfiles
                     x => x.AdditionalInfo,
                     x => x.AuthInfo,
                     x => x.GeneralInfo,
-                    x => x.BrandInfo);
+                    x => x.BrandInfo)
+                .ForMember(x => x.CreatedAt, x => x.MapFrom(z => DateTime.UtcNow))
+                .ForMember(x => x.UpdatedAt, x => x.MapFrom(z => DateTime.UtcNow));
             CreateMap<RegistrationBrandInfo, RegistrationEntity>()
                 .ForMember(x => x.CustomerId, x => x.MapFrom(z => z.CustomerId))
                 .ForMember(x => x.CustomerToken, x => x.MapFrom(z => z.Token))
@@ -80,14 +82,14 @@ namespace MarketingBox.Registration.Service.MapperProfiles
                 .ForMember(x => x.RegistrationId,
                     x => x.MapFrom(z => z.Id))
                 .ForMember(x => x.UpdatedAt,
-                    x => x.MapFrom(z => z.UpdatedAt.UtcDateTime))
+                    x => x.MapFrom(z => DateTime.SpecifyKind(z.UpdatedAt, DateTimeKind.Utc)))
                 .ForMember(x => x.CreatedAt,
-                    x => x.MapFrom(z => z.CreatedAt.UtcDateTime))
+                    x => x.MapFrom(z => DateTime.SpecifyKind(z.CreatedAt, DateTimeKind.Utc)))
                 .ForMember(x => x.ConversionDate,
                     x => x.MapFrom(z =>
-                        z.ConversionDate.HasValue ? z.ConversionDate.Value.UtcDateTime : (DateTime?) null))
+                        z.ConversionDate.HasValue ? DateTime.SpecifyKind(z.ConversionDate.Value, DateTimeKind.Utc) : (DateTime?) null))
                 .ForMember(x => x.DepositDate,
-                    x => x.MapFrom(z => z.DepositDate.HasValue ? z.DepositDate.Value.UtcDateTime : (DateTime?) null));
+                    x => x.MapFrom(z => z.DepositDate.HasValue ? DateTime.SpecifyKind(z.DepositDate.Value, DateTimeKind.Utc) : (DateTime?) null));
             CreateMap<RegistrationEntity, RegistrationRequest>()
                 .ForMember(x => x.RegistrationId,
                     x => x.MapFrom(z => z.Id))

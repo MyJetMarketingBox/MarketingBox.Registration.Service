@@ -18,6 +18,9 @@
     <None Remove="Brands\**" />
     <None Remove="CampaignBoxes\**" />
     <None Remove="Campaigns\**" />
+    <Compile Remove="Common\CountryCodeType.cs" />
+    <Compile Remove="Common\CrmStatus.cs" />
+    <Compile Remove="Common\RegistrationStatus.cs" />
   </ItemGroup>
 
   <ItemGroup>

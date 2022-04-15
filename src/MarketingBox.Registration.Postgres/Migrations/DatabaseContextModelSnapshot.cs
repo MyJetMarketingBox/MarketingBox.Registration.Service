@@ -18,7 +18,7 @@ namespace MarketingBox.Registration.Postgres.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("registration-service")
-                .HasAnnotation("ProductVersion", "6.0.2")
+                .HasAnnotation("ProductVersion", "6.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -52,7 +52,7 @@ namespace MarketingBox.Registration.Postgres.Migrations
                     b.Property<long>("CampaignId")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTimeOffset?>("ConversionDate")
+                    b.Property<DateTime?>("ConversionDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Country")
@@ -61,7 +61,7 @@ namespace MarketingBox.Registration.Postgres.Migrations
                     b.Property<int>("CountryId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("CrmStatus")
@@ -79,7 +79,7 @@ namespace MarketingBox.Registration.Postgres.Migrations
                     b.Property<string>("CustomerToken")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DepositDate")
+                    b.Property<DateTime?>("DepositDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
@@ -148,7 +148,7 @@ namespace MarketingBox.Registration.Postgres.Migrations
                     b.Property<string>("UniqueId")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset>("UpdatedAt")
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
@@ -160,6 +160,9 @@ namespace MarketingBox.Registration.Postgres.Migrations
                     b.HasIndex("DepositDate", "BrandId");
 
                     b.HasIndex("TenantId", "Id");
+
+                    b.HasIndex("TenantId", "Email", "BrandId")
+                        .IsUnique();
 
                     b.ToTable("registrations", "registration-service");
                 });

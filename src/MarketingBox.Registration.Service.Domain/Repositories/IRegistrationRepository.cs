@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using MarketingBox.Registration.Service.Domain.Models.Common;
 using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
 using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
+using MarketingBox.Sdk.Common.Enums;
 
 namespace MarketingBox.Registration.Service.Domain.Repositories
 {
