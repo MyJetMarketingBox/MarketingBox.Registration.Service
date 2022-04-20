@@ -122,46 +122,22 @@ namespace MarketingBox.Registration.Service.Services
 
                 Domain.Models.Registrations.Registration response = null;
 
-                if (request.RegistrationMode == RegistrationMode.Auto)
+                switch (request.RegistrationMode)
                 {
-                    var routes =
-                        await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId.Value, country.Id);
-
-                    if (!routes.Any())
-                    {
-                        await _repository.SaveAsync(registration);
-                        throw new Exception("Can't register on brand");
-                    }
-
-                    while (routes.Count > 0)
-                    {
-                        var route = await TryGetSpecificRoute(request.AuthInfo.CampaignId.Value,
-                            request.GeneralInfo.CountryCode,
-                            routes);
-
-                        if (route == null)
+                    case RegistrationMode.Auto:
+                        response = await AutoRegistration(request, country, registration);
+                        if (response is null)
                         {
-                            await SaveAndPublishRegistration(request, registration);
-                            throw new Exception("Can't register on brand");
+                            throw new Exception("Could not register to brand.");
                         }
-
-                        routes.RemoveAll(x =>
-                            x.BrandId == route.BrandId &&
-                            x.CampaignId == route.CampaignId &&
-                            x.Id == route.CampaignRowId);
-
-                        registration.BrandId = route.BrandId;
-                        registration.CampaignId = route.CampaignId;
-                        try
-                        {
-                            response = await GetRegistrationCreateResponse(request, registration);
-                            break;
-                        }
-                        catch
-                        {
-                            // ignored
-                        }
-                    }
+                        break;
+                    case RegistrationMode.Manual:
+                        break;
+                    case RegistrationMode.S2S:
+                        registration.Status = RegistrationStatus.Registered;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
 
                 await SaveAndPublishRegistration(request, registration);
@@ -170,6 +146,7 @@ namespace MarketingBox.Registration.Service.Services
                 {
                     response = _mapper.Map<Domain.Models.Registrations.Registration>(registration);
                     response.OriginalData.CountryCodeType = request.GeneralInfo.CountryCodeType;
+                    response.OriginalData.CountryCode = request.GeneralInfo.CountryCode;
                 }
 
                 return new Response<Domain.Models.Registrations.Registration>
@@ -184,6 +161,52 @@ namespace MarketingBox.Registration.Service.Services
 
                 return e.FailedResponse<Domain.Models.Registrations.Registration>();
             }
+        }
+
+        private async Task<Domain.Models.Registrations.Registration> AutoRegistration(
+            RegistrationCreateRequest request,
+            Country country,
+            RegistrationEntity registration)
+        {
+            var routes =
+                await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId.Value, country.Id);
+
+            if (!routes.Any())
+            {
+                await _repository.SaveAsync(registration);
+                throw new Exception("Can't register on brand");
+            }
+
+            while (routes.Count > 0)
+            {
+                var route = await TryGetSpecificRoute(request.AuthInfo.CampaignId.Value,
+                    request.GeneralInfo.CountryCode,
+                    routes);
+
+                if (route == null)
+                {
+                    await SaveAndPublishRegistration(request, registration);
+                    throw new Exception("Can't register on brand");
+                }
+
+                routes.RemoveAll(x =>
+                    x.BrandId == route.BrandId &&
+                    x.CampaignId == route.CampaignId &&
+                    x.Id == route.CampaignRowId);
+
+                registration.BrandId = route.BrandId;
+                registration.CampaignId = route.CampaignId;
+                try
+                {
+                    return await GetRegistrationCreateResponse(request, registration);
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+
+            return null;
         }
 
         private async Task<Country> GetCountry(CountryCodeType countryCodeType, string countryCode)
