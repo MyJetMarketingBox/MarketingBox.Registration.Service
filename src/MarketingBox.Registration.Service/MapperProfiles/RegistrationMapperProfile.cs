@@ -44,6 +44,13 @@ namespace MarketingBox.Registration.Service.MapperProfiles
                 .IncludeMembers(
                     x => x.AdditionalInfo,
                     x => x.AuthInfo,
+                    x => x.GeneralInfo)
+                .ForMember(x => x.CreatedAt, x => x.MapFrom(z => DateTime.UtcNow))
+                .ForMember(x => x.UpdatedAt, x => x.MapFrom(z => DateTime.UtcNow));
+            CreateMap<RegistrationCreateS2SRequest, RegistrationEntity>()
+                .IncludeMembers(
+                    x => x.AdditionalInfo,
+                    x => x.AuthInfo,
                     x => x.GeneralInfo,
                     x => x.BrandInfo)
                 .ForMember(x => x.CreatedAt, x => x.MapFrom(z => DateTime.UtcNow))
@@ -87,9 +94,14 @@ namespace MarketingBox.Registration.Service.MapperProfiles
                     x => x.MapFrom(z => DateTime.SpecifyKind(z.CreatedAt, DateTimeKind.Utc)))
                 .ForMember(x => x.ConversionDate,
                     x => x.MapFrom(z =>
-                        z.ConversionDate.HasValue ? DateTime.SpecifyKind(z.ConversionDate.Value, DateTimeKind.Utc) : (DateTime?) null))
+                        z.ConversionDate.HasValue
+                            ? DateTime.SpecifyKind(z.ConversionDate.Value, DateTimeKind.Utc)
+                            : (DateTime?) null))
                 .ForMember(x => x.DepositDate,
-                    x => x.MapFrom(z => z.DepositDate.HasValue ? DateTime.SpecifyKind(z.DepositDate.Value, DateTimeKind.Utc) : (DateTime?) null));
+                    x => x.MapFrom(z =>
+                        z.DepositDate.HasValue
+                            ? DateTime.SpecifyKind(z.DepositDate.Value, DateTimeKind.Utc)
+                            : (DateTime?) null));
             CreateMap<RegistrationEntity, RegistrationRequest>()
                 .ForMember(x => x.RegistrationId,
                     x => x.MapFrom(z => z.Id))

@@ -10,5 +10,8 @@ namespace MarketingBox.Registration.Service.Grpc
     {
         [OperationContract]
         Task<Response<Domain.Models.Registrations.Registration>> CreateAsync(RegistrationCreateRequest request);
+        
+        [OperationContract]
+        Task<Response<Domain.Models.Registrations.Registration>> CreateS2SAsync(RegistrationCreateS2SRequest request);
     }
 }

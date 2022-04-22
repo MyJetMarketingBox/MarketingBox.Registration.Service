@@ -33,9 +33,9 @@ namespace TestApp
                     AdditionalInfo = new RegistrationAdditionalInfo()
                     {
                     },
+                    CampaignId = 1,
                     AuthInfo = new AffiliateAuthInfo()
                     {
-                        CampaignId = 1,
                         AffiliateId = 1,
                         ApiKey = "APIKEY123456"
                     },

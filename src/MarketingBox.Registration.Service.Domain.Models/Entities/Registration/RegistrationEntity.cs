@@ -12,7 +12,7 @@ namespace MarketingBox.Registration.Service.Domain.Models.Entities.Registration
         public int CountryId { get; set; }
         public long AffiliateId { get; set; }
         public long? BrandId { get; set; }
-        public long CampaignId { get; set; }
+        public long? CampaignId { get; set; }
 
         public string FirstName { get; set; }
         public string LastName { get; set; }

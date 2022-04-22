@@ -35,6 +35,7 @@ namespace MarketingBox.Registration.Service.Domain.Models.Registrations
         [LogMasked(PreserveLength = true, ShowFirst = 2, ShowLast = 2)]
         public string Email { get; set; }
 
+        [Required]
         [DataMember(Order = 5), Phone]
         [LogMasked(PreserveLength = true, ShowFirst = 2, ShowLast = 2)]
         public string Phone { get; set; }
@@ -45,7 +46,7 @@ namespace MarketingBox.Registration.Service.Domain.Models.Registrations
         [LogMasked(PreserveLength = true, ShowFirst = 2, ShowLast = 2)]
         public string Ip { get; set; }
 
-        [DataMember(Order = 7)] 
+        [DataMember(Order = 7)]
         [Required]
         [IsEnum]
         public CountryCodeType? CountryCodeType { get; set; }

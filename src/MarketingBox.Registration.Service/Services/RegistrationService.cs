@@ -106,7 +106,7 @@ namespace MarketingBox.Registration.Service.Services
                         $"Required authentication for affiliate '{request.AuthInfo.AffiliateId}'");
 
                 var registrationId = await _repository.GenerateRegistrationIdAsync(TenantId,
-                    request.GeneratorId());
+                    request.GeneralInfo.GeneratorId());
 
                 var country = await GetCountry(
                     request.GeneralInfo.CountryCodeType.Value,
@@ -120,34 +120,63 @@ namespace MarketingBox.Registration.Service.Services
                 registration.Id = registrationId;
                 registration.TenantId = TenantId;
 
-                Domain.Models.Registrations.Registration response = null;
-
-                switch (request.RegistrationMode)
+                var response = await AutoRegistration(request, country, registration);
+                if (response is null)
                 {
-                    case RegistrationMode.Auto:
-                        response = await AutoRegistration(request, country, registration);
-                        if (response is null)
-                        {
-                            throw new Exception("Could not register to brand.");
-                        }
-                        break;
-                    case RegistrationMode.Manual:
-                        break;
-                    case RegistrationMode.S2S:
-                        registration.Status = RegistrationStatus.Registered;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                    throw new Exception("Could not register to brand.");
                 }
 
-                await SaveAndPublishRegistration(request, registration);
+                await SaveAndPublishRegistration(registration);
 
-                if (request.RegistrationMode == RegistrationMode.S2S)
+                return new Response<Domain.Models.Registrations.Registration>
                 {
-                    response = _mapper.Map<Domain.Models.Registrations.Registration>(registration);
-                    response.OriginalData.CountryCodeType = request.GeneralInfo.CountryCodeType;
-                    response.OriginalData.CountryCode = request.GeneralInfo.CountryCode;
-                }
+                    Data = response,
+                    Status = ResponseStatus.Ok
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error creating original {@context}", request);
+
+                return e.FailedResponse<Domain.Models.Registrations.Registration>();
+            }
+        }
+
+        public async Task<Response<Domain.Models.Registrations.Registration>> CreateS2SAsync(
+            RegistrationCreateS2SRequest request)
+        {
+            try
+            {
+                request.ValidateEntity();
+                _logger.LogInformation("Creating new S2S Registration {@context}", request);
+
+                if (!IsAffiliateApiKeyValid(TenantId, request.AuthInfo.AffiliateId.Value,
+                        request.AuthInfo.ApiKey, out var affiliateName))
+                    throw new UnauthorizedException(
+                        $"Required authentication for affiliate '{request.AuthInfo.AffiliateId}'");
+
+                var registrationId = await _repository.GenerateRegistrationIdAsync(TenantId,
+                    request.GeneralInfo.GeneratorId());
+
+                var country = await GetCountry(
+                    request.GeneralInfo.CountryCodeType.Value,
+                    request.GeneralInfo.CountryCode);
+
+                var registration = _mapper.Map<RegistrationEntity>(request);
+                registration.UniqueId = UniqueIdGenerator.GetNextId();
+                registration.Country = country.Alfa2Code;
+                registration.CountryId = country.Id;
+                registration.AffiliateName = affiliateName;
+                registration.Id = registrationId;
+                registration.TenantId = TenantId;
+                registration.Status = RegistrationStatus.Registered;
+
+                await SaveAndPublishRegistration(registration);
+                _logger.LogInformation("Sent original created registration to service bus {@context}", request);
+
+                var response = _mapper.Map<Domain.Models.Registrations.Registration>(registration);
+                response.OriginalData.CountryCodeType = request.GeneralInfo.CountryCodeType;
+                response.OriginalData.CountryCode = request.GeneralInfo.CountryCode;
 
                 return new Response<Domain.Models.Registrations.Registration>
                 {
@@ -169,7 +198,7 @@ namespace MarketingBox.Registration.Service.Services
             RegistrationEntity registration)
         {
             var routes =
-                await _registrationRouter.GetSuitableRoutes(request.AuthInfo.CampaignId.Value, country.Id);
+                await _registrationRouter.GetSuitableRoutes(request.CampaignId.Value, country.Id);
 
             if (!routes.Any())
             {
@@ -179,13 +208,13 @@ namespace MarketingBox.Registration.Service.Services
 
             while (routes.Count > 0)
             {
-                var route = await TryGetSpecificRoute(request.AuthInfo.CampaignId.Value,
+                var route = await TryGetSpecificRoute(request.CampaignId.Value,
                     request.GeneralInfo.CountryCode,
                     routes);
 
                 if (route == null)
                 {
-                    await SaveAndPublishRegistration(request, registration);
+                    await SaveAndPublishRegistration(registration);
                     throw new Exception("Can't register on brand");
                 }
 
@@ -251,13 +280,11 @@ namespace MarketingBox.Registration.Service.Services
             return _mapper.Map<Domain.Models.Registrations.Registration>(registrationEntity);
         }
 
-        private async Task SaveAndPublishRegistration(RegistrationCreateRequest request,
-            RegistrationEntity registration)
+        private async Task SaveAndPublishRegistration(RegistrationEntity registration)
         {
             await _repository.SaveAsync(registration);
 
             await _publisherLeadUpdated.PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
-            _logger.LogInformation("Sent original created registration to service bus {@context}", request);
         }
 
         private string GetTenantId(long affiliateId)

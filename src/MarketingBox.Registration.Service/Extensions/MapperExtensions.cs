@@ -1,16 +1,17 @@
 using System;
+using MarketingBox.Registration.Service.Domain.Models.Registrations;
 using MarketingBox.Registration.Service.Grpc.Requests.Registration;
 
 namespace MarketingBox.Registration.Service.Extensions
 {
     public static class MapperExtensions
     {
-        public static string GeneratorId(this RegistrationCreateRequest request)
+        public static string GeneratorId(this RegistrationGeneralInfo request)
         {
-            return request.GeneralInfo.Email + "_" +
-                   request.GeneralInfo.FirstName + "_" +
-                   request.GeneralInfo.LastName + "_" +
-                   request.GeneralInfo.Ip + "_" +
+            return request.Email + "_" +
+                   request.FirstName + "_" +
+                   request.LastName + "_" +
+                   request.Ip + "_" +
                    DateTime.UtcNow.ToString("O");
         }
     }
