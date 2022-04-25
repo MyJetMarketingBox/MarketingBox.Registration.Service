@@ -22,6 +22,7 @@ using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Requests.Registration;
 using MarketingBox.Registration.Service.Messages.Registrations;
+using MarketingBox.Registration.Service.Services.Interfaces;
 using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;

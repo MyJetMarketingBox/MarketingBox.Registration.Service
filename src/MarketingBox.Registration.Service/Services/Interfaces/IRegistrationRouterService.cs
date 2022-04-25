@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
-using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 
-namespace MarketingBox.Registration.Service.Services
+namespace MarketingBox.Registration.Service.Services.Interfaces
 {
     public interface IRegistrationRouterService
     {

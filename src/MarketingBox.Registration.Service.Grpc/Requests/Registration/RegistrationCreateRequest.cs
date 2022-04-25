@@ -16,7 +16,7 @@ namespace MarketingBox.Registration.Service.Grpc.Requests.Registration
 
         [DataMember(Order = 3)] public RegistrationAdditionalInfo AdditionalInfo { get; set; }
 
-        [DataMember(Order = 4), AdvancedCompare(ComparisonType.GreaterThan, 0)]
+        [DataMember(Order = 4), Required, AdvancedCompare(ComparisonType.GreaterThan, 0)]
         public long? CampaignId { get; set; }
     }
 }

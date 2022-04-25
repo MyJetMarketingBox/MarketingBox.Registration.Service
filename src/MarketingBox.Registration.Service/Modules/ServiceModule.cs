@@ -3,6 +3,7 @@ using MarketingBox.Registration.Postgres;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Repositories;
 using MarketingBox.Registration.Service.Services;
+using MarketingBox.Registration.Service.Services.Interfaces;
 using MarketingBox.Registration.Service.Subscribers;
 
 namespace MarketingBox.Registration.Service.Modules
