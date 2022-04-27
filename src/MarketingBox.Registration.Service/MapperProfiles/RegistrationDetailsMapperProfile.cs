@@ -9,6 +9,7 @@ namespace MarketingBox.Registration.Service.MapperProfiles
         {
             CreateMap<ReportingRegistrationDetails, Domain.Models.Registrations.Registration>()
                 .ForMember(x => x.Id, x => x.MapFrom(z => z.RegistrationId))
+                .ForMember(x => x.UniqueId, x => x.MapFrom(z => z.RegistrationUid))
                 .ForMember(x => x.ApprovedType, x => x.MapFrom(x => x.UpdateMode));
         }
     }
