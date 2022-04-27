@@ -10,10 +10,10 @@ namespace MarketingBox.Registration.Service.Grpc
     [ServiceContract]
     public interface IRegistrationsByDateService
     {
-        [OperationContract] 
-        Task<Response<IReadOnlyCollection<RegistrationDetails>>> GetRegistrationsAsync(RegistrationsGetByDateRequest request);
-        
-        [OperationContract] 
-        Task<Response<RegistrationDetails>> GetRegistrationAsync(RegistrationGetRequest request);
+        [OperationContract]
+        Task<Response<IReadOnlyCollection<Domain.Models.Registrations.Registration>>> GetRegistrationsAsync(RegistrationsGetByDateRequest request);
+
+        [OperationContract]
+        Task<Response<Domain.Models.Registrations.Registration>> GetRegistrationAsync(RegistrationGetRequest request);
     }
 }

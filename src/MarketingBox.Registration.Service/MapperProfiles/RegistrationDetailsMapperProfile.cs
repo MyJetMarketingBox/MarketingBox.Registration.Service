@@ -1,5 +1,4 @@
 using AutoMapper;
-using MarketingBox.Registration.Service.Domain.Models.Registrations;
 using ReportingRegistrationDetails = MarketingBox.Reporting.Service.Domain.Models.Registrations.RegistrationDetails;
 
 namespace MarketingBox.Registration.Service.MapperProfiles
@@ -8,7 +7,9 @@ namespace MarketingBox.Registration.Service.MapperProfiles
     {
         public RegistrationDetailsMapperProfile()
         {
-            CreateMap<ReportingRegistrationDetails, RegistrationDetails>();
+            CreateMap<ReportingRegistrationDetails, Domain.Models.Registrations.Registration>()
+                .ForMember(x => x.Id, x => x.MapFrom(z => z.RegistrationId))
+                .ForMember(x => x.ApprovedType, x => x.MapFrom(x => x.UpdateMode));
         }
     }
 }

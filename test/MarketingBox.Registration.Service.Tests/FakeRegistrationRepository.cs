@@ -13,7 +13,7 @@ namespace MarketingBox.Registration.Service.Tests
         public int LeadCount { get; set; } = 0;
 
         public int FtdCount { get; set; } = 0;
-        public Task SaveAsync(RegistrationEntity registration)
+        public Task SaveAsync(Domain.Models.Registrations.Registration registration)
         {
             if (registration.Status == RegistrationStatus.Registered)
                 LeadCount++;
@@ -29,17 +29,17 @@ namespace MarketingBox.Registration.Service.Tests
             throw new NotImplementedException();
         }
 
-        public Task<RegistrationEntity> RestoreAsync(long registrationId)
+        public Task<Domain.Models.Registrations.Registration> RestoreAsync(long registrationId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<RegistrationEntity> GetLeadByCustomerIdAsync(string tenantId, string customerId)
+        public Task<Domain.Models.Registrations.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<RegistrationEntity> GetRegistrationByIdAsync(string tenantId, long registrationId)
+        public Task<Domain.Models.Registrations.Registration> GetRegistrationByIdAsync(string tenantId, long registrationId)
         {
             throw new NotImplementedException();
         }

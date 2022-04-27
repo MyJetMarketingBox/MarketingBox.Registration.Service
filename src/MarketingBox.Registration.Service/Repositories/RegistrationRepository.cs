@@ -21,7 +21,7 @@ namespace MarketingBox.Registration.Service.Repositories
             _contextFactory = contextFactory;
         }
 
-        public async Task SaveAsync(RegistrationEntity registration)
+        public async Task SaveAsync(Domain.Models.Registrations.Registration registration)
         {
             await using var ctx = _contextFactory.Create();
             var rowsCount = await ctx.Registrations.Upsert(registration)
@@ -48,12 +48,12 @@ namespace MarketingBox.Registration.Service.Repositories
             return entity.RegistrationId;
         }
 
-        public Task<RegistrationEntity> RestoreAsync(long registrationId)
+        public Task<Domain.Models.Registrations.Registration> RestoreAsync(long registrationId)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<RegistrationEntity> GetLeadByCustomerIdAsync(string tenantId, string customerId)
+        public async Task<Domain.Models.Registrations.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId)
         {
             await using var ctx = _contextFactory.Create();
             var existingLeadEntity = await ctx.Registrations.FirstOrDefaultAsync(x => x.TenantId == tenantId &&
@@ -67,7 +67,7 @@ namespace MarketingBox.Registration.Service.Repositories
             return existingLeadEntity;
         }
 
-        public async Task<RegistrationEntity> GetRegistrationByIdAsync(string tenantId, long registrationId)
+        public async Task<Domain.Models.Registrations.Registration> GetRegistrationByIdAsync(string tenantId, long registrationId)
         {
             await using var ctx = _contextFactory.Create();
             var existingLeadEntity = await ctx.Registrations

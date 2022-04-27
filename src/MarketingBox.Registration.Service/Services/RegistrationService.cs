@@ -14,7 +14,6 @@ using MarketingBox.ExternalReferenceProxy.Service.Grpc;
 using MarketingBox.ExternalReferenceProxy.Service.Grpc.Models;
 using MarketingBox.Integration.Service.Client;
 using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integration;
-using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
 using MarketingBox.Registration.Service.Domain.Models.Registrations;
 using MarketingBox.Registration.Service.Domain.Models.Route;
 using MarketingBox.Registration.Service.Domain.Repositories;
@@ -113,7 +112,7 @@ namespace MarketingBox.Registration.Service.Services
                     request.GeneralInfo.CountryCodeType.Value,
                     request.GeneralInfo.CountryCode);
 
-                var registration = _mapper.Map<RegistrationEntity>(request);
+                var registration = _mapper.Map<Domain.Models.Registrations.Registration>(request);
                 registration.UniqueId = UniqueIdGenerator.GetNextId();
                 registration.Country = country.Alfa2Code;
                 registration.CountryId = country.Id;
@@ -163,7 +162,7 @@ namespace MarketingBox.Registration.Service.Services
                     request.GeneralInfo.CountryCodeType.Value,
                     request.GeneralInfo.CountryCode);
 
-                var registration = _mapper.Map<RegistrationEntity>(request);
+                var registration = _mapper.Map<Domain.Models.Registrations.Registration>(request);
                 registration.UniqueId = UniqueIdGenerator.GetNextId();
                 registration.Country = country.Alfa2Code;
                 registration.CountryId = country.Id;
@@ -176,8 +175,7 @@ namespace MarketingBox.Registration.Service.Services
                 _logger.LogInformation("Sent original created registration to service bus {@context}", request);
 
                 var response = _mapper.Map<Domain.Models.Registrations.Registration>(registration);
-                response.OriginalData.CountryCodeType = request.GeneralInfo.CountryCodeType;
-                response.OriginalData.CountryCode = request.GeneralInfo.CountryCode;
+                response.Country = request.GeneralInfo.CountryCode;
 
                 return new Response<Domain.Models.Registrations.Registration>
                 {
@@ -196,7 +194,7 @@ namespace MarketingBox.Registration.Service.Services
         private async Task<Domain.Models.Registrations.Registration> AutoRegistration(
             RegistrationCreateRequest request,
             Country country,
-            RegistrationEntity registration)
+            Domain.Models.Registrations.Registration registration)
         {
             var routes =
                 await _registrationRouter.GetSuitableRoutes(request.CampaignId.Value, country.Id);
@@ -226,6 +224,8 @@ namespace MarketingBox.Registration.Service.Services
 
                 registration.BrandId = route.BrandId;
                 registration.CampaignId = route.CampaignId;
+                registration.IntegrationId = route.IntegrationId;
+                registration.Integration = route.BrandName;
                 try
                 {
                     return await GetRegistrationCreateResponse(request, registration);
@@ -255,7 +255,7 @@ namespace MarketingBox.Registration.Service.Services
                     ErrorMessage = BadRequestException.DefaultErrorMessage,
                     ValidationErrors = new List<ValidationError>
                     {
-                        new ValidationError
+                        new()
                         {
                             ErrorMessage = $"There is no country with code {countryCodeType}:{countryCode}",
                             ParameterName = nameof(countryCode)
@@ -268,20 +268,20 @@ namespace MarketingBox.Registration.Service.Services
 
         private async Task<Domain.Models.Registrations.Registration> GetRegistrationCreateResponse(
             RegistrationCreateRequest request,
-            RegistrationEntity registrationEntity)
+            Domain.Models.Registrations.Registration registration)
         {
-            var brandResponse = await BrandRegisterAsync(registrationEntity);
+            var brandResponse = await BrandRegisterAsync(registration);
 
             _logger.LogInformation("Brand request: {@context}. Brand response: {@response}", request, brandResponse);
 
-            registrationEntity.CustomerId = brandResponse.CustomerId;
-            registrationEntity.CustomerLoginUrl = brandResponse.LoginUrl;
-            registrationEntity.CustomerToken = brandResponse.Token;
-            registrationEntity.CustomerBrand = brandResponse.Brand;
-            return _mapper.Map<Domain.Models.Registrations.Registration>(registrationEntity);
+            registration.CustomerId = brandResponse.CustomerId;
+            registration.CustomerLoginUrl = brandResponse.LoginUrl;
+            registration.CustomerToken = brandResponse.Token;
+            registration.CustomerBrand = brandResponse.Brand;
+            return registration;
         }
 
-        private async Task SaveAndPublishRegistration(RegistrationEntity registration)
+        private async Task SaveAndPublishRegistration(Domain.Models.Registrations.Registration registration)
         {
             await _repository.SaveAsync(registration);
 
@@ -366,30 +366,27 @@ namespace MarketingBox.Registration.Service.Services
         }
 
         private async Task<RegistrationBrandInfo> BrandRegisterAsync(
-            RegistrationEntity registrationEntity)
+            Domain.Models.Registrations.Registration registration)
         {
-            var request =
-                _mapper.Map<RegistrationRequest>(registrationEntity); //registrationNogrpc.CreateIntegrationRequest();
+            var request = _mapper.Map<RegistrationRequest>(registration);
             var response = await _integrationService.SendRegisterationAsync(request);
-
+            var integrationResult = response.Process();
+            
             var proxyLoginRef = await _externalReferenceProxyService.GetProxyRefAsync(new GetProxyRefRequest
             {
-                RegistrationId = registrationEntity.Id,
-                RegistrationUId = registrationEntity.UniqueId,
-                TenantId = registrationEntity.TenantId,
-                BrandLink = response.Data?.Customer?.LoginUrl
+                RegistrationId = registration.Id,
+                RegistrationUId = registration.UniqueId,
+                TenantId = registration.TenantId,
+                BrandLink = integrationResult.Customer?.LoginUrl
             });
-            if (proxyLoginRef.Status != ResponseStatus.Ok)
-            {
-                _logger.LogError(proxyLoginRef.Error.ErrorMessage);
-                throw new Exception(proxyLoginRef.Error.ErrorMessage);
-            }
+            var proxyResult = proxyLoginRef.Process();
 
             var brandInfo = new RegistrationBrandInfo
             {
-                LoginUrl = proxyLoginRef.Data,
-                CustomerId = response.Data?.Customer?.CustomerId,
-                Token = response.Data?.Customer?.Token
+                LoginUrl = proxyResult,
+                CustomerId = integrationResult.Customer?.CustomerId,
+                Token = integrationResult.Customer?.Token,
+                Brand = request.IntegrationName
             };
             return brandInfo;
         }

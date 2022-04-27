@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
-using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
 using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Grpc;
@@ -52,7 +51,7 @@ namespace MarketingBox.Registration.Service.Services
                 return new Response<Deposit>
                 {
                     Status = ResponseStatus.Ok,
-                    Data = _mapper.Map<Deposit>(registration) //MapToGrpc(registration)
+                    Data = _mapper.Map<Deposit>(registration)
                 };
             }
             catch (Exception e)
@@ -127,7 +126,7 @@ namespace MarketingBox.Registration.Service.Services
         }
 
         private static void UpdateStatus(
-            RegistrationEntity registrationEntity,
+            Domain.Models.Registrations.Registration registration,
             DepositUpdateMode type,
             RegistrationStatus newStatus)
         {
@@ -136,27 +135,27 @@ namespace MarketingBox.Registration.Service.Services
                 case RegistrationStatus.Created:
                     break;
                 case RegistrationStatus.Registered:
-                    registrationEntity.Status = RegistrationStatus.Registered;
-                    registrationEntity.ApprovedType = type;
-                    registrationEntity.ConversionDate = null;
-                    registrationEntity.UpdatedAt = DateTime.UtcNow;
+                    registration.Status = RegistrationStatus.Registered;
+                    registration.ApprovedType = type;
+                    registration.ConversionDate = null;
+                    registration.UpdatedAt = DateTime.UtcNow;
                     break;
                 case RegistrationStatus.Deposited:
-                    registrationEntity.Status = RegistrationStatus.Deposited;
-                    registrationEntity.DepositDate = DateTime.UtcNow;
-                    registrationEntity.UpdatedAt = DateTime.UtcNow;
+                    registration.Status = RegistrationStatus.Deposited;
+                    registration.DepositDate = DateTime.UtcNow;
+                    registration.UpdatedAt = DateTime.UtcNow;
                     break;
                 case RegistrationStatus.Approved:
-                    registrationEntity.Status = RegistrationStatus.Approved;
-                    registrationEntity.ApprovedType = type;
-                    registrationEntity.ConversionDate = DateTime.UtcNow;
-                    registrationEntity.UpdatedAt = DateTime.UtcNow;
+                    registration.Status = RegistrationStatus.Approved;
+                    registration.ApprovedType = type;
+                    registration.ConversionDate = DateTime.UtcNow;
+                    registration.UpdatedAt = DateTime.UtcNow;
                     break;
                 case RegistrationStatus.Declined:
-                    registrationEntity.Status = RegistrationStatus.Declined;
-                    registrationEntity.ApprovedType = type;
-                    registrationEntity.ConversionDate = null;
-                    registrationEntity.UpdatedAt = DateTime.UtcNow;
+                    registration.Status = RegistrationStatus.Declined;
+                    registration.ApprovedType = type;
+                    registration.ConversionDate = null;
+                    registration.UpdatedAt = DateTime.UtcNow;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(newStatus), newStatus, null);

@@ -12,7 +12,7 @@ namespace MarketingBox.Registration.Postgres
         private const string RegistrationTableName = "registrations";
         private const string StatusChangeLogTableName = "status-change-log";
 
-        public DbSet<RegistrationEntity> Registrations { get; set; }
+        public DbSet<Service.Domain.Models.Registrations.Registration> Registrations { get; set; }
         public DbSet<StatusChangeLog> StatusChangeLogs { get; set; }
 
         private const string RegistrationIdGeneratorTableName = "registration_id_generator";
@@ -56,13 +56,13 @@ namespace MarketingBox.Registration.Postgres
 
         private void SetRegistrationEntity(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<RegistrationEntity>().ToTable(RegistrationTableName);
-            modelBuilder.Entity<RegistrationEntity>().HasKey(e => e.Id);
-            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new {e.TenantId, e.Id});
-            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new {e.TenantId, e.Email, e.BrandId}).IsUnique();
-            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new { e.CreatedAt, e.BrandId, });
-            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new { e.DepositDate, e.BrandId, });
-            modelBuilder.Entity<RegistrationEntity>().HasIndex(e => new { e.Status });
+            modelBuilder.Entity<Service.Domain.Models.Registrations.Registration>().ToTable(RegistrationTableName);
+            modelBuilder.Entity<Service.Domain.Models.Registrations.Registration>().HasKey(e => e.Id);
+            modelBuilder.Entity<Service.Domain.Models.Registrations.Registration>().HasIndex(e => new {e.TenantId, e.Id});
+            modelBuilder.Entity<Service.Domain.Models.Registrations.Registration>().HasIndex(e => new {e.TenantId, e.Email, e.BrandId}).IsUnique();
+            modelBuilder.Entity<Service.Domain.Models.Registrations.Registration>().HasIndex(e => new { e.CreatedAt, e.BrandId, });
+            modelBuilder.Entity<Service.Domain.Models.Registrations.Registration>().HasIndex(e => new { e.DepositDate, e.BrandId, });
+            modelBuilder.Entity<Service.Domain.Models.Registrations.Registration>().HasIndex(e => new { e.Status });
 
             modelBuilder.Entity<RegistrationIdGeneratorEntity>().ToTable(RegistrationIdGeneratorTableName);
             modelBuilder.Entity<RegistrationIdGeneratorEntity>().HasKey(e => new { e.TenantId, e.GeneratorId });

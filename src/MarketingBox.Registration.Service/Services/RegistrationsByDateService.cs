@@ -13,7 +13,7 @@ using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
-using RegistrationDetails = MarketingBox.Registration.Service.Domain.Models.Registrations.RegistrationDetails;
+using RegistrationDetails = MarketingBox.Registration.Service.Domain.Models.Registrations.Registration;
 
 namespace MarketingBox.Registration.Service.Services
 {
@@ -102,11 +102,11 @@ namespace MarketingBox.Registration.Service.Services
 
                 _logger.LogInformation("ReportService.GetRegistration response is: {@Request}", request);
 
-                reportResponse.Process();
+                var res = reportResponse.Process();
                 return new Response<RegistrationDetails>()
                 {
                     Status = ResponseStatus.Ok,
-                    Data = _mapper.Map<RegistrationDetails>(reportResponse.Data)
+                    Data = _mapper.Map<RegistrationDetails>(res)
                 };
 
             }
