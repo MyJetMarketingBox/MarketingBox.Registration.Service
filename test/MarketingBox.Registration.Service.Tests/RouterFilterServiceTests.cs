@@ -7,7 +7,6 @@ using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.Country;
 using MarketingBox.Registration.Service.Domain.Repositories;
-using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
 using MarketingBox.Registration.Service.Services;
 using MarketingBox.Sdk.Common.Enums;
 using Moq;
@@ -210,13 +209,6 @@ namespace MarketingBox.Registration.Service.Tests
                         RegistrationStatus.Registered))
                 .ReturnsAsync(0)
                 .Verifiable();
-
-            var capacitor = new FakeMyNoSqlReaderWriter<RegistrationRouterCapacitorBoxNoSqlEntity>();
-            var leadCounter = new FakeMyNoSqlReaderWriter<RegistrationRouterNoSqlEntity>();
-            _autoMocker.Use<IMyNoSqlServerDataReader<RegistrationRouterCapacitorBoxNoSqlEntity>>(capacitor);
-            _autoMocker.Use<IMyNoSqlServerDataWriter<RegistrationRouterCapacitorBoxNoSqlEntity>>(capacitor);
-            _autoMocker.Use<IMyNoSqlServerDataReader<RegistrationRouterNoSqlEntity>>(leadCounter);
-            _autoMocker.Use<IMyNoSqlServerDataWriter<RegistrationRouterNoSqlEntity>>(leadCounter);
 
             _leadRouterFilter = _autoMocker.CreateInstance<RouterFilterService>();
         }

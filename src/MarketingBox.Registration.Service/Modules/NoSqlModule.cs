@@ -4,7 +4,7 @@ using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
-using MarketingBox.Registration.Service.MyNoSql.RegistrationRouter;
+using MarketingBox.Registration.Service.MyNoSql.TrafficEngine;
 using MyJetWallet.Sdk.NoSql;
 
 namespace MarketingBox.Registration.Service.Modules
@@ -21,13 +21,10 @@ namespace MarketingBox.Registration.Service.Modules
             builder.RegisterMyNoSqlReader<CampaignRowNoSql>(noSqlClient, CampaignRowNoSql.TableName);
             builder.RegisterMyNoSqlReader<IntegrationNoSql>(noSqlClient, IntegrationNoSql.TableName);
             builder.RegisterMyNoSqlReader<AffiliateNoSql>(noSqlClient, AffiliateNoSql.TableName);
-            builder.RegisterMyNoSqlReader<RegistrationRouterNoSqlEntity>(noSqlClient, RegistrationRouterNoSqlEntity.TableName);
-            builder.RegisterMyNoSqlReader<RegistrationRouterCapacitorBoxNoSqlEntity>(noSqlClient, RegistrationRouterCapacitorBoxNoSqlEntity.TableName);
+            builder.RegisterMyNoSqlReader<BrandCandidateNoSql>(noSqlClient, BrandCandidateNoSql.TableName);
 
-            builder.RegisterMyNoSqlWriter<RegistrationRouterNoSqlEntity>(
-                Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), RegistrationRouterNoSqlEntity.TableName);
-            builder.RegisterMyNoSqlWriter<RegistrationRouterCapacitorBoxNoSqlEntity>(
-                Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), RegistrationRouterCapacitorBoxNoSqlEntity.TableName);
+            builder.RegisterMyNoSqlWriter<BrandCandidateNoSql>(
+                Program.ReloadedSettings(e => e.MyNoSqlWriterUrl), BrandCandidateNoSql.TableName);
         }
     }
 }

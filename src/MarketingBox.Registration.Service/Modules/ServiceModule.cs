@@ -16,7 +16,7 @@ namespace MarketingBox.Registration.Service.Modules
             builder.RegisterType<DatabaseContextFactory>().AsSelf().SingleInstance();
             builder.RegisterType<RouterFilterService>().As<IRouterFilterService>().SingleInstance();
             builder.RegisterType<RegistrationRepository>().As<IRegistrationRepository>().InstancePerDependency();
-            builder.RegisterType<TrafficEngineService>().As<ITrafficEngineService>().InstancePerRequest();
+            builder.RegisterType<TrafficEngineService>().As<ITrafficEngineService>().SingleInstance();
 
             builder
                 .RegisterType<RegistrationProxyEntityServiceBusSubscriber>()
