@@ -123,8 +123,11 @@ namespace MarketingBox.Registration.Service.Services
                 var response = await AutoRegistration(request, country, registration);
                 if (response is null)
                 {
+                    registration.Status = RegistrationStatus.Created;
+                    await SaveAndPublishRegistration(registration);
                     throw new Exception("Could not register to brand.");
                 }
+                registration.Status = RegistrationStatus.Registered;
 
                 await SaveAndPublishRegistration(registration);
 
