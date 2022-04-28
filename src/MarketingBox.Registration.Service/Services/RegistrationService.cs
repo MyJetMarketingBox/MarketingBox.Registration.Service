@@ -4,10 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Affiliate.Service.Client;
-using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Affiliate.Service.MyNoSql.Brands;
+using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.ExternalReferenceProxy.Service.Grpc;
@@ -15,7 +15,6 @@ using MarketingBox.ExternalReferenceProxy.Service.Grpc.Models;
 using MarketingBox.Integration.Service.Client;
 using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integration;
 using MarketingBox.Registration.Service.Domain.Models.Registrations;
-using MarketingBox.Registration.Service.Domain.Models.Route;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc;
@@ -36,16 +35,14 @@ namespace MarketingBox.Registration.Service.Services
     public class RegistrationService : IRegistrationService
     {
         private readonly IMyNoSqlServerDataReader<AffiliateNoSql> _affiliateNoSqlServerDataReader;
-        private readonly IMyNoSqlServerDataReader<BrandNoSql> _brandNoSqlServerDataReader;
         private readonly IMyNoSqlServerDataReader<CampaignIndexNoSql> _campaignIndexNoSqlServerDataReader;
+
         private readonly ICountryClient _countryClient;
         private readonly IExternalReferenceProxyService _externalReferenceProxyService;
-        private readonly IMyNoSqlServerDataReader<IntegrationNoSql> _integrationNoSqlServerDataReader;
-        private readonly IIntegrationService _integrationService;
         private readonly ILogger<RegistrationService> _logger;
         private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisherLeadUpdated;
-        private readonly IRegistrationRouterService _registrationRouter;
         private readonly IRegistrationRepository _repository;
+        private readonly ITrafficEngineService _trafficEngineService;
         private readonly IMapper _mapper;
 
         // Todo: implement proper logic for multi-tenancy and get rid of this constant.
@@ -54,28 +51,22 @@ namespace MarketingBox.Registration.Service.Services
         public RegistrationService(ILogger<RegistrationService> logger,
             IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated,
             IMyNoSqlServerDataReader<CampaignIndexNoSql> campaignIndexNoSqlServerDataReader,
-            IMyNoSqlServerDataReader<IntegrationNoSql> integrationNoSqlServerDataReader,
-            IMyNoSqlServerDataReader<BrandNoSql> brandNoSqlServerDataReader,
-            IIntegrationService integrationService,
             IRegistrationRepository repository,
-            IRegistrationRouterService registrationRouter,
             IMyNoSqlServerDataReader<AffiliateNoSql> affiliateNoSqlServerDataReader,
             IExternalReferenceProxyService externalReferenceProxyService,
             ICountryClient countryClient,
-            IMapper mapper)
+            IMapper mapper,
+            ITrafficEngineService trafficEngineService)
         {
             _logger = logger;
             _publisherLeadUpdated = publisherLeadUpdated;
             _campaignIndexNoSqlServerDataReader = campaignIndexNoSqlServerDataReader;
-            _integrationNoSqlServerDataReader = integrationNoSqlServerDataReader;
-            _brandNoSqlServerDataReader = brandNoSqlServerDataReader;
-            _integrationService = integrationService;
             _repository = repository;
-            _registrationRouter = registrationRouter;
             _affiliateNoSqlServerDataReader = affiliateNoSqlServerDataReader;
             _externalReferenceProxyService = externalReferenceProxyService;
             _countryClient = countryClient;
             _mapper = mapper;
+            _trafficEngineService = trafficEngineService;
         }
 
         public async Task<Response<Domain.Models.Registrations.Registration>> CreateAsync(
@@ -120,20 +111,35 @@ namespace MarketingBox.Registration.Service.Services
                 registration.Id = registrationId;
                 registration.TenantId = TenantId;
 
-                var response = await AutoRegistration(request, country, registration);
-                if (response is null)
+                var success = await _trafficEngineService.TryRegister(
+                    request.CampaignId.Value,
+                    country.Id,
+                    registration);
+                if (!success)
                 {
                     registration.Status = RegistrationStatus.Created;
-                    await SaveAndPublishRegistration(registration);
-                    throw new Exception("Could not register to brand.");
+                    _logger.LogWarning("TrafficEngine could not register to brand. Request: {@Request}", request);
                 }
-                registration.Status = RegistrationStatus.Registered;
+                else
+                {
+                    var proxyLoginRef = await _externalReferenceProxyService.GetProxyRefAsync(
+                        new GetProxyRefRequest
+                        {
+                            RegistrationId = registration.Id,
+                            RegistrationUId = registration.UniqueId,
+                            TenantId = registration.TenantId,
+                            BrandLink = registration.CustomerLoginUrl
+                        });
+                    var res = proxyLoginRef.Process();
+                    registration.CustomerLoginUrl = res;
+                    registration.Status = RegistrationStatus.Registered;
+                }
 
                 await SaveAndPublishRegistration(registration);
 
                 return new Response<Domain.Models.Registrations.Registration>
                 {
-                    Data = response,
+                    Data = registration,
                     Status = ResponseStatus.Ok
                 };
             }
@@ -177,12 +183,9 @@ namespace MarketingBox.Registration.Service.Services
                 await SaveAndPublishRegistration(registration);
                 _logger.LogInformation("Sent original created registration to service bus {@context}", request);
 
-                var response = _mapper.Map<Domain.Models.Registrations.Registration>(registration);
-                response.Country = request.GeneralInfo.CountryCode;
-
                 return new Response<Domain.Models.Registrations.Registration>
                 {
-                    Data = response,
+                    Data = registration,
                     Status = ResponseStatus.Ok
                 };
             }
@@ -192,54 +195,6 @@ namespace MarketingBox.Registration.Service.Services
 
                 return e.FailedResponse<Domain.Models.Registrations.Registration>();
             }
-        }
-
-        private async Task<Domain.Models.Registrations.Registration> AutoRegistration(
-            RegistrationCreateRequest request,
-            Country country,
-            Domain.Models.Registrations.Registration registration)
-        {
-            var routes =
-                await _registrationRouter.GetSuitableRoutes(request.CampaignId.Value, country.Id);
-
-            if (!routes.Any())
-            {
-                await _repository.SaveAsync(registration);
-                throw new Exception("Can't register on brand");
-            }
-
-            while (routes.Count > 0)
-            {
-                var route = await TryGetSpecificRoute(request.CampaignId.Value,
-                    request.GeneralInfo.CountryCode,
-                    routes);
-
-                if (route == null)
-                {
-                    await SaveAndPublishRegistration(registration);
-                    throw new Exception("Can't register on brand");
-                }
-
-                routes.RemoveAll(x =>
-                    x.BrandId == route.BrandId &&
-                    x.CampaignId == route.CampaignId &&
-                    x.Id == route.CampaignRowId);
-
-                registration.BrandId = route.BrandId;
-                registration.CampaignId = route.CampaignId;
-                registration.IntegrationId = route.IntegrationId;
-                registration.Integration = route.BrandName;
-                try
-                {
-                    return await GetRegistrationCreateResponse(request, registration);
-                }
-                catch
-                {
-                    // ignored
-                }
-            }
-
-            return null;
         }
 
         private async Task<Country> GetCountry(CountryCodeType countryCodeType, string countryCode)
@@ -267,21 +222,6 @@ namespace MarketingBox.Registration.Service.Services
                 });
 
             return country;
-        }
-
-        private async Task<Domain.Models.Registrations.Registration> GetRegistrationCreateResponse(
-            RegistrationCreateRequest request,
-            Domain.Models.Registrations.Registration registration)
-        {
-            var brandResponse = await BrandRegisterAsync(registration);
-
-            _logger.LogInformation("Brand request: {@context}. Brand response: {@response}", request, brandResponse);
-
-            registration.CustomerId = brandResponse.CustomerId;
-            registration.CustomerLoginUrl = brandResponse.LoginUrl;
-            registration.CustomerToken = brandResponse.Token;
-            registration.CustomerBrand = brandResponse.Brand;
-            return registration;
         }
 
         private async Task SaveAndPublishRegistration(Domain.Models.Registrations.Registration registration)
@@ -320,78 +260,6 @@ namespace MarketingBox.Registration.Service.Services
             affiliateName = partner.GeneralInfo.Username;
 
             return partnerApiKey.Equals(apiKey, StringComparison.OrdinalIgnoreCase);
-        }
-
-        private async Task<RouteParameters> TryGetSpecificRoute(long campaignId, string country,
-            List<CampaignRowMessage> filtered)
-        {
-            try
-            {
-                var boxIndexNoSql = _campaignIndexNoSqlServerDataReader
-                    .Get(CampaignIndexNoSql.GeneratePartitionKey(campaignId)).Select(x => x.Campaign).FirstOrDefault();
-                var tenantId = boxIndexNoSql?.TenantId;
-
-                var campaignRow = await _registrationRouter.GetCampaignRow(tenantId, campaignId, filtered);
-
-                if (campaignRow == null)
-                    return null;
-
-                var brandNoSql = _brandNoSqlServerDataReader.Get(
-                    BrandNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
-                    BrandNoSql.GenerateRowKey(campaignRow.BrandId)).Brand;
-
-                var brandId = brandNoSql.Id;
-
-                var integrationNoSql = _integrationNoSqlServerDataReader.Get(
-                    IntegrationNoSql.GeneratePartitionKey(boxIndexNoSql?.TenantId),
-                    IntegrationNoSql.GenerateRowKey(brandNoSql.IntegrationId ?? default)).Integration;
-
-                var brandName = integrationNoSql.Name;
-                var integrationId = integrationNoSql.Id;
-                return new RouteParameters
-                {
-                    IntegrationId = integrationId,
-                    BrandName = brandName,
-                    BrandId = brandId,
-                    TenantId = tenantId,
-                    CampaignId = campaignId,
-                    CampaignRowId = campaignRow.Id
-                };
-            }
-            catch (Exception e)
-            {
-                _logger.LogWarning(
-                    "Can't TryGetRouteInfo. CampaignId: {@Campaign} countryCode: {@CountryCode} Error: {@Error}",
-                    campaignId, country, e.Message);
-            }
-
-            return null;
-        }
-
-        private async Task<RegistrationBrandInfo> BrandRegisterAsync(
-            Domain.Models.Registrations.Registration registration)
-        {
-            var request = _mapper.Map<RegistrationRequest>(registration);
-            var response = await _integrationService.SendRegisterationAsync(request);
-            var integrationResult = response.Process();
-            
-            var proxyLoginRef = await _externalReferenceProxyService.GetProxyRefAsync(new GetProxyRefRequest
-            {
-                RegistrationId = registration.Id,
-                RegistrationUId = registration.UniqueId,
-                TenantId = registration.TenantId,
-                BrandLink = integrationResult.Customer?.LoginUrl
-            });
-            var proxyResult = proxyLoginRef.Process();
-
-            var brandInfo = new RegistrationBrandInfo
-            {
-                LoginUrl = proxyResult,
-                CustomerId = integrationResult.Customer?.CustomerId,
-                Token = integrationResult.Customer?.Token,
-                Brand = request.IntegrationName
-            };
-            return brandInfo;
         }
 
         private static class UniqueIdGenerator

@@ -4,10 +4,8 @@ using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 
 namespace MarketingBox.Registration.Service.Services.Interfaces
 {
-    public interface IRegistrationRouterService
+    public interface IRouterFilterService
     {
         Task<List<CampaignRowMessage>> GetSuitableRoutes(long campaignId, int countryId);
-
-        Task<CampaignRowMessage> GetCampaignRow(string tenantId, long campaignId, List<CampaignRowMessage> filtered);
     }
 }

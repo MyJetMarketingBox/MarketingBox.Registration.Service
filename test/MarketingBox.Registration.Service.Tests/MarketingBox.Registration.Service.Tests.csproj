@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MarketingBox.Affiliate.Service.Client" Version="2.2.17" />
     <PackageReference Include="Moq.AutoMock" Version="3.3.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
