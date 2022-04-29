@@ -21,9 +21,9 @@ namespace MarketingBox.Registration.Service.Services
 {
     public class TrafficEngineService : ITrafficEngineService
     {
-        // todo: remove when multy-tenancy will be implemented
+        // todo: remove when multi-tenancy will be implemented
         private const string TenantId = "default-tenant-id";
-        
+
         private readonly IIntegrationService _service;
         private readonly ILogger<TrafficEngineService> _logger;
         private readonly IMyNoSqlServerDataReader<BrandCandidateNoSql> _brandCandidateNoSqlReader;
@@ -39,13 +39,16 @@ namespace MarketingBox.Registration.Service.Services
                 BrandCandidateNoSql.GeneratePartitionKey(),
                 BrandCandidateNoSql.GenerateRowKey(campaignRowMessage.BrandId))?.BrandCandidate;
 
-            if (brand is not null) return brand;
-
             var newBrand = new BrandCandidate
             {
                 BrandId = campaignRowMessage.BrandId,
                 DailyCapValue = campaignRowMessage.DailyCapValue,
-                WeightCapValue = campaignRowMessage.Weight
+                WeightCapValue = campaignRowMessage.Weight,
+                Marked = brand?.Marked ?? false,
+                UpdatedAt = DateTime.Today.DayOfWeek,
+                SuccessfullySent = brand?.SuccessfullySent ?? false,
+                CountOfSent = brand?.UpdatedAt == DateTime.Today.DayOfWeek ? brand.CountOfSent : 0,
+                SentByWeight = brand?.UpdatedAt == DateTime.Today.DayOfWeek ? brand.SentByWeight : 0
             };
             _brandCandidateNoSqlWriter
                 .InsertOrReplaceAsync(BrandCandidateNoSql.Create(newBrand))
@@ -199,7 +202,7 @@ namespace MarketingBox.Registration.Service.Services
             ILogger<TrafficEngineService> logger,
             IRouterFilterService routerFilterService,
             IMyNoSqlServerDataReader<BrandCandidateNoSql> brandCandidateNoSqlReader,
-            IMyNoSqlServerDataWriter<BrandCandidateNoSql> brandCandidateNoSqlWriter, 
+            IMyNoSqlServerDataWriter<BrandCandidateNoSql> brandCandidateNoSqlWriter,
             IMapper mapper,
             IMyNoSqlServerDataReader<IntegrationNoSql> integrationNoSqlServerDataReader,
             IMyNoSqlServerDataReader<BrandNoSql> brandNoSqlServerDataReader)
@@ -214,7 +217,7 @@ namespace MarketingBox.Registration.Service.Services
             _brandNoSqlServerDataReader = brandNoSqlServerDataReader;
         }
 
-        public async Task<bool> TryRegister(long campaignId, int countryId,
+        public async Task<bool> TryRegisterAsync(long campaignId, int countryId,
             Domain.Models.Registrations.Registration registration)
         {
             var priorities = await GetTrafficEngineTree(campaignId, countryId);
@@ -227,6 +230,7 @@ namespace MarketingBox.Registration.Service.Services
                     return true;
                 }
             }
+
             return false;
         }
     }

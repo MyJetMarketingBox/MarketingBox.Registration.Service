@@ -37,9 +37,10 @@ namespace MarketingBox.Registration.Service.Tests
         private const long BrandId3 = 3;
         private const int CountryId = 1;
         private const int DailyCapValue = 100;
+        private const int Priority = 1;
 
-        private static CampaignRowMessage GetCampaignRowNoSql(
-            long brandId,
+        private static CampaignRowMessage GetCampaignRowNoSql(long brandId,
+            int dailyCap,
             int priority,
             int weight)
         {
@@ -49,17 +50,18 @@ namespace MarketingBox.Registration.Service.Tests
                     BrandId = brandId,
                     Priority = priority,
                     Weight = weight,
-                    DailyCapValue = DailyCapValue
+                    DailyCapValue = dailyCap
                 };
         }
 
         private void CreateCampaignRows(
             int weight1, int weight2, int weight3,
-            int priority1 = 1, int priority2 = 1, int priority3 = 1)
+            int dailyCap1 = DailyCapValue, int dailyCap2 = DailyCapValue, int dailyCap3 = DailyCapValue,
+            int priority1 = Priority, int priority2 = Priority, int priority3 = Priority)
         {
-            _campaignRowNoSql1 = GetCampaignRowNoSql(BrandId1, priority1, weight1);
-            _campaignRowNoSql2 = GetCampaignRowNoSql(BrandId2, priority2, weight2);
-            _campaignRowNoSql3 = GetCampaignRowNoSql(BrandId3, priority3, weight3);
+            _campaignRowNoSql1 = GetCampaignRowNoSql(BrandId1, dailyCap1, priority1, weight1);
+            _campaignRowNoSql2 = GetCampaignRowNoSql(BrandId2, dailyCap2, priority2, weight2);
+            _campaignRowNoSql3 = GetCampaignRowNoSql(BrandId3, dailyCap3, priority3, weight3);
         }
 
         private void SetupIntegrationService(ResponseStatus status)
@@ -85,39 +87,39 @@ namespace MarketingBox.Registration.Service.Tests
         private async Task MakeWholeRoutingCycleAndAssert(long campaignId, int countryId)
         {
             // 1st iteration
-            Assert.IsTrue(await _engine.TryRegister(campaignId, countryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(campaignId, countryId, _registration));
             Assert.AreEqual(1, _registration.BrandId);
-            Assert.IsTrue(await _engine.TryRegister(campaignId, countryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(campaignId, countryId, _registration));
             Assert.AreEqual(2, _registration.BrandId);
-            Assert.IsTrue(await _engine.TryRegister(campaignId, countryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(campaignId, countryId, _registration));
             Assert.AreEqual(3, _registration.BrandId);
 
             // 2nd iteration
-            Assert.IsTrue(await _engine.TryRegister(campaignId, countryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(campaignId, countryId, _registration));
             Assert.AreEqual(1, _registration.BrandId);
-            Assert.IsTrue(await _engine.TryRegister(campaignId, countryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(campaignId, countryId, _registration));
             Assert.AreEqual(2, _registration.BrandId);
-            Assert.IsTrue(await _engine.TryRegister(campaignId, countryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(campaignId, countryId, _registration));
             Assert.AreEqual(3, _registration.BrandId);
 
             // 3rd iteration
-            Assert.IsTrue(await _engine.TryRegister(campaignId, countryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(campaignId, countryId, _registration));
             Assert.AreEqual(1, _registration.BrandId);
-            Assert.IsTrue(await _engine.TryRegister(campaignId, countryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(campaignId, countryId, _registration));
             Assert.AreEqual(2, _registration.BrandId);
 
             // 4th iteration
-            Assert.IsTrue(await _engine.TryRegister(campaignId, countryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(campaignId, countryId, _registration));
             Assert.AreEqual(1, _registration.BrandId);
-            Assert.IsTrue(await _engine.TryRegister(campaignId, countryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(campaignId, countryId, _registration));
             Assert.AreEqual(2, _registration.BrandId);
 
             // 5th iteration
-            Assert.IsTrue(await _engine.TryRegister(campaignId, countryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(campaignId, countryId, _registration));
             Assert.AreEqual(1, _registration.BrandId);
 
             // 6th iteration
-            Assert.IsTrue(await _engine.TryRegister(campaignId, countryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(campaignId, countryId, _registration));
             Assert.AreEqual(1, _registration.BrandId);
         }
 
@@ -125,23 +127,23 @@ namespace MarketingBox.Registration.Service.Tests
         public void Setup()
         {
             _autoMocker = new AutoMocker();
+
             _autoMocker.Setup<IRouterFilterService, Task<List<CampaignRowMessage>>>(
                     x => x.GetSuitableRoutes(CampaignId, CountryId))
-                .ReturnsAsync(() =>
-                    new List<CampaignRowMessage>
-                    {
-                        _campaignRowNoSql1,
-                        _campaignRowNoSql2,
-                        _campaignRowNoSql3
-                    });
+                .ReturnsAsync(() => new()
+                {
+                    _campaignRowNoSql1,
+                    _campaignRowNoSql2,
+                    _campaignRowNoSql3
+                });
             _autoMocker.Setup<IMyNoSqlServerDataReader<IntegrationNoSql>, IntegrationNoSql>(
-                    x => x.Get(It.IsAny<string>(),It.IsAny<string>()))
+                    x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(() => new IntegrationNoSql
                 {
-                    Integration =new IntegrationMessage()
+                    Integration = new IntegrationMessage()
                 });
             _autoMocker.Setup<IMyNoSqlServerDataReader<BrandNoSql>, BrandNoSql>(
-                    x => x.Get(It.IsAny<string>(),It.IsAny<string>()))
+                    x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(() => new BrandNoSql()
                 {
                     Brand = new BrandMessage()
@@ -149,8 +151,8 @@ namespace MarketingBox.Registration.Service.Tests
             _autoMocker.Setup<IMapper, RegistrationRequest>(
                     x => x.Map<RegistrationRequest>(It.IsAny<Domain.Models.Registrations.Registration>()))
                 .Returns(() => new RegistrationRequest());
-            
-            
+
+
             var brandCandidate = new FakeMyNoSqlReaderWriter<BrandCandidateNoSql>();
             _autoMocker.Use<IMyNoSqlServerDataReader<BrandCandidateNoSql>>(brandCandidate);
             _autoMocker.Use<IMyNoSqlServerDataWriter<BrandCandidateNoSql>>(brandCandidate);
@@ -173,26 +175,26 @@ namespace MarketingBox.Registration.Service.Tests
         {
             CreateCampaignRows(5, 3, 1);
 
-            Assert.IsTrue(await _engine.TryRegister(CampaignId, CountryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
             Assert.AreEqual(1, _registration.BrandId);
 
-            Assert.IsTrue(await _engine.TryRegister(CampaignId, CountryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
             Assert.AreEqual(2, _registration.BrandId);
 
-            Assert.IsTrue(await _engine.TryRegister(CampaignId, CountryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
             Assert.AreEqual(3, _registration.BrandId);
 
-            Assert.IsTrue(await _engine.TryRegister(CampaignId, CountryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
             Assert.AreEqual(1, _registration.BrandId);
 
-            Assert.IsTrue(await _engine.TryRegister(CampaignId, CountryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
             Assert.AreEqual(2, _registration.BrandId); // same email
 
-            Assert.IsTrue(await _engine.TryRegister(CampaignId, CountryId, _registration));
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
             Assert.AreEqual(1, _registration.BrandId); // same email
 
             SetupIntegrationService(ResponseStatus.BadRequest);
-            Assert.IsFalse(await _engine.TryRegister(CampaignId, CountryId, _registration));
+            Assert.IsFalse(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
         }
 
         /// <summary>
@@ -209,6 +211,70 @@ namespace MarketingBox.Registration.Service.Tests
             CreateCampaignRows(6, 4, 2);
             await MakeWholeRoutingCycleAndAssert(CampaignId, CountryId);
             await MakeWholeRoutingCycleAndAssert(CampaignId, CountryId);
+        }    
+        
+        /// <summary>
+        /// This test checks routing for the following case:
+        /// BrandId | Weight | Priority | DailyCap |Iteration 1||Iteration 2||Iteration 3|
+        /// --------|--------|----------|----------|-----------||-----------||-----------|
+        ///    1    |   1    |   1      |   1      |       1   ||           ||           |
+        ///    2    |   1    |   2      |   1      |           ||     1     ||           |
+        ///    3    |   1    |   3      |   1      |           ||           ||      1    |
+        /// </summary>
+        [Test]
+        public async Task IterationsByPriorityTest()
+        {
+            CreateCampaignRows(
+                1, 1, 1, // weight
+                1, 1, 1, // dailyCap
+                1, 2, 3); // Priority
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
+            Assert.AreEqual(1, _registration.BrandId);
+            
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
+            Assert.AreEqual(2, _registration.BrandId);
+            
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
+            Assert.AreEqual(3, _registration.BrandId);
+        }        
+        
+        /// <summary>
+        /// This test checks that traffic engine can't register to any brand that does not respond to criteria.
+        /// </summary>
+        [Test]
+        public async Task NoSuitableRoutesTest()
+        {
+            _autoMocker.Setup<IRouterFilterService, Task<List<CampaignRowMessage>>>(
+                    x => x.GetSuitableRoutes(CampaignId, CountryId))
+                .ReturnsAsync(new List<CampaignRowMessage>());
+            
+            Assert.IsFalse(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
+        }        
+        
+        /// <summary>
+        /// This test checks that traffic engine can't register to any brand nosql doesn't contain brand.
+        /// </summary>
+        [Test]
+        public async Task NoBrandFromNoSqlTest()
+        {
+            _autoMocker.Setup<IMyNoSqlServerDataReader<BrandNoSql>, BrandNoSql>(
+                    x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns((BrandNoSql)null);
+            
+            Assert.IsFalse(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
+        }        
+        
+        /// <summary>
+        /// This test checks that traffic engine can't register to any brand nosql doesn't contain integration.
+        /// </summary>
+        [Test]
+        public async Task NoIntegrationFromNoSqlTest()
+        {
+            _autoMocker.Setup<IMyNoSqlServerDataReader<IntegrationNoSql>, IntegrationNoSql>(
+                    x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns((IntegrationNoSql)null);
+            
+            Assert.IsFalse(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
         }
     }
 }

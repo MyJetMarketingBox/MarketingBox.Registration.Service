@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.Serialization;
 
 namespace MarketingBox.Registration.Service.Domain.Models.TrafficEngine;
@@ -12,4 +13,5 @@ public class BrandCandidate
     [DataMember(Order = 5)] public int WeightCapValue { get; set; }
     [DataMember(Order = 6)] public bool Marked { get; set; }
     [DataMember(Order = 7)] public bool SuccessfullySent { get; set; }
+    [DataMember(Order = 8)] public DayOfWeek UpdatedAt { get; set; }
 }

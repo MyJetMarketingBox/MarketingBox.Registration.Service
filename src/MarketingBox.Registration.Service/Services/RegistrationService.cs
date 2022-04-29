@@ -111,7 +111,7 @@ namespace MarketingBox.Registration.Service.Services
                 registration.Id = registrationId;
                 registration.TenantId = TenantId;
 
-                var success = await _trafficEngineService.TryRegister(
+                var success = await _trafficEngineService.TryRegisterAsync(
                     request.CampaignId.Value,
                     country.Id,
                     registration);
