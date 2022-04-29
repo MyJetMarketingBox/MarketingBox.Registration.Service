@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MarketingBox.Affiliate.Service.MyNoSql.Brands;
+using MarketingBox.Registration.Service.Domain.Models.TrafficEngine;
+using MarketingBox.Registration.Service.MyNoSql.TrafficEngine;
 using MyNoSqlServer.Abstractions;
 
 namespace MarketingBox.Registration.Service.Tests
@@ -28,8 +31,14 @@ namespace MarketingBox.Registration.Service.Tests
                 return null;
             }
 
+            if (val is BrandCandidateNoSql brandCandidateNoSql)
+            {
+                brandCandidateNoSql.BrandCandidate.UpdatedAt = Date;
+            }
             return val;
         }
+
+        public DayOfWeek Date { get; set; } = DateTime.Today.DayOfWeek;
 
         public IReadOnlyList<T> Get(string partitionKey)
         {

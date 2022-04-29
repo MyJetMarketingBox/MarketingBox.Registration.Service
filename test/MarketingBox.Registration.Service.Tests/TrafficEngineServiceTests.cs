@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -31,6 +32,7 @@ namespace MarketingBox.Registration.Service.Tests
         private CampaignRowMessage _campaignRowNoSql1;
         private CampaignRowMessage _campaignRowNoSql2;
         private CampaignRowMessage _campaignRowNoSql3;
+        private FakeMyNoSqlReaderWriter<BrandCandidateNoSql> brandCandidate;
         private const long CampaignId = 1;
         private const long BrandId1 = 1;
         private const long BrandId2 = 2;
@@ -153,7 +155,7 @@ namespace MarketingBox.Registration.Service.Tests
                 .Returns(() => new RegistrationRequest());
 
 
-            var brandCandidate = new FakeMyNoSqlReaderWriter<BrandCandidateNoSql>();
+            brandCandidate = new FakeMyNoSqlReaderWriter<BrandCandidateNoSql>();
             _autoMocker.Use<IMyNoSqlServerDataReader<BrandCandidateNoSql>>(brandCandidate);
             _autoMocker.Use<IMyNoSqlServerDataWriter<BrandCandidateNoSql>>(brandCandidate);
 
@@ -211,8 +213,8 @@ namespace MarketingBox.Registration.Service.Tests
             CreateCampaignRows(6, 4, 2);
             await MakeWholeRoutingCycleAndAssert(CampaignId, CountryId);
             await MakeWholeRoutingCycleAndAssert(CampaignId, CountryId);
-        }    
-        
+        }
+
         /// <summary>
         /// This test checks routing for the following case:
         /// BrandId | Weight | Priority | DailyCap |Iteration 1||Iteration 2||Iteration 3|
@@ -230,14 +232,45 @@ namespace MarketingBox.Registration.Service.Tests
                 1, 2, 3); // Priority
             Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
             Assert.AreEqual(1, _registration.BrandId);
-            
+
             Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
             Assert.AreEqual(2, _registration.BrandId);
-            
+
             Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
             Assert.AreEqual(3, _registration.BrandId);
-        }        
-        
+        }
+
+        /// <summary>
+        /// This test checks that cache is updated for next day.
+        /// </summary>
+        [Test]
+        public async Task IterationsByPriorityForDifferentDaysTest()
+        {
+            CreateCampaignRows(
+                1, 1, 1, // weight
+                1, 1, 1, // dailyCap
+                1, 2, 3); // Priority
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
+            Assert.AreEqual(1, _registration.BrandId);
+
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
+            Assert.AreEqual(2, _registration.BrandId);
+
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
+            Assert.AreEqual(3, _registration.BrandId);
+            
+            brandCandidate.Date = DateTime.Today.AddDays(-1).DayOfWeek;
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
+            Assert.AreEqual(1, _registration.BrandId);
+            brandCandidate.Date = DateTime.Today.DayOfWeek;
+
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
+            Assert.AreEqual(2, _registration.BrandId);
+
+            Assert.IsTrue(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
+            Assert.AreEqual(3, _registration.BrandId);
+        }
+
         /// <summary>
         /// This test checks that traffic engine can't register to any brand that does not respond to criteria.
         /// </summary>
@@ -247,10 +280,10 @@ namespace MarketingBox.Registration.Service.Tests
             _autoMocker.Setup<IRouterFilterService, Task<List<CampaignRowMessage>>>(
                     x => x.GetSuitableRoutes(CampaignId, CountryId))
                 .ReturnsAsync(new List<CampaignRowMessage>());
-            
+
             Assert.IsFalse(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
-        }        
-        
+        }
+
         /// <summary>
         /// This test checks that traffic engine can't register to any brand nosql doesn't contain brand.
         /// </summary>
@@ -259,11 +292,11 @@ namespace MarketingBox.Registration.Service.Tests
         {
             _autoMocker.Setup<IMyNoSqlServerDataReader<BrandNoSql>, BrandNoSql>(
                     x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns((BrandNoSql)null);
-            
+                .Returns((BrandNoSql) null);
+
             Assert.IsFalse(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
-        }        
-        
+        }
+
         /// <summary>
         /// This test checks that traffic engine can't register to any brand nosql doesn't contain integration.
         /// </summary>
@@ -272,8 +305,8 @@ namespace MarketingBox.Registration.Service.Tests
         {
             _autoMocker.Setup<IMyNoSqlServerDataReader<IntegrationNoSql>, IntegrationNoSql>(
                     x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns((IntegrationNoSql)null);
-            
+                .Returns((IntegrationNoSql) null);
+
             Assert.IsFalse(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
         }
     }
