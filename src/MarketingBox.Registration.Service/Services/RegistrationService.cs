@@ -34,7 +34,6 @@ namespace MarketingBox.Registration.Service.Services
         private readonly ICountryClient _countryClient;
         private readonly IExternalReferenceProxyService _externalReferenceProxyService;
         private readonly ILogger<RegistrationService> _logger;
-        private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisherLeadUpdated;
         private readonly IRegistrationRepository _repository;
         private readonly ITrafficEngineService _trafficEngineService;
         private readonly IMapper _mapper;
@@ -43,7 +42,6 @@ namespace MarketingBox.Registration.Service.Services
         private const string TenantId = "default-tenant-id";
 
         public RegistrationService(ILogger<RegistrationService> logger,
-            IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated,
             IMyNoSqlServerDataReader<CampaignIndexNoSql> campaignIndexNoSqlServerDataReader,
             IRegistrationRepository repository,
             IMyNoSqlServerDataReader<AffiliateNoSql> affiliateNoSqlServerDataReader,
@@ -53,7 +51,6 @@ namespace MarketingBox.Registration.Service.Services
             ITrafficEngineService trafficEngineService)
         {
             _logger = logger;
-            _publisherLeadUpdated = publisherLeadUpdated;
             _campaignIndexNoSqlServerDataReader = campaignIndexNoSqlServerDataReader;
             _repository = repository;
             _affiliateNoSqlServerDataReader = affiliateNoSqlServerDataReader;
@@ -129,7 +126,7 @@ namespace MarketingBox.Registration.Service.Services
                     registration.Status = RegistrationStatus.Registered;
                 }
 
-                await SaveAndPublishRegistration(registration);
+                await _repository.SaveAsync(registration);
 
                 return new Response<Domain.Models.Registrations.Registration>
                 {
@@ -174,7 +171,7 @@ namespace MarketingBox.Registration.Service.Services
                 registration.TenantId = TenantId;
                 registration.Status = RegistrationStatus.Registered;
 
-                await SaveAndPublishRegistration(registration);
+                await _repository.SaveAsync(registration);
                 _logger.LogInformation("Sent original created registration to service bus {@context}", request);
 
                 return new Response<Domain.Models.Registrations.Registration>
@@ -216,13 +213,6 @@ namespace MarketingBox.Registration.Service.Services
                 });
 
             return country;
-        }
-
-        private async Task SaveAndPublishRegistration(Domain.Models.Registrations.Registration registration)
-        {
-            await _repository.SaveAsync(registration);
-
-            await _publisherLeadUpdated.PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
         }
 
         private string GetTenantId(long affiliateId)
