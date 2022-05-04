@@ -2,23 +2,32 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using MarketingBox.Registration.Postgres;
 using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
 using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 using MarketingBox.Registration.Service.Domain.Repositories;
+using MarketingBox.Registration.Service.Messages.Registrations;
 using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using MyJetWallet.Sdk.ServiceBus;
 
 namespace MarketingBox.Registration.Service.Repositories
 {
     public class RegistrationRepository : IRegistrationRepository
     {
         private readonly DatabaseContextFactory _contextFactory;
+        private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisher;
+        private readonly IMapper _mapper;
 
-        public RegistrationRepository(DatabaseContextFactory contextFactory)
+        public RegistrationRepository(DatabaseContextFactory contextFactory, 
+            IServiceBusPublisher<RegistrationUpdateMessage> publisher, 
+            IMapper mapper)
         {
             _contextFactory = contextFactory;
+            _publisher = publisher;
+            _mapper = mapper;
         }
 
         public async Task SaveAsync(Domain.Models.Registrations.Registration registration)
@@ -27,6 +36,9 @@ namespace MarketingBox.Registration.Service.Repositories
             var rowsCount = await ctx.Registrations.Upsert(registration)
                 .AllowIdentityMatch()
                 .RunAsync();
+            
+            await _publisher
+                .PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
 
             if (rowsCount == 0)
             {
