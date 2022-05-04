@@ -71,23 +71,23 @@ namespace MarketingBox.Registration.Service.Services
                 request.ValidateEntity();
                 
                 var registration =
-                    await _registrationRepository.GetRegistrationByIdAsync(request.TenantId, request.RegistrationId);
+                    await _registrationRepository.GetRegistrationByIdAsync(request.TenantId, request.RegistrationId.Value);
 
                 var oldStatus = registration.Status;
 
-                UpdateStatus(registration, request.Mode, request.NewStatus);
+                UpdateStatus(registration, request.Mode.Value, request.NewStatus.Value);
                 
                 await _registrationRepository.SaveAsync(registration);
                 
                 await _registrationRepository.SaveStatusChangeLogAsync(new StatusChangeLog()
                 {
                     Date = DateTime.UtcNow,
-                    UserId = request.UserId,
-                    RegistrationId = request.RegistrationId,
-                    Mode = request.Mode,
+                    UserId = request.UserId.Value,
+                    RegistrationId = request.RegistrationId.Value,
+                    Mode = request.Mode.Value,
                     Comment = request.Comment,
                     OldStatus = oldStatus,
-                    NewStatus = request.NewStatus
+                    NewStatus = request.NewStatus.Value
                 });
 
                 return new Response<Deposit>
