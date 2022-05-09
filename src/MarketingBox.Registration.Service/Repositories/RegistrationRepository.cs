@@ -11,32 +11,50 @@ using MarketingBox.Registration.Service.Messages.Registrations;
 using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
 
 namespace MarketingBox.Registration.Service.Repositories
 {
     public class RegistrationRepository : IRegistrationRepository
     {
+        private const string UniqueViolation = "23505";
         private readonly DatabaseContextFactory _contextFactory;
         private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisher;
         private readonly IMapper _mapper;
+        private readonly ILogger<RegistrationRepository> _logger;
 
-        public RegistrationRepository(DatabaseContextFactory contextFactory, 
-            IServiceBusPublisher<RegistrationUpdateMessage> publisher, 
-            IMapper mapper)
+        public RegistrationRepository(DatabaseContextFactory contextFactory,
+            IServiceBusPublisher<RegistrationUpdateMessage> publisher,
+            IMapper mapper, ILogger<RegistrationRepository> logger)
         {
             _contextFactory = contextFactory;
             _publisher = publisher;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task SaveAsync(Domain.Models.Registrations.Registration registration)
         {
             await using var ctx = _contextFactory.Create();
-            var rowsCount = await ctx.Registrations.Upsert(registration)
-                .AllowIdentityMatch()
-                .RunAsync();
-            
+            var rowsCount = 0;
+            try
+            {
+                rowsCount = await ctx.Registrations.Upsert(registration)
+                    .AllowIdentityMatch()
+                    .RunAsync();
+            }
+            catch (Npgsql.PostgresException e)
+            {
+                _logger.LogError(e, "Registration failed for request: {@Request}", registration);
+                if (e.Code.Equals(UniqueViolation))
+                {
+                    throw new BadRequestException("Registration already exists");
+                }
+
+                throw;
+            }
+
             await _publisher
                 .PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
 
@@ -65,11 +83,12 @@ namespace MarketingBox.Registration.Service.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<Domain.Models.Registrations.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId)
+        public async Task<Domain.Models.Registrations.Registration> GetLeadByCustomerIdAsync(string tenantId,
+            string customerId)
         {
             await using var ctx = _contextFactory.Create();
             var existingLeadEntity = await ctx.Registrations.FirstOrDefaultAsync(x => x.TenantId == tenantId &&
-                                                                              x.CustomerId == customerId);
+                x.CustomerId == customerId);
 
             if (existingLeadEntity == null)
             {
@@ -79,7 +98,8 @@ namespace MarketingBox.Registration.Service.Repositories
             return existingLeadEntity;
         }
 
-        public async Task<Domain.Models.Registrations.Registration> GetRegistrationByIdAsync(string tenantId, long registrationId)
+        public async Task<Domain.Models.Registrations.Registration> GetRegistrationByIdAsync(string tenantId,
+            long registrationId)
         {
             await using var ctx = _contextFactory.Create();
             var existingLeadEntity = await ctx.Registrations
@@ -103,9 +123,10 @@ namespace MarketingBox.Registration.Service.Repositories
             await using var ctx = _contextFactory.Create();
             var nextDate = date.AddDays(1).Date;
             var count = await ctx.Registrations.Where(x => x.Status == registrationStatus &&
-                                                   x.BrandId == brandId &&
-                                                   x.CampaignId == campaignId &&
-                                                   x.CreatedAt >= date.Date && x.CreatedAt < nextDate).CountAsync();
+                                                           x.BrandId == brandId &&
+                                                           x.CampaignId == campaignId &&
+                                                           x.CreatedAt >= date.Date && x.CreatedAt < nextDate)
+                .CountAsync();
 
             return count;
         }
@@ -119,10 +140,11 @@ namespace MarketingBox.Registration.Service.Repositories
             await using var ctx = _contextFactory.Create();
             var nextDate = date.AddDays(1).Date;
             var count = await ctx.Registrations.Where(x => x.Status == registrationStatus &&
-                                                   x.BrandId == brandId &&
-                                                   x.CampaignId == campaignId &&
-                                                   x.ConversionDate != null && 
-                                                   x.ConversionDate.Value >= date.Date && x.ConversionDate.Value < nextDate).CountAsync();
+                                                           x.BrandId == brandId &&
+                                                           x.CampaignId == campaignId &&
+                                                           x.ConversionDate != null &&
+                                                           x.ConversionDate.Value >= date.Date &&
+                                                           x.ConversionDate.Value < nextDate).CountAsync();
 
             return count;
         }

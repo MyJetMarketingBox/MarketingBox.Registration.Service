@@ -23,7 +23,7 @@ namespace MarketingBox.Registration.Service.Modules
                 serviceBusClient,
                 RegistrationProxyEntityServiceBus.Topic,
                 queueName,
-                TopicQueueType.Permanent);
+                TopicQueueType.PermanentWithSingleConnection);
         }
     }
 }
