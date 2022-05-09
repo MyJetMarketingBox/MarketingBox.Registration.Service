@@ -108,7 +108,7 @@ namespace MarketingBox.Registration.Service.Services
                     registration);
                 if (!success)
                 {
-                    registration.Status = RegistrationStatus.Created;
+                    registration.Status = RegistrationStatus.Failed;
                     _logger.LogWarning("TrafficEngine could not register to brand. Request: {@Request}", request);
                 }
                 else

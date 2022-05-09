@@ -132,7 +132,7 @@ namespace MarketingBox.Registration.Service.Services
         {
             switch (newStatus)
             {
-                case RegistrationStatus.Created:
+                case RegistrationStatus.Failed:
                     break;
                 case RegistrationStatus.Registered:
                     registration.Status = RegistrationStatus.Registered;
