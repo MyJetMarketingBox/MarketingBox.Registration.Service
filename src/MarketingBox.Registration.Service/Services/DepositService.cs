@@ -39,8 +39,10 @@ namespace MarketingBox.Registration.Service.Services
             try
             {
                 request.ValidateEntity();
-                
-                var registration = await _registrationRepository.GetRegistrationByIdAsync(request.TenantId, request.RegistrationId.Value);
+
+                var registration =
+                    await _registrationRepository.GetRegistrationByIdAsync(request.TenantId,
+                        request.RegistrationId.Value);
                 UpdateStatus(registration, DepositUpdateMode.Automatically, RegistrationStatus.Deposited);
 
                 await _registrationRepository.SaveAsync(registration);
@@ -65,20 +67,27 @@ namespace MarketingBox.Registration.Service.Services
         {
             try
             {
-                _logger.LogInformation("UpdateDepositStatusAsync receive request : {requestJson}", 
-                    JsonConvert.SerializeObject(request));
-                
+                _logger.LogInformation("UpdateDepositStatusAsync receive request : {@Request}", request);
+
                 request.ValidateEntity();
-                
+
                 var registration =
-                    await _registrationRepository.GetRegistrationByIdAsync(request.TenantId, request.RegistrationId.Value);
+                    await _registrationRepository.GetRegistrationByIdAsync(request.TenantId,
+                        request.RegistrationId.Value);
 
                 var oldStatus = registration.Status;
+                if (request.NewStatus.Value == RegistrationStatus.Failed ||
+                    oldStatus == request.NewStatus)
+                    return new Response<Deposit>
+                    {
+                        Status = ResponseStatus.Ok,
+                        Data = _mapper.Map<Deposit>(registration)
+                    };
 
                 UpdateStatus(registration, request.Mode.Value, request.NewStatus.Value);
-                
+
                 await _registrationRepository.SaveAsync(registration);
-                
+
                 await _registrationRepository.SaveStatusChangeLogAsync(new StatusChangeLog()
                 {
                     Date = DateTime.UtcNow,
@@ -107,11 +116,11 @@ namespace MarketingBox.Registration.Service.Services
         {
             try
             {
-                _logger.LogInformation("GetStatusChangeLogAsync receive request : {requestJson}", 
+                _logger.LogInformation("GetStatusChangeLogAsync receive request : {requestJson}",
                     JsonConvert.SerializeObject(request));
 
                 var logs = await _registrationRepository.GetStatusChangeLogAsync(request);
-                
+
                 return new Response<List<StatusChangeLog>>
                 {
                     Status = ResponseStatus.Ok,
