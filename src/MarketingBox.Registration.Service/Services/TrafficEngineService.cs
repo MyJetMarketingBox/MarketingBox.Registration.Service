@@ -13,6 +13,7 @@ using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integ
 using MarketingBox.Registration.Service.Domain.Models.TrafficEngine;
 using MarketingBox.Registration.Service.MyNoSql.TrafficEngine;
 using MarketingBox.Registration.Service.Services.Interfaces;
+using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Extensions;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
@@ -150,8 +151,9 @@ namespace MarketingBox.Registration.Service.Services
                 BrandNoSql.GenerateRowKey(brandId))?.Brand;
             if (brandNoSql is null)
             {
-                throw new Exception(
+                _logger.LogError(
                     $"{BrandCandidateNoSql.TableName} does not contain brand with id {brandId}");
+                throw new NotFoundException("Brand with id", brandId);
             }
 
             var integrationNoSql = _integrationNoSqlServerDataReader.Get(
@@ -159,8 +161,9 @@ namespace MarketingBox.Registration.Service.Services
                 IntegrationNoSql.GenerateRowKey(brandNoSql.IntegrationId ?? default))?.Integration;
             if (integrationNoSql is null)
             {
-                throw new Exception(
+                _logger.LogError(
                     $"{IntegrationNoSql.TableName} does not contain integration with id {brandNoSql.IntegrationId}");
+                throw new NotFoundException("Brand with id", brandId);
             }
 
             return (brandNoSql, integrationNoSql);

@@ -7,6 +7,7 @@ using MarketingBox.Affiliate.Service.MyNoSql.CampaignRows;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Services.Interfaces;
 using MarketingBox.Sdk.Common.Enums;
+using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
 
@@ -33,6 +34,10 @@ namespace MarketingBox.Registration.Service.Services
             var date = DateTime.UtcNow;
             var campaignRows =
                 _campaignRowNoSqlServerDataReader.Get(CampaignRowNoSql.GeneratePartitionKey(campaignId));
+            if (!campaignRows.Any())
+            {
+                throw new NotFoundException("Could not find any campaign rows for campaign with id", campaignId);
+            }
 
             var filtered = new List<CampaignRowMessage>(campaignRows.Count);
 

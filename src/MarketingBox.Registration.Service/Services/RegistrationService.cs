@@ -102,31 +102,43 @@ namespace MarketingBox.Registration.Service.Services
                 registration.Id = registrationId;
                 registration.TenantId = TenantId;
 
-                var success = await _trafficEngineService.TryRegisterAsync(
-                    request.CampaignId.Value,
-                    country.Id,
-                    registration);
-                if (!success)
+                try
                 {
-                    registration.Status = RegistrationStatus.Failed;
-                    _logger.LogWarning("TrafficEngine could not register to brand. Request: {@Request}", request);
-                }
-                else
-                {
-                    var proxyLoginRef = await _externalReferenceProxyService.GetProxyRefAsync(
-                        new GetProxyRefRequest
-                        {
-                            RegistrationId = registration.Id,
-                            RegistrationUId = registration.UniqueId,
-                            TenantId = registration.TenantId,
-                            BrandLink = registration.CustomerLoginUrl
-                        });
-                    var res = proxyLoginRef.Process();
-                    registration.CustomerLoginUrl = res;
-                    registration.Status = RegistrationStatus.Registered;
-                }
+                    var success = await _trafficEngineService.TryRegisterAsync(
+                        request.CampaignId.Value,
+                        country.Id,
+                        registration);
 
-                await _repository.SaveAsync(registration);
+                    if (!success)
+                    {
+                        registration.Status = RegistrationStatus.Failed;
+                        _logger.LogWarning("TrafficEngine could not register to brand. Request: {@Request}", request);
+                    }
+                    else
+                    {
+                        var proxyLoginRef = await _externalReferenceProxyService.GetProxyRefAsync(
+                            new GetProxyRefRequest
+                            {
+                                RegistrationId = registration.Id,
+                                RegistrationUId = registration.UniqueId,
+                                TenantId = registration.TenantId,
+                                BrandLink = registration.CustomerLoginUrl
+                            });
+                        var res = proxyLoginRef.Process();
+                        registration.CustomerLoginUrl = res;
+                        registration.Status = RegistrationStatus.Registered;
+                    }
+                }
+                catch
+                {
+                    _logger.LogWarning("TrafficEngine failed register. Request: {@Request}", request);
+                    registration.Status = RegistrationStatus.Failed;
+                    throw;
+                }
+                finally
+                {
+                    await _repository.SaveAsync(registration);
+                }
 
                 return new Response<Domain.Models.Registrations.Registration>
                 {
@@ -136,7 +148,7 @@ namespace MarketingBox.Registration.Service.Services
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error creating original {@context}", request);
+                _logger.LogError(e, "Error during registration {@context}", request);
 
                 return e.FailedResponse<Domain.Models.Registrations.Registration>();
             }
