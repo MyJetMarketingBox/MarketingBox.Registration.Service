@@ -1,5 +1,6 @@
 using Autofac;
 using MarketingBox.Affiliate.Service.Client;
+using MarketingBox.Auth.Service.Client;
 using MarketingBox.ExternalReferenceProxy.Service.Client;
 using MarketingBox.Integration.Service.Client;
 using MarketingBox.Reporting.Service.Client;
@@ -17,6 +18,7 @@ namespace MarketingBox.Registration.Service.Modules
             
             var noSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort));
             builder.RegisterCountryClient(Program.Settings.AffiliateServiceUrl, noSqlClient);
+            builder.RegisterUserClient(Program.Settings.AuthServiceUrl, noSqlClient);
         }
     }
 }

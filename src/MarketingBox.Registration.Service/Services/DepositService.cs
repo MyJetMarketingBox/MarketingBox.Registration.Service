@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
+using MarketingBox.Auth.Service.Client.Interfaces;
 using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Grpc;
@@ -12,7 +13,6 @@ using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
-using Newtonsoft.Json;
 
 namespace MarketingBox.Registration.Service.Services
 {
@@ -21,16 +21,20 @@ namespace MarketingBox.Registration.Service.Services
         private readonly ILogger<DepositService> _logger;
         private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisherLeadUpdated;
         private readonly IRegistrationRepository _registrationRepository;
+        private readonly IUserClient _userClient;
         private readonly IMapper _mapper;
 
         public DepositService(ILogger<DepositService> logger,
             IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated,
-            IRegistrationRepository registrationRepository, IMapper mapper)
+            IRegistrationRepository registrationRepository, 
+            IMapper mapper, 
+            IUserClient userClient)
         {
             _logger = logger;
             _publisherLeadUpdated = publisherLeadUpdated;
             _registrationRepository = registrationRepository;
             _mapper = mapper;
+            _userClient = userClient;
         }
 
         public async Task<Response<Deposit>> RegisterDepositAsync(DepositCreateRequest request)
@@ -88,10 +92,14 @@ namespace MarketingBox.Registration.Service.Services
 
                 await _registrationRepository.SaveAsync(registration);
 
+                var user = await _userClient.GetUser(request.TenantId, request.UserId.Value);
+                
                 await _registrationRepository.SaveStatusChangeLogAsync(new StatusChangeLog()
                 {
                     Date = DateTime.UtcNow,
+                    TenantId = request.TenantId,
                     UserId = request.UserId.Value,
+                    UserName = user.Username,
                     RegistrationId = request.RegistrationId.Value,
                     Mode = request.Mode.Value,
                     Comment = request.Comment,
@@ -116,8 +124,7 @@ namespace MarketingBox.Registration.Service.Services
         {
             try
             {
-                _logger.LogInformation("GetStatusChangeLogAsync receive request : {requestJson}",
-                    JsonConvert.SerializeObject(request));
+                _logger.LogInformation("GetStatusChangeLogAsync receive request : {@Request}", request);
 
                 var logs = await _registrationRepository.GetStatusChangeLogAsync(request);
 
@@ -133,6 +140,8 @@ namespace MarketingBox.Registration.Service.Services
                 return e.FailedResponse<List<StatusChangeLog>>();
             }
         }
+
+        private const string TenantId = "default-tenant-id";
 
         private static void UpdateStatus(
             Domain.Models.Registrations.Registration registration,

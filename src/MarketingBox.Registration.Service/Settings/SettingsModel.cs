@@ -40,5 +40,8 @@ namespace MarketingBox.Registration.Service.Settings
 
         [YamlProperty("MarketingBoxRegistrationService.AffiliateServiceUrl")]
         public string AffiliateServiceUrl { get; set; }
+        
+        [YamlProperty("MarketingBoxRegistrationService.AuthServiceUrl")]
+        public string AuthServiceUrl { get; set; }
     }
 }
