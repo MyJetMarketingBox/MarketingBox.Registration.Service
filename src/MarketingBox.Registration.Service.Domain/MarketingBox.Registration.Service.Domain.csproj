@@ -4,4 +4,12 @@
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MarketingBox.Registration.Service.Domain.Models\MarketingBox.Registration.Service.Domain.Models.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MyJetWallet.Sdk.NoSql" Version="2.1.6" />
+  </ItemGroup>
+
 </Project>

@@ -14,7 +14,6 @@ namespace MarketingBox.Registration.Service.Client
             builder.RegisterInstance(factory.GetRegistrationService()).As<IRegistrationService>().SingleInstance();
             builder.RegisterInstance(factory.GetDepositService()).As<IDepositService>().SingleInstance();
             builder.RegisterInstance(factory.GetCrmService()).As<ICrmService>().SingleInstance();
-            builder.RegisterInstance(factory.GetAffiliateAuthServiceService()).As<IAffiliateAuthService>().SingleInstance();
             builder.RegisterInstance(factory.GetCustomerService()).As<IRegistrationsByDateService>().SingleInstance();
         }
     }

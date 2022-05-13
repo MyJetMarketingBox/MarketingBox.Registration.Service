@@ -1,6 +1,9 @@
-﻿using System.ServiceModel;
+﻿using System.Collections.Generic;
+using System.ServiceModel;
 using System.Threading.Tasks;
-using MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts;
+using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
+using MarketingBox.Registration.Service.Grpc.Requests.Deposits;
+using MarketingBox.Sdk.Common.Models.Grpc;
 
 namespace MarketingBox.Registration.Service.Grpc
 {
@@ -8,24 +11,12 @@ namespace MarketingBox.Registration.Service.Grpc
     public interface IDepositService
     {
         [OperationContract]
-        Task<DepositResponse> RegisterDepositAsync(DepositCreateRequest request);
+        Task<Response<Deposit>> RegisterDepositAsync(DepositCreateRequest request);
 
         [OperationContract]
-        Task<DepositResponse> ApproveDepositAsync(DepositApproveRequest request);
-
+        Task<Response<Deposit>> UpdateDepositStatusAsync(UpdateDepositStatusRequest request);
+        
         [OperationContract]
-        Task<DepositResponse> DeclineDepositAsync(DepositUpdateRequest request);
-
-        [OperationContract]
-        Task<DepositResponse> ApproveDeclinedDepositAsync(DepositUpdateRequest request);
-
-        [OperationContract]
-        Task<DepositResponse> DeclineApprovedDepositAsync(DepositUpdateRequest request);
-
-        [OperationContract]
-        Task<DepositResponse> ApproveRegisteredDepositAsync(DepositUpdateRequest request);
-
-        [OperationContract]
-        Task<DepositResponse> RegisterApprovedDepositAsync(DepositUpdateRequest request);
+        Task<Response<List<StatusChangeLog>>> GetStatusChangeLogAsync(GetStatusChangeLogRequest request);
     }
 }

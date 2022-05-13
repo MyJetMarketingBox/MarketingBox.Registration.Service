@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Serialization;
+using MarketingBox.Registration.Service.Domain.Models.Registrations;
 
 namespace MarketingBox.Registration.Service.Messages.Registrations
 {
@@ -11,15 +12,12 @@ namespace MarketingBox.Registration.Service.Messages.Registrations
         public string TenantId { get; set; }
       
         [DataMember(Order = 2)]
-        public RegistrationGeneralInfo GeneralInfo { get; set; }
+        public RegistrationGeneralInfoInternal GeneralInfoInternal { get; set; }
 
         [DataMember(Order = 3)]
         public RegistrationRouteInfo RouteInfo { get; set; }
 
         [DataMember(Order = 4)]
         public RegistrationAdditionalInfo AdditionalInfo { get; set; }
-        
-        [DataMember(Order = 5)]
-        public long Sequence { get; set; }
     }
 }

@@ -1,221 +1,183 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using MarketingBox.Registration.Service.Domain.Extensions;
+using AutoMapper;
+using MarketingBox.Auth.Service.Client.Interfaces;
+using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 using MarketingBox.Registration.Service.Domain.Repositories;
-using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc;
-using MarketingBox.Registration.Service.Grpc.Models.Common;
-using MarketingBox.Registration.Service.Grpc.Models.Deposits.Contracts;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations;
+using MarketingBox.Registration.Service.Grpc.Requests.Deposits;
 using MarketingBox.Registration.Service.Messages.Registrations;
+using MarketingBox.Sdk.Common.Enums;
+using MarketingBox.Sdk.Common.Extensions;
+using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.ServiceBus;
-using ErrorType = MarketingBox.Registration.Service.Grpc.Models.Common.ErrorType;
 
 namespace MarketingBox.Registration.Service.Services
 {
     public class DepositService : IDepositService
     {
         private readonly ILogger<DepositService> _logger;
-
         private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisherLeadUpdated;
-        private readonly IRegistrationRepository _repository;
+        private readonly IRegistrationRepository _registrationRepository;
+        private readonly IUserClient _userClient;
+        private readonly IMapper _mapper;
 
         public DepositService(ILogger<DepositService> logger,
-            IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated, 
-            IRegistrationRepository repository)
+            IServiceBusPublisher<RegistrationUpdateMessage> publisherLeadUpdated,
+            IRegistrationRepository registrationRepository, 
+            IMapper mapper, 
+            IUserClient userClient)
         {
             _logger = logger;
             _publisherLeadUpdated = publisherLeadUpdated;
-            _repository = repository;
+            _registrationRepository = registrationRepository;
+            _mapper = mapper;
+            _userClient = userClient;
         }
 
-        public async Task<DepositResponse> RegisterDepositAsync(DepositCreateRequest request)
+        public async Task<Response<Deposit>> RegisterDepositAsync(DepositCreateRequest request)
         {
             _logger.LogInformation("Creating new deposit {@context}", request);
             try
             {
-                var registration = await _repository.GetLeadByCustomerIdAsync(request.TenantId, request.CustomerId);
-                registration.Deposit(DateTimeOffset.UtcNow);
+                request.ValidateEntity();
 
-                await _repository.SaveAsync(registration);
+                var registration =
+                    await _registrationRepository.GetRegistrationByIdAsync(request.TenantId,
+                        request.RegistrationId.Value);
+                UpdateStatus(registration, DepositUpdateMode.Automatically, RegistrationStatus.Deposited);
 
-                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
+                await _registrationRepository.SaveAsync(registration);
+
+                await _publisherLeadUpdated.PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
                 _logger.LogInformation("Sent deposit register to service bus {@context}", request);
 
-                return MapToGrpc(registration);
+                return new Response<Deposit>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = _mapper.Map<Deposit>(registration)
+                };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error creating registration {@context}", request);
-
-                return new DepositResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
+                return e.FailedResponse<Deposit>();
             }
         }
 
-        public async Task<DepositResponse> ApproveDepositAsync(DepositApproveRequest request)
+        public async Task<Response<Deposit>> UpdateDepositStatusAsync(UpdateDepositStatusRequest request)
         {
-            _logger.LogInformation("Approving a deposit {@context}", request);
             try
             {
-                var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
-                registration.Approve(DateTimeOffset.UtcNow, request.Mode.MapEnum<Domain.Registrations.DepositUpdateMode>());
-                await _repository.SaveAsync(registration);
+                _logger.LogInformation("UpdateDepositStatusAsync receive request : {@Request}", request);
 
-                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
-                _logger.LogInformation("Sent deposit approve to service bus {@context}", request);
+                request.ValidateEntity();
 
-                return MapToGrpc(registration);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error approving a deposit {@context}", request);
+                var registration =
+                    await _registrationRepository.GetRegistrationByIdAsync(request.TenantId,
+                        request.RegistrationId.Value);
 
-                return new DepositResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
-            }
-        }
+                var oldStatus = registration.Status;
+                if (request.NewStatus.Value == RegistrationStatus.Failed ||
+                    oldStatus == request.NewStatus)
+                    return new Response<Deposit>
+                    {
+                        Status = ResponseStatus.Ok,
+                        Data = _mapper.Map<Deposit>(registration)
+                    };
 
+                UpdateStatus(registration, request.Mode.Value, request.NewStatus.Value);
 
-        public async Task<DepositResponse> DeclineDepositAsync(DepositUpdateRequest request)
-        {
-            _logger.LogInformation("Declining a deposit {@context}", request);
-            try
-            {
-                var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
-                registration.Decline(request.Mode.MapEnum<Domain.Registrations.DepositUpdateMode>());
-                await _repository.SaveAsync(registration);
+                await _registrationRepository.SaveAsync(registration);
 
-                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
-                _logger.LogInformation("Sent deposit decline to service bus {@context}", request);
-
-                return MapToGrpc(registration);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error declining a deposit {@context}", request);
-
-                return new DepositResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
-            }
-        }
-
-        public async Task<DepositResponse> ApproveDeclinedDepositAsync(DepositUpdateRequest request)
-        {
-            _logger.LogInformation("Approving a declined deposit {@context}", request);
-            try
-            {
-                var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
-                registration.ApproveDeclined(DateTimeOffset.UtcNow);
-                await _repository.SaveAsync(registration);
-
-                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
-                _logger.LogInformation("Sent approving declined to service bus {@context}", request);
-
-                return MapToGrpc(registration);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error approving a declined deposit {@context}", request);
-
-                return new DepositResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
-            }
-        }
-
-        public async Task<DepositResponse> DeclineApprovedDepositAsync(DepositUpdateRequest request)
-        {
-            _logger.LogInformation("Declining an approved deposit {@context}", request);
-            try
-            {
-                var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
-                registration.DeclineApproved();
-                await _repository.SaveAsync(registration);
-
-                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
-                _logger.LogInformation("Sent declining approved to service bus {@context}", request);
-
-                return MapToGrpc(registration);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error declining an approved deposit {@context}", request);
-
-                return new DepositResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
-            }
-        }
-
-        public async Task<DepositResponse> ApproveRegisteredDepositAsync(DepositUpdateRequest request)
-        {
-            _logger.LogInformation("Approving a registered deposit {@context}", request);
-            try
-            {
-                var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
-                registration.ApproveRegistered(DateTimeOffset.UtcNow);
-                await _repository.SaveAsync(registration);
-
-                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
-                _logger.LogInformation("Sent approving registered to service bus {@context}", request);
-
-                return MapToGrpc(registration);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error approving a registered deposit {@context}", request);
-
-                return new DepositResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
-            }
-        }
-
-        public async Task<DepositResponse> RegisterApprovedDepositAsync(DepositUpdateRequest request)
-        {
-            _logger.LogInformation("Registering an approved deposit {@context}", request);
-            try
-            {
-                var registration = await _repository.GetLeadByRegistrationIdAsync(request.TenantId, request.RegistrationId);
-                registration.RegisterApproved();
-                await _repository.SaveAsync(registration);
-
-                await _publisherLeadUpdated.PublishAsync(registration.MapToMessage());
-                _logger.LogInformation("Sent registering approved to service bus {@context}", request);
-
-                return MapToGrpc(registration);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error registering an approved deposit {@context}", request);
-
-                return new DepositResponse() { Error = new Error() { Message = "Internal error", Type = ErrorType.Unknown } };
-            }
-        }
-
-
-        private static DepositResponse MapToGrpc(Domain.Registrations.Registration registration)
-        {
-            return new DepositResponse()
-            {
-                TenantId = registration.TenantId,
-                GeneralInfo = new DepositGeneralInfo()
+                var user = await _userClient.GetUser(request.TenantId, request.UserId.Value);
+                
+                await _registrationRepository.SaveStatusChangeLogAsync(new StatusChangeLog()
                 {
-                    Email = registration.RegistrationInfo.Email,
-                    FirstName = registration.RegistrationInfo.FirstName,
-                    LastName = registration.RegistrationInfo.LastName,
-                    Phone = registration.RegistrationInfo.Phone,
-                    Ip = registration.RegistrationInfo.Ip,
-                    Password = registration.RegistrationInfo.Password,
-                    CreatedAt = registration.RegistrationInfo.CreatedAt.UtcDateTime,
-                    RegistrationId = registration.RegistrationInfo.RegistrationId,
-                    UniqueId = registration.RegistrationInfo.RegistrationUid,
-                    CrmStatus = registration.RouteInfo.CrmStatus,
-                    Status = registration.RouteInfo.Status.MapEnum<RegistrationStatus>(),
-                    Country = registration.RegistrationInfo.Country,
-                    ConversionDate = registration.RouteInfo.ConversionDate?.UtcDateTime,
-                    DepositDate = registration.RouteInfo.DepositDate?.UtcDateTime,
-                    UpdatedAt = registration.RegistrationInfo.UpdatedAt.UtcDateTime,
-                    AffiliateId = registration.RouteInfo.AffiliateId,
-                    AffiliateName = registration.RouteInfo.AffiliateName,
-                }
-                //Id = registration.RegistrationInfo.Id,
-                //Message = $"Registration {registration.RegistrationInfo.Id} can be approved as depositor, current status " +
-                //          $"{registration.RegistrationInfo.RouteInfoStatus.ToString()} at {registration.RegistrationInfo.RouteInfoDepositDate}",
-            };
+                    Date = DateTime.UtcNow,
+                    TenantId = request.TenantId,
+                    UserId = request.UserId.Value,
+                    UserName = user.Username,
+                    RegistrationId = request.RegistrationId.Value,
+                    Mode = request.Mode.Value,
+                    Comment = request.Comment,
+                    OldStatus = oldStatus,
+                    NewStatus = request.NewStatus.Value
+                });
+
+                return new Response<Deposit>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = _mapper.Map<Deposit>(registration)
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error updating deposit status {@context}", request);
+                return e.FailedResponse<Deposit>();
+            }
+        }
+
+        public async Task<Response<List<StatusChangeLog>>> GetStatusChangeLogAsync(GetStatusChangeLogRequest request)
+        {
+            try
+            {
+                _logger.LogInformation("GetStatusChangeLogAsync receive request : {@Request}", request);
+
+                var logs = await _registrationRepository.GetStatusChangeLogAsync(request);
+
+                return new Response<List<StatusChangeLog>>
+                {
+                    Status = ResponseStatus.Ok,
+                    Data = logs
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error getting status change log {@context}", request);
+                return e.FailedResponse<List<StatusChangeLog>>();
+            }
+        }
+
+        private const string TenantId = "default-tenant-id";
+
+        private static void UpdateStatus(
+            Domain.Models.Registrations.Registration registration,
+            DepositUpdateMode type,
+            RegistrationStatus newStatus)
+        {
+            switch (newStatus)
+            {
+                case RegistrationStatus.Failed:
+                    break;
+                case RegistrationStatus.Registered:
+                    registration.Status = RegistrationStatus.Registered;
+                    registration.ApprovedType = type;
+                    registration.ConversionDate = null;
+                    registration.UpdatedAt = DateTime.UtcNow;
+                    break;
+                case RegistrationStatus.Deposited:
+                    registration.Status = RegistrationStatus.Deposited;
+                    registration.DepositDate = DateTime.UtcNow;
+                    registration.UpdatedAt = DateTime.UtcNow;
+                    break;
+                case RegistrationStatus.Approved:
+                    registration.Status = RegistrationStatus.Approved;
+                    registration.ApprovedType = type;
+                    registration.ConversionDate = DateTime.UtcNow;
+                    registration.UpdatedAt = DateTime.UtcNow;
+                    break;
+                case RegistrationStatus.Declined:
+                    registration.Status = RegistrationStatus.Declined;
+                    registration.ApprovedType = type;
+                    registration.ConversionDate = null;
+                    registration.UpdatedAt = DateTime.UtcNow;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(newStatus), newStatus, null);
+            }
         }
     }
 }

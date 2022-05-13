@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
 using MarketingBox.Registration.Service.Client;
-using MarketingBox.Registration.Service.Grpc.Models.Affiliate;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
+using MarketingBox.Registration.Service.Domain.Models.Affiliate;
+using MarketingBox.Registration.Service.Grpc.Requests.Registration;
+using MarketingBox.Sdk.Common.Enums;
 using Microsoft.Extensions.Logging;
 using ProtoBuf.Grpc.Client;
+using RegistrationAdditionalInfo = MarketingBox.Registration.Service.Domain.Models.Registrations.RegistrationAdditionalInfo;
+using RegistrationGeneralInfo = MarketingBox.Registration.Service.Domain.Models.Registrations.RegistrationGeneralInfo;
 
 namespace TestApp
 {
@@ -31,15 +33,16 @@ namespace TestApp
                     AdditionalInfo = new RegistrationAdditionalInfo()
                     {
                     },
+                    CampaignId = 1,
                     AuthInfo = new AffiliateAuthInfo()
                     {
-                        CampaignId = 1,
                         AffiliateId = 1,
                         ApiKey = "APIKEY123456"
                     },
                     GeneralInfo = new RegistrationGeneralInfo()
                     {
-                        Country = "UA",
+                        CountryCode = "UA",
+                        CountryCodeType = CountryCodeType.Alfa2Code,
                         Email = $"test.testov.2020.11.08.{i}@mailinator.com",
                         FirstName = "Test",
                         Ip = "99.99.99.99",

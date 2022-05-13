@@ -1,6 +1,4 @@
-﻿using System;
-using MarketingBox.Registration.Service.Domain.Repositories;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.Service;
@@ -13,20 +11,17 @@ namespace MarketingBox.Registration.Service
         private readonly ILogger<ApplicationLifetimeManager> _logger;
         private readonly ServiceBusLifeTime _myServiceBusTcpClient;
         private readonly MyNoSqlClientLifeTime _myNoSqlClientLifeTime;
-        private readonly IRegistrationRepository _registrationRepository;
 
         public ApplicationLifetimeManager(
             IHostApplicationLifetime appLifetime, 
             ILogger<ApplicationLifetimeManager> logger,
             ServiceBusLifeTime myServiceBusTcpClient,
-            MyNoSqlClientLifeTime myNoSqlClientLifeTime,
-            IRegistrationRepository registrationRepository)
+            MyNoSqlClientLifeTime myNoSqlClientLifeTime)
             : base(appLifetime)
         {
             _logger = logger;
             _myServiceBusTcpClient = myServiceBusTcpClient;
             _myNoSqlClientLifeTime = myNoSqlClientLifeTime;
-            _registrationRepository = registrationRepository;
         }
 
         protected override void OnStarted()

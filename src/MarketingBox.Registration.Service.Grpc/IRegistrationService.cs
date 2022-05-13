@@ -1,6 +1,7 @@
 ﻿using System.ServiceModel;
 using System.Threading.Tasks;
-using MarketingBox.Registration.Service.Grpc.Models.Registrations.Contracts;
+using MarketingBox.Registration.Service.Grpc.Requests.Registration;
+using MarketingBox.Sdk.Common.Models.Grpc;
 
 namespace MarketingBox.Registration.Service.Grpc
 {
@@ -8,6 +9,9 @@ namespace MarketingBox.Registration.Service.Grpc
     public interface IRegistrationService
     {
         [OperationContract]
-        Task<RegistrationCreateResponse> CreateAsync(RegistrationCreateRequest request);
+        Task<Response<Domain.Models.Registrations.Registration>> CreateAsync(RegistrationCreateRequest request);
+        
+        [OperationContract]
+        Task<Response<Domain.Models.Registrations.Registration>> CreateS2SAsync(RegistrationCreateS2SRequest request);
     }
 }

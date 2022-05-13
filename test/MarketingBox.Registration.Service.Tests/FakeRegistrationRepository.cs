@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using MarketingBox.Registration.Service.Domain.Registrations;
+using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 using MarketingBox.Registration.Service.Domain.Repositories;
+using MarketingBox.Sdk.Common.Enums;
 
 namespace MarketingBox.Registration.Service.Tests
 {
@@ -10,12 +12,12 @@ namespace MarketingBox.Registration.Service.Tests
         public int LeadCount { get; set; } = 0;
 
         public int FtdCount { get; set; } = 0;
-        public Task SaveAsync(Domain.Registrations.Registration registration)
+        public Task SaveAsync(Domain.Models.Registrations.Registration registration)
         {
-            if (registration.RouteInfo.Status == RegistrationStatus.Registered)
+            if (registration.Status == RegistrationStatus.Registered)
                 LeadCount++;
 
-            if (registration.RouteInfo.Status == RegistrationStatus.Approved)
+            if (registration.Status == RegistrationStatus.Approved)
                 FtdCount++;
 
             return Task.CompletedTask;
@@ -26,17 +28,17 @@ namespace MarketingBox.Registration.Service.Tests
             throw new NotImplementedException();
         }
 
-        public Task<Domain.Registrations.Registration> RestoreAsync(long registrationId)
+        public Task<Domain.Models.Registrations.Registration> RestoreAsync(long registrationId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Domain.Registrations.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId)
+        public Task<Domain.Models.Registrations.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Domain.Registrations.Registration> GetLeadByRegistrationIdAsync(string tenantId, long registrationId)
+        public Task<Domain.Models.Registrations.Registration> GetRegistrationByIdAsync(string tenantId, long registrationId)
         {
             throw new NotImplementedException();
         }
@@ -49,6 +51,16 @@ namespace MarketingBox.Registration.Service.Tests
         public Task<int> GetCountForDeposits(DateTime date, long brandId, long campaignId, RegistrationStatus registrationStatus)
         {
             return Task.FromResult(FtdCount);
+        }
+
+        public Task SaveStatusChangeLogAsync(StatusChangeLog log)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<StatusChangeLog>> GetStatusChangeLogAsync(GetStatusChangeLogRequest request)
+        {
+            throw new NotImplementedException();
         }
     }
 }
