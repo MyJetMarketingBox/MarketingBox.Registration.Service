@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using MarketingBox.Affiliate.Service.Client;
+using MarketingBox.Affiliate.Service.Client.Interfaces;
+using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
-using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
-using MarketingBox.Affiliate.Service.MyNoSql.Campaigns;
 using MarketingBox.ExternalReferenceProxy.Service.Grpc;
 using MarketingBox.ExternalReferenceProxy.Service.Grpc.Models;
 using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Requests.Registration;
-using MarketingBox.Registration.Service.Messages.Registrations;
 using MarketingBox.Registration.Service.Services.Interfaces;
 using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
@@ -21,43 +19,35 @@ using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
-using MyJetWallet.Sdk.ServiceBus;
-using MyNoSqlServer.Abstractions;
 
 namespace MarketingBox.Registration.Service.Services
 {
     public class RegistrationService : IRegistrationService
     {
-        private readonly IMyNoSqlServerDataReader<AffiliateNoSql> _affiliateNoSqlServerDataReader;
-        private readonly IMyNoSqlServerDataReader<CampaignIndexNoSql> _campaignIndexNoSqlServerDataReader;
 
         private readonly ICountryClient _countryClient;
+        private readonly IAffiliateClient _affiliateClient;
         private readonly IExternalReferenceProxyService _externalReferenceProxyService;
         private readonly ILogger<RegistrationService> _logger;
         private readonly IRegistrationRepository _repository;
         private readonly ITrafficEngineService _trafficEngineService;
         private readonly IMapper _mapper;
 
-        // Todo: implement proper logic for multi-tenancy and get rid of this constant.
-        private const string TenantId = "default-tenant-id";
-
         public RegistrationService(ILogger<RegistrationService> logger,
-            IMyNoSqlServerDataReader<CampaignIndexNoSql> campaignIndexNoSqlServerDataReader,
             IRegistrationRepository repository,
-            IMyNoSqlServerDataReader<AffiliateNoSql> affiliateNoSqlServerDataReader,
             IExternalReferenceProxyService externalReferenceProxyService,
             ICountryClient countryClient,
             IMapper mapper,
-            ITrafficEngineService trafficEngineService)
+            ITrafficEngineService trafficEngineService, 
+            IAffiliateClient affiliateClient)
         {
             _logger = logger;
-            _campaignIndexNoSqlServerDataReader = campaignIndexNoSqlServerDataReader;
             _repository = repository;
-            _affiliateNoSqlServerDataReader = affiliateNoSqlServerDataReader;
             _externalReferenceProxyService = externalReferenceProxyService;
             _countryClient = countryClient;
             _mapper = mapper;
             _trafficEngineService = trafficEngineService;
+            _affiliateClient = affiliateClient;
         }
 
         public async Task<Response<Domain.Models.Registrations.Registration>> CreateAsync(
@@ -67,27 +57,19 @@ namespace MarketingBox.Registration.Service.Services
             {
                 request.ValidateEntity();
                 _logger.LogInformation("Creating new Registration {@context}", request);
-                // var tenantId = GetTenantId(request.AuthInfo.CampaignId.Value);
-                // if (tenantId == null)
-                //     throw new BadRequestException(new Error
-                //     {
-                //         ErrorMessage = BadRequestException.DefaultErrorMessage,
-                //         ValidationErrors = new List<ValidationError>
-                //         {
-                //             new()
-                //             {
-                //                 ParameterName = nameof(request.AuthInfo.CampaignId),
-                //                 ErrorMessage = $"Incorrect {nameof(request.AuthInfo.CampaignId)} '{request.AuthInfo.CampaignId}'"
-                //             }
-                //         }
-                //     });
 
-                if (!IsAffiliateApiKeyValid(TenantId, request.AuthInfo.AffiliateId.Value,
-                        request.AuthInfo.ApiKey, out var affiliateName))
+                var (isValid, affiliate) = await IsAffiliateApiKeyValidAsync(
+                    request.AuthInfo.AffiliateId.Value,
+                    request.AuthInfo.ApiKey);
+                
+                if (!isValid)
                     throw new UnauthorizedException(
                         $"Required authentication for affiliate '{request.AuthInfo.AffiliateId}'");
 
-                var registrationId = await _repository.GenerateRegistrationIdAsync(TenantId,
+                var tenantId = affiliate.TenantId;
+                var affiliateName = affiliate.GeneralInfo.Username;
+                var registrationId = await _repository.GenerateRegistrationIdAsync(
+                    tenantId,
                     request.GeneralInfo.GeneratorId());
 
                 var country = await GetCountry(
@@ -100,7 +82,7 @@ namespace MarketingBox.Registration.Service.Services
                 registration.CountryId = country.Id;
                 registration.AffiliateName = affiliateName;
                 registration.Id = registrationId;
-                registration.TenantId = TenantId;
+                registration.TenantId = tenantId;
 
                 try
                 {
@@ -162,12 +144,16 @@ namespace MarketingBox.Registration.Service.Services
                 request.ValidateEntity();
                 _logger.LogInformation("Creating new S2S Registration {@context}", request);
 
-                if (!IsAffiliateApiKeyValid(TenantId, request.AuthInfo.AffiliateId.Value,
-                        request.AuthInfo.ApiKey, out var affiliateName))
+                var (isValid, affiliate) = await IsAffiliateApiKeyValidAsync(
+                    request.AuthInfo.AffiliateId.Value,
+                    request.AuthInfo.ApiKey);
+                if (!isValid)
                     throw new UnauthorizedException(
                         $"Required authentication for affiliate '{request.AuthInfo.AffiliateId}'");
 
-                var registrationId = await _repository.GenerateRegistrationIdAsync(TenantId,
+                var tenantId = affiliate.TenantId;
+                var affiliateName = affiliate.GeneralInfo.Username;
+                var registrationId = await _repository.GenerateRegistrationIdAsync(tenantId,
                     request.GeneralInfo.GeneratorId());
 
                 var country = await GetCountry(
@@ -180,7 +166,7 @@ namespace MarketingBox.Registration.Service.Services
                 registration.CountryId = country.Id;
                 registration.AffiliateName = affiliateName;
                 registration.Id = registrationId;
-                registration.TenantId = TenantId;
+                registration.TenantId = tenantId;
                 registration.Status = RegistrationStatus.Registered;
 
                 await _repository.SaveAsync(registration);
@@ -227,35 +213,11 @@ namespace MarketingBox.Registration.Service.Services
             return country;
         }
 
-        private string GetTenantId(long affiliateId)
+        private async Task<(bool,AffiliateMessage)> IsAffiliateApiKeyValidAsync(long affiliateId, string apiKey)
         {
-            var boxIndexNoSql = _campaignIndexNoSqlServerDataReader
-                .Get(CampaignIndexNoSql.GeneratePartitionKey(affiliateId))
-                .FirstOrDefault()
-                ?.Campaign;
+            var partner = await _affiliateClient.GetAffiliateByApiKeyAndId(apiKey, affiliateId);
 
-            return boxIndexNoSql?.TenantId;
-        }
-
-        private bool IsAffiliateApiKeyValid(string tenantId, long affiliateId, string apiKey, out string affiliateName)
-        {
-            var partner =
-                _affiliateNoSqlServerDataReader
-                    .Get(AffiliateNoSql.GeneratePartitionKey(tenantId),
-                        AffiliateNoSql.GenerateRowKey(affiliateId))?
-                    .Affiliate;
-
-            if (partner == null)
-            {
-                affiliateName = string.Empty;
-                return false;
-            }
-
-            var partnerApiKey = partner.GeneralInfo.ApiKey;
-
-            affiliateName = partner.GeneralInfo.Username;
-
-            return partnerApiKey.Equals(apiKey, StringComparison.OrdinalIgnoreCase);
+            return partner == null ? (false,null) : (true, partner);
         }
 
         private static class UniqueIdGenerator

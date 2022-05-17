@@ -22,9 +22,6 @@ namespace MarketingBox.Registration.Service.Services
 {
     public class TrafficEngineService : ITrafficEngineService
     {
-        // todo: remove when multi-tenancy will be implemented
-        private const string TenantId = "default-tenant-id";
-
         private readonly IIntegrationService _service;
         private readonly ILogger<TrafficEngineService> _logger;
         private readonly IMyNoSqlServerDataReader<BrandCandidateNoSql> _brandCandidateNoSqlReader;
@@ -101,7 +98,7 @@ namespace MarketingBox.Registration.Service.Services
 
                     try
                     {
-                        var (brandNoSql, integrationNoSql) = GetFromNoSql(brandCandidate.BrandId);
+                        var (brandNoSql, integrationNoSql) = GetFromNoSql(registration.TenantId, brandCandidate.BrandId);
 
                         registration.BrandId = brandCandidate.BrandId;
                         registration.IntegrationId = integrationNoSql.Id;
@@ -144,10 +141,10 @@ namespace MarketingBox.Registration.Service.Services
             return false;
         }
 
-        private (BrandMessage brandNoSql, IntegrationMessage integrationNoSql) GetFromNoSql(long brandId)
+        private (BrandMessage brandNoSql, IntegrationMessage integrationNoSql) GetFromNoSql(string tenantId, long brandId)
         {
             var brandNoSql = _brandNoSqlServerDataReader.Get(
-                BrandNoSql.GeneratePartitionKey(TenantId),
+                BrandNoSql.GeneratePartitionKey(tenantId),
                 BrandNoSql.GenerateRowKey(brandId))?.Brand;
             if (brandNoSql is null)
             {
@@ -157,7 +154,7 @@ namespace MarketingBox.Registration.Service.Services
             }
 
             var integrationNoSql = _integrationNoSqlServerDataReader.Get(
-                IntegrationNoSql.GeneratePartitionKey(TenantId),
+                IntegrationNoSql.GeneratePartitionKey(tenantId),
                 IntegrationNoSql.GenerateRowKey(brandNoSql.IntegrationId ?? default))?.Integration;
             if (integrationNoSql is null)
             {
