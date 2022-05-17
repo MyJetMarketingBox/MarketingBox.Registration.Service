@@ -11,14 +11,12 @@ namespace MarketingBox.Registration.Postgres
 
         private const string RegistrationTableName = "registrations";
         private const string StatusChangeLogTableName = "status-change-log";
+        private const string RegistrationIdGeneratorTableName = "registration_id_generator";
 
         public DbSet<Service.Domain.Models.Registrations.Registration> Registrations { get; set; }
         public DbSet<StatusChangeLog> StatusChangeLogs { get; set; }
 
-        private const string RegistrationIdGeneratorTableName = "registration_id_generator";
-
         public DbSet<RegistrationIdGeneratorEntity> RegistrationIdGenerators { get; set; }
-
 
         public DatabaseContext(DbContextOptions options) : base(options)
         {
@@ -50,6 +48,7 @@ namespace MarketingBox.Registration.Postgres
             modelBuilder.Entity<StatusChangeLog>().Property(e => e.Id).UseIdentityColumn();
             
             modelBuilder.Entity<StatusChangeLog>().HasIndex(e => e.Mode);
+            modelBuilder.Entity<StatusChangeLog>().HasIndex(e => new {e.TenantId, e.Id});
             modelBuilder.Entity<StatusChangeLog>().HasIndex(e => e.UserId);
             modelBuilder.Entity<StatusChangeLog>().HasIndex(e => e.RegistrationId);
         }

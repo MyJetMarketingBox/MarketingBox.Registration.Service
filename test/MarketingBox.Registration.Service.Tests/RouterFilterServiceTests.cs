@@ -37,6 +37,7 @@ namespace MarketingBox.Registration.Service.Tests
         private const int Priority = 1;
         private const int DailyCapValue = 100;
         private const bool EnableTraffic = true;
+        private const string TenantId = nameof(TenantId);
         private const int CountryId = 1;
         private const CapType CapType = Affiliate.Service.Domain.Models.CampaignRows.CapType.Lead;
 
@@ -139,6 +140,7 @@ namespace MarketingBox.Registration.Service.Tests
                     _autoMocker.Setup<IRegistrationRepository, Task<int>>(
                             repository => repository.GetCountForRegistrations(
                                 It.IsAny<DateTime>(),
+                                campaignBoxNoSql.TenantId,
                                 campaignBoxNoSql.BrandId,
                                 campaignBoxNoSql.CampaignId,
                                 RegistrationStatus.Registered))
@@ -150,6 +152,7 @@ namespace MarketingBox.Registration.Service.Tests
                     _autoMocker.Setup<IRegistrationRepository, Task<int>>(
                             repository => repository.GetCountForDeposits(
                                 It.IsAny<DateTime>(),
+                                campaignBoxNoSql.TenantId,
                                 campaignBoxNoSql.BrandId,
                                 campaignBoxNoSql.CampaignId,
                                 RegistrationStatus.Approved))
@@ -204,6 +207,7 @@ namespace MarketingBox.Registration.Service.Tests
             _autoMocker.Setup<IRegistrationRepository, Task<int>>(
                     repository => repository.GetCountForRegistrations(
                         It.IsAny<DateTime>(),
+                        It.IsAny<string>(),
                         It.IsAny<long>(),
                         It.IsAny<long>(),
                         RegistrationStatus.Registered))
@@ -219,7 +223,7 @@ namespace MarketingBox.Registration.Service.Tests
         [Test]
         public async Task GetSuitableRoutesAllCampaignsPassTest()
         {
-            var routes = await _leadRouterFilter.GetSuitableRoutes(CampaignId, CountryId);
+            var routes = await _leadRouterFilter.GetSuitableRoutes(CampaignId, CountryId, TenantId);
 
             CollectionAssert.IsNotEmpty(routes);
             Assert.That(routes, Has.Exactly(3).Items);
@@ -236,7 +240,7 @@ namespace MarketingBox.Registration.Service.Tests
         {
             _campaignRowNoSql1.CampaignRow.EnableTraffic = false;
 
-            var routes = await _leadRouterFilter.GetSuitableRoutes(CampaignId, CountryId);
+            var routes = await _leadRouterFilter.GetSuitableRoutes(CampaignId, CountryId, TenantId);
 
             CollectionAssert.IsNotEmpty(routes);
             Assert.That(routes, Has.Exactly(2).Items);
@@ -257,7 +261,7 @@ namespace MarketingBox.Registration.Service.Tests
                 CountryIds = new[] {2}
             };
 
-            var routes = await _leadRouterFilter.GetSuitableRoutes(CampaignId, CountryId);
+            var routes = await _leadRouterFilter.GetSuitableRoutes(CampaignId, CountryId, TenantId);
 
             CollectionAssert.IsNotEmpty(routes);
             Assert.That(routes, Has.Exactly(2).Items);
@@ -276,7 +280,7 @@ namespace MarketingBox.Registration.Service.Tests
         {
             _campaignRowNoSql1.CampaignRow.ActivityHours = activityHours;
 
-            var routes = await _leadRouterFilter.GetSuitableRoutes(CampaignId, CountryId);
+            var routes = await _leadRouterFilter.GetSuitableRoutes(CampaignId, CountryId, TenantId);
 
             CollectionAssert.IsNotEmpty(routes);
             Assert.That(routes, Has.Exactly(2).Items);
@@ -297,7 +301,7 @@ namespace MarketingBox.Registration.Service.Tests
             _campaignRowNoSql1.CampaignRow.CapType = capType;
             SetupRepository(_campaignRowNoSql1.CampaignRow, 100);
 
-            var routes = await _leadRouterFilter.GetSuitableRoutes(CampaignId, CountryId);
+            var routes = await _leadRouterFilter.GetSuitableRoutes(CampaignId, CountryId, TenantId);
 
             CollectionAssert.IsNotEmpty(routes);
             Assert.That(routes, Has.Exactly(2).Items);

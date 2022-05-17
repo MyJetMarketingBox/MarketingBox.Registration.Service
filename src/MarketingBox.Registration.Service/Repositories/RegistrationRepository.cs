@@ -78,17 +78,21 @@ namespace MarketingBox.Registration.Service.Repositories
             return entity.RegistrationId;
         }
 
-        public Task<Domain.Models.Registrations.Registration> RestoreAsync(long registrationId)
+        public Task<Domain.Models.Registrations.Registration> RestoreAsync(
+            string tenantId,
+            long registrationId)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<Domain.Models.Registrations.Registration> GetLeadByCustomerIdAsync(string tenantId,
+        public async Task<Domain.Models.Registrations.Registration> GetLeadByCustomerIdAsync(
+            string tenantId,
             string customerId)
         {
             await using var ctx = _contextFactory.Create();
-            var existingLeadEntity = await ctx.Registrations.FirstOrDefaultAsync(x => x.TenantId == tenantId &&
-                x.CustomerId == customerId);
+            var existingLeadEntity = await ctx.Registrations.FirstOrDefaultAsync(
+                x => x.TenantId == tenantId &&
+                     x.CustomerId == customerId);
 
             if (existingLeadEntity == null)
             {
@@ -98,7 +102,8 @@ namespace MarketingBox.Registration.Service.Repositories
             return existingLeadEntity;
         }
 
-        public async Task<Domain.Models.Registrations.Registration> GetRegistrationByIdAsync(string tenantId,
+        public async Task<Domain.Models.Registrations.Registration> GetRegistrationByIdAsync(
+            string tenantId,
             long registrationId)
         {
             await using var ctx = _contextFactory.Create();
@@ -116,13 +121,15 @@ namespace MarketingBox.Registration.Service.Repositories
 
         public async Task<int> GetCountForRegistrations(
             DateTime date,
+            string tenantId,
             long brandId,
             long campaignId,
             RegistrationStatus registrationStatus)
         {
             await using var ctx = _contextFactory.Create();
             var nextDate = date.AddDays(1).Date;
-            var count = await ctx.Registrations.Where(x => x.Status == registrationStatus &&
+            var count = await ctx.Registrations.Where(x => x.TenantId.Equals(tenantId) &&
+                                                           x.Status == registrationStatus &&
                                                            x.BrandId == brandId &&
                                                            x.CampaignId == campaignId &&
                                                            x.CreatedAt >= date.Date && x.CreatedAt < nextDate)
@@ -133,13 +140,15 @@ namespace MarketingBox.Registration.Service.Repositories
 
         public async Task<int> GetCountForDeposits(
             DateTime date,
+            string tenantId,
             long brandId,
             long campaignId,
             RegistrationStatus registrationStatus)
         {
             await using var ctx = _contextFactory.Create();
             var nextDate = date.AddDays(1).Date;
-            var count = await ctx.Registrations.Where(x => x.Status == registrationStatus &&
+            var count = await ctx.Registrations.Where(x => x.TenantId.Equals(tenantId) &&
+                                                           x.Status == registrationStatus &&
                                                            x.BrandId == brandId &&
                                                            x.CampaignId == campaignId &&
                                                            x.ConversionDate != null &&
@@ -162,6 +171,8 @@ namespace MarketingBox.Registration.Service.Repositories
 
             IQueryable<StatusChangeLog> query = ctx.StatusChangeLogs;
 
+            if (string.IsNullOrEmpty(request.TenantId))
+                query = query.Where(e => e.TenantId.Equals(request.TenantId));
             if (request.Mode.HasValue)
                 query = query.Where(e => e.Mode == request.Mode);
             if (request.UserId.HasValue)

@@ -40,6 +40,7 @@ namespace MarketingBox.Registration.Service.Tests
         private const int CountryId = 1;
         private const int DailyCapValue = 100;
         private const int Priority = 1;
+        private const string TenantId = nameof(TenantId);
 
         private static CampaignRowMessage GetCampaignRowNoSql(long brandId,
             int dailyCap,
@@ -131,7 +132,7 @@ namespace MarketingBox.Registration.Service.Tests
             _autoMocker = new AutoMocker();
 
             _autoMocker.Setup<IRouterFilterService, Task<List<CampaignRowMessage>>>(
-                    x => x.GetSuitableRoutes(CampaignId, CountryId))
+                    x => x.GetSuitableRoutes(CampaignId, CountryId, TenantId))
                 .ReturnsAsync(() => new()
                 {
                     _campaignRowNoSql1,
@@ -278,7 +279,7 @@ namespace MarketingBox.Registration.Service.Tests
         public async Task NoSuitableRoutesTest()
         {
             _autoMocker.Setup<IRouterFilterService, Task<List<CampaignRowMessage>>>(
-                    x => x.GetSuitableRoutes(CampaignId, CountryId))
+                    x => x.GetSuitableRoutes(CampaignId, CountryId, TenantId))
                 .ReturnsAsync(new List<CampaignRowMessage>());
 
             Assert.IsFalse(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));

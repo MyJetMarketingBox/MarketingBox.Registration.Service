@@ -34,7 +34,7 @@ namespace MarketingBox.Registration.Service.Services
         private BrandCandidate GetBrandCandidate(CampaignRowMessage campaignRowMessage)
         {
             var brand = _brandCandidateNoSqlReader.Get(
-                BrandCandidateNoSql.GeneratePartitionKey(),
+                BrandCandidateNoSql.GeneratePartitionKey(campaignRowMessage.TenantId),
                 BrandCandidateNoSql.GenerateRowKey(campaignRowMessage.BrandId))?.BrandCandidate;
 
             var newBrand = new BrandCandidate
@@ -56,10 +56,10 @@ namespace MarketingBox.Registration.Service.Services
             return newBrand;
         }
 
-        private async Task<List<Priority>> GetTrafficEngineTree(long campaignId, int countryId)
+        private async Task<List<Priority>> GetTrafficEngineTree(long campaignId, int countryId, string tenantId)
         {
             // filter campaignRows by criteria 
-            var campaignRows = await _routerFilterService.GetSuitableRoutes(campaignId, countryId);
+            var campaignRows = await _routerFilterService.GetSuitableRoutes(campaignId, countryId, tenantId);
 
             // create traffic engine data structure
             var lookup = campaignRows.ToLookup(
@@ -220,7 +220,7 @@ namespace MarketingBox.Registration.Service.Services
         public async Task<bool> TryRegisterAsync(long campaignId, int countryId,
             Domain.Models.Registrations.Registration registration)
         {
-            var priorities = await GetTrafficEngineTree(campaignId, countryId);
+            var priorities = await GetTrafficEngineTree(campaignId, countryId, registration.TenantId);
 
             // run algorithm among all priorities
             foreach (var campaignPriority in priorities.OrderBy(x => x.PriorityValue))

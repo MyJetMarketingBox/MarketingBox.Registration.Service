@@ -14,4 +14,5 @@ public class BrandCandidate
     [DataMember(Order = 6)] public bool Marked { get; set; }
     [DataMember(Order = 7)] public bool SuccessfullySent { get; set; }
     [DataMember(Order = 8)] public DayOfWeek UpdatedAt { get; set; }
+    [DataMember(Order = 9)] public string TenantId { get; set; }
 }

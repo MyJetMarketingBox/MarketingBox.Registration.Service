@@ -6,6 +6,6 @@ namespace MarketingBox.Registration.Service.Services.Interfaces
 {
     public interface IRouterFilterService
     {
-        Task<List<CampaignRowMessage>> GetSuitableRoutes(long campaignId, int countryId);
+        Task<List<CampaignRowMessage>> GetSuitableRoutes(long campaignId, int countryId, string tenantId);
     }
 }

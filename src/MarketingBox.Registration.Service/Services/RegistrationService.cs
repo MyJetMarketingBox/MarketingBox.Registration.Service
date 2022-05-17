@@ -24,7 +24,6 @@ namespace MarketingBox.Registration.Service.Services
 {
     public class RegistrationService : IRegistrationService
     {
-
         private readonly ICountryClient _countryClient;
         private readonly IAffiliateClient _affiliateClient;
         private readonly IExternalReferenceProxyService _externalReferenceProxyService;
@@ -38,7 +37,7 @@ namespace MarketingBox.Registration.Service.Services
             IExternalReferenceProxyService externalReferenceProxyService,
             ICountryClient countryClient,
             IMapper mapper,
-            ITrafficEngineService trafficEngineService, 
+            ITrafficEngineService trafficEngineService,
             IAffiliateClient affiliateClient)
         {
             _logger = logger;
@@ -58,13 +57,9 @@ namespace MarketingBox.Registration.Service.Services
                 request.ValidateEntity();
                 _logger.LogInformation("Creating new Registration {@context}", request);
 
-                var (isValid, affiliate) = await IsAffiliateApiKeyValidAsync(
+                var affiliate = await GetAffiliate(
                     request.AuthInfo.AffiliateId.Value,
                     request.AuthInfo.ApiKey);
-                
-                if (!isValid)
-                    throw new UnauthorizedException(
-                        $"Required authentication for affiliate '{request.AuthInfo.AffiliateId}'");
 
                 var tenantId = affiliate.TenantId;
                 var affiliateName = affiliate.GeneralInfo.Username;
@@ -144,12 +139,9 @@ namespace MarketingBox.Registration.Service.Services
                 request.ValidateEntity();
                 _logger.LogInformation("Creating new S2S Registration {@context}", request);
 
-                var (isValid, affiliate) = await IsAffiliateApiKeyValidAsync(
+                var affiliate = await GetAffiliate(
                     request.AuthInfo.AffiliateId.Value,
                     request.AuthInfo.ApiKey);
-                if (!isValid)
-                    throw new UnauthorizedException(
-                        $"Required authentication for affiliate '{request.AuthInfo.AffiliateId}'");
 
                 var tenantId = affiliate.TenantId;
                 var affiliateName = affiliate.GeneralInfo.Username;
@@ -213,11 +205,26 @@ namespace MarketingBox.Registration.Service.Services
             return country;
         }
 
-        private async Task<(bool,AffiliateMessage)> IsAffiliateApiKeyValidAsync(long affiliateId, string apiKey)
+        private async Task<AffiliateMessage> GetAffiliate(long affiliateId, string apiKey)
         {
-            var partner = await _affiliateClient.GetAffiliateByApiKeyAndId(apiKey, affiliateId);
+            AffiliateMessage affiliate = null;
+            try
+            {
+                affiliate = await _affiliateClient.GetAffiliateByApiKeyAndId(
+                    apiKey,
+                    affiliateId);
+                if (affiliate is null)
+                {
+                    throw new NotFoundException(NotFoundException.DefaultMessage);
+                }
+            }
+            catch (NotFoundException)
+            {
+                throw new UnauthorizedException(
+                    $"Required authentication for affiliate '{affiliateId}'");
+            }
 
-            return partner == null ? (false,null) : (true, partner);
+            return affiliate;
         }
 
         private static class UniqueIdGenerator

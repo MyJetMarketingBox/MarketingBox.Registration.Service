@@ -45,7 +45,8 @@ namespace MarketingBox.Registration.Service.Services
                 request.ValidateEntity();
 
                 var registration =
-                    await _registrationRepository.GetRegistrationByIdAsync(request.TenantId,
+                    await _registrationRepository.GetRegistrationByIdAsync(
+                        request.TenantId,
                         request.RegistrationId.Value);
                 UpdateStatus(registration, DepositUpdateMode.Automatically, RegistrationStatus.Deposited);
 
@@ -76,7 +77,8 @@ namespace MarketingBox.Registration.Service.Services
                 request.ValidateEntity();
 
                 var registration =
-                    await _registrationRepository.GetRegistrationByIdAsync(request.TenantId,
+                    await _registrationRepository.GetRegistrationByIdAsync(
+                        request.TenantId,
                         request.RegistrationId.Value);
 
                 var oldStatus = registration.Status;
@@ -140,8 +142,6 @@ namespace MarketingBox.Registration.Service.Services
                 return e.FailedResponse<List<StatusChangeLog>>();
             }
         }
-
-        private const string TenantId = "default-tenant-id";
 
         private static void UpdateStatus(
             Domain.Models.Registrations.Registration registration,
