@@ -28,7 +28,10 @@ namespace MarketingBox.Registration.Service.Tests
     {
         private AutoMocker _autoMocker;
         private TrafficEngineService _engine;
-        private readonly Domain.Models.Registrations.Registration _registration = new();
+        private readonly Domain.Models.Registrations.Registration _registration = new()
+        {
+            TenantId = TenantId
+        };
         private CampaignRowMessage _campaignRowNoSql1;
         private CampaignRowMessage _campaignRowNoSql2;
         private CampaignRowMessage _campaignRowNoSql3;
@@ -53,7 +56,8 @@ namespace MarketingBox.Registration.Service.Tests
                     BrandId = brandId,
                     Priority = priority,
                     Weight = weight,
-                    DailyCapValue = dailyCap
+                    DailyCapValue = dailyCap,
+                    TenantId = TenantId
                 };
         }
 
@@ -154,7 +158,6 @@ namespace MarketingBox.Registration.Service.Tests
             _autoMocker.Setup<IMapper, RegistrationRequest>(
                     x => x.Map<RegistrationRequest>(It.IsAny<Domain.Models.Registrations.Registration>()))
                 .Returns(() => new RegistrationRequest());
-
 
             brandCandidate = new FakeMyNoSqlReaderWriter<BrandCandidateNoSql>();
             _autoMocker.Use<IMyNoSqlServerDataReader<BrandCandidateNoSql>>(brandCandidate);

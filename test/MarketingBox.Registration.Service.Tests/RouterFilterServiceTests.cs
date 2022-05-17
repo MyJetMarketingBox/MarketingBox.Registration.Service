@@ -121,7 +121,8 @@ namespace MarketingBox.Registration.Service.Tests
                     {
                         GetActivityHours()
                     },
-                    EnableTraffic = EnableTraffic
+                    EnableTraffic = EnableTraffic,
+                    TenantId = TenantId
                 });
         }
 

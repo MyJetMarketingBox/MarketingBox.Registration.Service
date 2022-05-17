@@ -46,7 +46,8 @@ namespace MarketingBox.Registration.Service.Services
                 UpdatedAt = DateTime.Today.DayOfWeek,
                 SuccessfullySent = brand?.SuccessfullySent ?? false,
                 CountOfSent = brand?.UpdatedAt == DateTime.Today.DayOfWeek ? brand.CountOfSent : 0,
-                SentByWeight = brand?.UpdatedAt == DateTime.Today.DayOfWeek ? brand.SentByWeight : 0
+                SentByWeight = brand?.UpdatedAt == DateTime.Today.DayOfWeek ? brand.SentByWeight : 0,
+                TenantId = campaignRowMessage.TenantId
             };
             _brandCandidateNoSqlWriter
                 .InsertOrReplaceAsync(BrandCandidateNoSql.Create(newBrand))
