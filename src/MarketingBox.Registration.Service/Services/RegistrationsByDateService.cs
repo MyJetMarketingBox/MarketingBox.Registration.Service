@@ -46,9 +46,8 @@ namespace MarketingBox.Registration.Service.Services
                 var tenantId = string.Empty;
                 try
                 {
-                    var affiliate = await _affiliateClient.GetAffiliateByApiKeyAndId(
-                        request.ApiKey,
-                        request.AffiliateId.Value);
+                    var affiliate = await _affiliateClient.GetAffiliateByApiKey(
+                        request.ApiKey, true);
                     tenantId = affiliate.TenantId;
                 }
                 catch (NotFoundException)
@@ -93,9 +92,8 @@ namespace MarketingBox.Registration.Service.Services
                 var tenantId = string.Empty;
                 try
                 {
-                    var affiliate = await _affiliateClient.GetAffiliateByApiKeyAndId(
-                        request.ApiKey,
-                        request.AffiliateId.Value);
+                    var affiliate = await _affiliateClient.GetAffiliateByApiKey(
+                        request.ApiKey, true);
                     tenantId = affiliate.TenantId;
                 }
                 catch (NotFoundException)

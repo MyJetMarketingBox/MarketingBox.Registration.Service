@@ -72,24 +72,7 @@ namespace MarketingBox.Registration.Service.MapperProfiles
                     x => x.MapFrom(z => z.Id))
                 .ForMember(x => x.CountryAlfa2Code,
                     x => x.MapFrom(z => z.Country));
-
-            CreateMap<Domain.Models.Registrations.Registration, Deposit>()
-                .ForMember(x => x.RegistrationId,
-                    x => x.MapFrom(z => z.Id))
-                .ForMember(x => x.UpdatedAt,
-                    x => x.MapFrom(z => DateTime.SpecifyKind(z.UpdatedAt, DateTimeKind.Utc)))
-                .ForMember(x => x.CreatedAt,
-                    x => x.MapFrom(z => DateTime.SpecifyKind(z.CreatedAt, DateTimeKind.Utc)))
-                .ForMember(x => x.ConversionDate,
-                    x => x.MapFrom(z =>
-                        z.ConversionDate.HasValue
-                            ? DateTime.SpecifyKind(z.ConversionDate.Value, DateTimeKind.Utc)
-                            : (DateTime?) null))
-                .ForMember(x => x.DepositDate,
-                    x => x.MapFrom(z =>
-                        z.DepositDate.HasValue
-                            ? DateTime.SpecifyKind(z.DepositDate.Value, DateTimeKind.Utc)
-                            : (DateTime?) null));
+            
             CreateMap<Domain.Models.Registrations.Registration, RegistrationRequest>()
                 .ForMember(x => x.IntegrationName,
                     x => x.MapFrom(z => z.Integration))

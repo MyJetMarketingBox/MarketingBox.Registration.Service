@@ -210,9 +210,8 @@ namespace MarketingBox.Registration.Service.Services
             AffiliateMessage affiliate = null;
             try
             {
-                affiliate = await _affiliateClient.GetAffiliateByApiKeyAndId(
-                    apiKey,
-                    affiliateId);
+                affiliate = await _affiliateClient.GetAffiliateByApiKey(
+                    apiKey, true);
                 if (affiliate is null)
                 {
                     throw new NotFoundException(NotFoundException.DefaultMessage);
