@@ -49,6 +49,9 @@ namespace MarketingBox.Registration.Service.Domain.Models.Registrations
         
         [DataMember(Order = 14)]
         public bool AutologinUsed { get; set; }
+        
+        [DataMember(Order = 15)]
+        public long? OfferId { get; set; }
 
     }
 }
