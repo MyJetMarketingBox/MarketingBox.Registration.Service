@@ -94,7 +94,7 @@ namespace MarketingBox.Registration.Service.Services
 
                 await _registrationRepository.SaveAsync(registration);
 
-                var user = await _userClient.GetUser(request.TenantId, request.UserId.Value);
+                var user = await _userClient.GetUser(request.UserId.Value, request.TenantId, true);
                 
                 await _registrationRepository.SaveStatusChangeLogAsync(new StatusChangeLog()
                 {

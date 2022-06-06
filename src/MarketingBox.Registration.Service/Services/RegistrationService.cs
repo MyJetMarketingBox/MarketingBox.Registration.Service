@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using AutoMapper;
 using MarketingBox.Affiliate.Service.Client.Interfaces;
 using MarketingBox.Affiliate.Service.Domain.Models.Affiliates;
+using MarketingBox.Affiliate.Service.Domain.Models.Campaigns;
 using MarketingBox.Affiliate.Service.Domain.Models.Country;
+using MarketingBox.Affiliate.Service.Domain.Models.Offers;
 using MarketingBox.ExternalReferenceProxy.Service.Grpc;
 using MarketingBox.ExternalReferenceProxy.Service.Grpc.Models;
 using MarketingBox.Registration.Service.Domain.Repositories;
@@ -26,6 +28,8 @@ namespace MarketingBox.Registration.Service.Services
     {
         private readonly ICountryClient _countryClient;
         private readonly IAffiliateClient _affiliateClient;
+        private readonly ICampaignClient _campaignClient;
+        private readonly IOfferClient _offerClient;
         private readonly IExternalReferenceProxyService _externalReferenceProxyService;
         private readonly ILogger<RegistrationService> _logger;
         private readonly IRegistrationRepository _repository;
@@ -38,7 +42,7 @@ namespace MarketingBox.Registration.Service.Services
             ICountryClient countryClient,
             IMapper mapper,
             ITrafficEngineService trafficEngineService,
-            IAffiliateClient affiliateClient)
+            IAffiliateClient affiliateClient, IOfferClient offerClient, ICampaignClient campaignClient)
         {
             _logger = logger;
             _repository = repository;
@@ -47,6 +51,8 @@ namespace MarketingBox.Registration.Service.Services
             _mapper = mapper;
             _trafficEngineService = trafficEngineService;
             _affiliateClient = affiliateClient;
+            _offerClient = offerClient;
+            _campaignClient = campaignClient;
         }
 
         public async Task<Response<Domain.Models.Registrations.Registration>> CreateAsync(
@@ -70,6 +76,7 @@ namespace MarketingBox.Registration.Service.Services
                 var country = await GetCountry(
                     request.GeneralInfo.CountryCodeType.Value,
                     request.GeneralInfo.CountryCode);
+                var campaign = await GetCampaign(request.CampaignId.Value, tenantId);
 
                 var registration = _mapper.Map<Domain.Models.Registrations.Registration>(request);
                 registration.UniqueId = UniqueIdGenerator.GetNextId();
@@ -78,6 +85,7 @@ namespace MarketingBox.Registration.Service.Services
                 registration.AffiliateName = affiliateName;
                 registration.Id = registrationId;
                 registration.TenantId = tenantId;
+                registration.CampaignName = campaign.Name;
 
                 try
                 {
@@ -145,9 +153,10 @@ namespace MarketingBox.Registration.Service.Services
 
                 var tenantId = affiliate.TenantId;
                 var affiliateName = affiliate.GeneralInfo.Username;
+                var offer = await GetOffer(request.OfferId.Value, tenantId);
                 var registrationId = await _repository.GenerateRegistrationIdAsync(tenantId,
                     request.GeneralInfo.GeneratorId());
-
+                
                 var country = await GetCountry(
                     request.GeneralInfo.CountryCodeType.Value,
                     request.GeneralInfo.CountryCode);
@@ -157,6 +166,7 @@ namespace MarketingBox.Registration.Service.Services
                 registration.Country = country.Alfa2Code;
                 registration.CountryId = country.Id;
                 registration.AffiliateName = affiliateName;
+                registration.OfferName = offer.Name;
                 registration.Id = registrationId;
                 registration.TenantId = tenantId;
                 registration.Status = RegistrationStatus.Registered;
@@ -212,10 +222,6 @@ namespace MarketingBox.Registration.Service.Services
             {
                 affiliate = await _affiliateClient.GetAffiliateByApiKey(
                     apiKey, true);
-                if (affiliate is null)
-                {
-                    throw new NotFoundException(NotFoundException.DefaultMessage);
-                }
             }
             catch (NotFoundException)
             {
@@ -224,6 +230,18 @@ namespace MarketingBox.Registration.Service.Services
             }
 
             return affiliate;
+        }
+
+        private async Task<Offer> GetOffer(long offerId, string tenantId)
+        {
+            var offer = await _offerClient.GetOfferByTenantAndId(offerId, tenantId, checkInService: true);
+            return offer;
+        }
+
+        private async Task<CampaignMessage> GetCampaign(long campaignId, string tenantId)
+        {
+            var campaign = await _campaignClient.GetCampaignById(campaignId, tenantId, checkInService: true);
+            return campaign;
         }
 
         private static class UniqueIdGenerator

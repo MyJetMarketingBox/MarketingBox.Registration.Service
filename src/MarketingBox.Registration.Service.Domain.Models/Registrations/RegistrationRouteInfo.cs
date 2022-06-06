@@ -11,7 +11,7 @@ namespace MarketingBox.Registration.Service.Domain.Models.Registrations
         public long AffiliateId { get; set; }
 
         [DataMember(Order = 2)]
-        public long CampaignId { get; set; }
+        public long? CampaignId { get; set; }
 
         [DataMember(Order = 3)]
         public long BrandId { get; set; }
@@ -52,7 +52,12 @@ namespace MarketingBox.Registration.Service.Domain.Models.Registrations
         
         [DataMember(Order = 15)]
         public long? OfferId { get; set; }
-
+        
+        [DataMember(Order = 16)]
+        public string OfferName { get; set; }
+        
+        [DataMember(Order = 17)]
+        public string CampaignName { get; set; }
     }
 }
 
