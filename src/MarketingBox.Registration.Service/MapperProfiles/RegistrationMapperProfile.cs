@@ -4,7 +4,6 @@ using MarketingBox.Integration.Service.Grpc.Models.Registrations;
 using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integration;
 using MarketingBox.Registration.Service.Domain.Models.Affiliate;
 using MarketingBox.Registration.Service.Domain.Models.Registrations;
-using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 using MarketingBox.Registration.Service.Grpc.Requests.Registration;
 using MarketingBox.Registration.Service.Messages.Registrations;
 using RegistrationAdditionalInfo =
@@ -72,7 +71,7 @@ namespace MarketingBox.Registration.Service.MapperProfiles
                     x => x.MapFrom(z => z.Id))
                 .ForMember(x => x.CountryAlfa2Code,
                     x => x.MapFrom(z => z.Country));
-            
+
             CreateMap<Domain.Models.Registrations.Registration, RegistrationRequest>()
                 .ForMember(x => x.IntegrationName,
                     x => x.MapFrom(z => z.Integration))
@@ -84,7 +83,8 @@ namespace MarketingBox.Registration.Service.MapperProfiles
                     x => x.MapFrom(z => z))
                 .ForMember(x => x.AdditionalInfo,
                     x => x.MapFrom(z => z));
-            CreateMap<Domain.Models.Registrations.Registration, Integration.Service.Grpc.Models.Registrations.RegistrationAdditionalInfo>();
+            CreateMap<Domain.Models.Registrations.Registration,
+                Integration.Service.Grpc.Models.Registrations.RegistrationAdditionalInfo>();
             CreateMap<Domain.Models.Registrations.Registration, RegistrationInfo>();
         }
     }

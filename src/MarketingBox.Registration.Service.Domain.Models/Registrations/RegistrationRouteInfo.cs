@@ -25,10 +25,6 @@ namespace MarketingBox.Registration.Service.Domain.Models.Registrations
         [DataMember(Order = 6)]
         public RegistrationStatus Status { get; set; }
 
-        [DataMember(Order = 7)]
-        [Obsolete("This property is obsolete. Use CrmStatus instead.", true)]
-        public string CrmCrmStatus { get; set; }
-
         [DataMember(Order = 8)]
         public DateTime? DepositDate { get; set; }
 
