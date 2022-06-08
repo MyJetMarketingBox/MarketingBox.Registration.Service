@@ -23,6 +23,8 @@ namespace MarketingBox.Registration.Service.Modules
             builder.RegisterCountryClient(Program.Settings.AffiliateServiceUrl, noSqlClient);
             builder.RegisterUserClient(Program.Settings.AuthServiceUrl, noSqlClient);
             builder.RegisterAffiliateClient(Program.Settings.AffiliateServiceUrl, noSqlClient);
+            builder.RegisterOfferClient(Program.Settings.AffiliateServiceUrl, noSqlClient);
+            builder.RegisterCampaignClient(Program.Settings.AffiliateServiceUrl, noSqlClient);
         }
     }
 }
