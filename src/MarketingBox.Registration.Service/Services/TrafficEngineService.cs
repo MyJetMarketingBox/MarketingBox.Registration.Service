@@ -29,7 +29,7 @@ namespace MarketingBox.Registration.Service.Services
         private readonly IRouterFilterService _routerFilterService;
         private readonly IMapper _mapper;
         private readonly IMyNoSqlServerDataReader<IntegrationNoSql> _integrationNoSqlServerDataReader;
-        private IBrandClient _brandClient;
+        private readonly IBrandClient _brandClient;
 
         private BrandCandidate GetBrandCandidate(CampaignRowMessage campaignRowMessage)
         {

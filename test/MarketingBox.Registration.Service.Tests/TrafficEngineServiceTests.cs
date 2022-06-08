@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
+using MarketingBox.Affiliate.Service.Client.Interfaces;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
@@ -13,6 +14,7 @@ using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integ
 using MarketingBox.Registration.Service.MyNoSql.TrafficEngine;
 using MarketingBox.Registration.Service.Services;
 using MarketingBox.Registration.Service.Services.Interfaces;
+using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using RegistrationIntegration =
     MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integration.Registration;
@@ -149,12 +151,9 @@ namespace MarketingBox.Registration.Service.Tests
                 {
                     Integration = new IntegrationMessage()
                 });
-            _autoMocker.Setup<IMyNoSqlServerDataReader<BrandNoSql>, BrandNoSql>(
-                    x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(() => new BrandNoSql()
-                {
-                    Brand = new BrandMessage()
-                });
+            _autoMocker.Setup<IBrandClient, ValueTask<BrandMessage>>(
+                    x => x.GetBrandById(It.IsAny<long>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .ReturnsAsync(() => new BrandMessage());
             _autoMocker.Setup<IMapper, RegistrationRequest>(
                     x => x.Map<RegistrationRequest>(It.IsAny<Domain.Models.Registrations.Registration>()))
                 .Returns(() => new RegistrationRequest());
@@ -294,9 +293,9 @@ namespace MarketingBox.Registration.Service.Tests
         [Test]
         public async Task NoBrandFromNoSqlTest()
         {
-            _autoMocker.Setup<IMyNoSqlServerDataReader<BrandNoSql>, BrandNoSql>(
-                    x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns((BrandNoSql) null);
+            _autoMocker.Setup<IBrandClient, ValueTask<BrandMessage>>(
+                    x => x.GetBrandById(It.IsAny<long>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .ThrowsAsync(new Exception());
 
             Assert.IsFalse(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
         }
