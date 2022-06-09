@@ -37,7 +37,7 @@ namespace MarketingBox.Registration.Service.Services
             _userClient = userClient;
         }
 
-        public async Task<Response<Deposit>> RegisterDepositAsync(DepositCreateRequest request)
+        public async Task<Response<Domain.Models.Registrations.Registration>> RegisterDepositAsync(DepositCreateRequest request)
         {
             _logger.LogInformation("Creating new deposit {@context}", request);
             try
@@ -45,7 +45,8 @@ namespace MarketingBox.Registration.Service.Services
                 request.ValidateEntity();
 
                 var registration =
-                    await _registrationRepository.GetRegistrationByIdAsync(request.TenantId,
+                    await _registrationRepository.GetRegistrationByIdAsync(
+                        request.TenantId,
                         request.RegistrationId.Value);
                 UpdateStatus(registration, DepositUpdateMode.Automatically, RegistrationStatus.Deposited);
 
@@ -54,20 +55,20 @@ namespace MarketingBox.Registration.Service.Services
                 await _publisherLeadUpdated.PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
                 _logger.LogInformation("Sent deposit register to service bus {@context}", request);
 
-                return new Response<Deposit>
+                return new Response<Domain.Models.Registrations.Registration>
                 {
                     Status = ResponseStatus.Ok,
-                    Data = _mapper.Map<Deposit>(registration)
+                    Data = registration
                 };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error creating registration {@context}", request);
-                return e.FailedResponse<Deposit>();
+                return e.FailedResponse<Domain.Models.Registrations.Registration>();
             }
         }
 
-        public async Task<Response<Deposit>> UpdateDepositStatusAsync(UpdateDepositStatusRequest request)
+        public async Task<Response<Domain.Models.Registrations.Registration>> UpdateDepositStatusAsync(UpdateDepositStatusRequest request)
         {
             try
             {
@@ -76,23 +77,24 @@ namespace MarketingBox.Registration.Service.Services
                 request.ValidateEntity();
 
                 var registration =
-                    await _registrationRepository.GetRegistrationByIdAsync(request.TenantId,
+                    await _registrationRepository.GetRegistrationByIdAsync(
+                        request.TenantId,
                         request.RegistrationId.Value);
 
                 var oldStatus = registration.Status;
                 if (request.NewStatus.Value == RegistrationStatus.Failed ||
                     oldStatus == request.NewStatus)
-                    return new Response<Deposit>
+                    return new Response<Domain.Models.Registrations.Registration>
                     {
                         Status = ResponseStatus.Ok,
-                        Data = _mapper.Map<Deposit>(registration)
+                        Data = registration
                     };
 
                 UpdateStatus(registration, request.Mode.Value, request.NewStatus.Value);
 
                 await _registrationRepository.SaveAsync(registration);
 
-                var user = await _userClient.GetUser(request.TenantId, request.UserId.Value);
+                var user = await _userClient.GetUser(request.UserId.Value, request.TenantId, true);
                 
                 await _registrationRepository.SaveStatusChangeLogAsync(new StatusChangeLog()
                 {
@@ -107,16 +109,16 @@ namespace MarketingBox.Registration.Service.Services
                     NewStatus = request.NewStatus.Value
                 });
 
-                return new Response<Deposit>
+                return new Response<Domain.Models.Registrations.Registration>
                 {
                     Status = ResponseStatus.Ok,
-                    Data = _mapper.Map<Deposit>(registration)
+                    Data = registration
                 };
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Error updating deposit status {@context}", request);
-                return e.FailedResponse<Deposit>();
+                return e.FailedResponse<Domain.Models.Registrations.Registration>();
             }
         }
 
@@ -140,8 +142,6 @@ namespace MarketingBox.Registration.Service.Services
                 return e.FailedResponse<List<StatusChangeLog>>();
             }
         }
-
-        private const string TenantId = "default-tenant-id";
 
         private static void UpdateStatus(
             Domain.Models.Registrations.Registration registration,

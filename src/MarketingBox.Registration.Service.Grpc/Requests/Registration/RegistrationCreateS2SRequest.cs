@@ -20,4 +20,7 @@ public class RegistrationCreateS2SRequest : ValidatableEntity
 
     [DataMember(Order = 5), Required, AdvancedCompare(ComparisonType.GreaterThan, 0)]
     public long? BrandId { get; set; }
+    
+    [DataMember(Order = 6), Required, AdvancedCompare(ComparisonType.GreaterThan, 0)]
+    public long? OfferId { get; set; }
 }

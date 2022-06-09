@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using MarketingBox.Affiliate.Service.Client.Interfaces;
 using MarketingBox.Affiliate.Service.MyNoSql.Affiliates;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Requests.Registration;
@@ -21,26 +22,16 @@ namespace MarketingBox.Registration.Service.Services
     {
         private readonly ILogger<RegistrationsByDateService> _logger;
         private readonly IAffiliateService _customerReportService;
-        private readonly IMyNoSqlServerDataReader<AffiliateNoSql> _affiliateNoSqlServerDataReader;
+        private readonly IAffiliateClient _affiliateClient;
         private readonly IMapper _mapper;
-
-        private bool CheckAuth(long affiliateId, string apiKey, out string tenantId)
-        {
-            var affiliates = _affiliateNoSqlServerDataReader
-                .Get()
-                .Select(x=>x.Affiliate);
-            var affiliate = affiliates.FirstOrDefault(e => e.AffiliateId == affiliateId);
-            tenantId = affiliate?.TenantId;
-            return affiliate?.GeneralInfo != null && affiliate.GeneralInfo.ApiKey.Equals(apiKey, StringComparison.OrdinalIgnoreCase);
-        }
 
         public RegistrationsByDateService(ILogger<RegistrationsByDateService> logger,
             IAffiliateService customerReportService, 
-            IMyNoSqlServerDataReader<AffiliateNoSql> affiliateNoSqlServerDataReader, IMapper mapper)
+            IAffiliateClient affiliateClient, IMapper mapper)
         {
             _logger = logger;
             _customerReportService = customerReportService;
-            _affiliateNoSqlServerDataReader = affiliateNoSqlServerDataReader;
+            _affiliateClient = affiliateClient;
             _mapper = mapper;
         }
 
@@ -52,9 +43,17 @@ namespace MarketingBox.Registration.Service.Services
                 
                 _logger.LogInformation("RegistrationsByDateService.GetRegistrationsAsync receive request : {@Request}", request);
 
-                var isAuth = CheckAuth(request.AffiliateId.Value, request.ApiKey, out var tenantId);
-                if (!isAuth)
+                var tenantId = string.Empty;
+                try
+                {
+                    var affiliate = await _affiliateClient.GetAffiliateByApiKey(
+                        request.ApiKey, true);
+                    tenantId = affiliate.TenantId;
+                }
+                catch (NotFoundException)
+                {
                     throw new UnauthorizedException("Affiliate", request.AffiliateId.Value);
+                }
 
                 var reportResponse = await _customerReportService.GetRegistrations(new RegistrationsByAffiliateRequest()
                 {
@@ -90,9 +89,17 @@ namespace MarketingBox.Registration.Service.Services
                 _logger.LogInformation("RegistrationsByDateService.GetRegistrationAsync receive request: {@Request}",
                     request);
                 
-                var isAuth = CheckAuth(affiliateId, request.ApiKey, out var tenantId);
-                if (!isAuth)
-                    throw new UnauthorizedException("Affiliate", affiliateId);
+                var tenantId = string.Empty;
+                try
+                {
+                    var affiliate = await _affiliateClient.GetAffiliateByApiKey(
+                        request.ApiKey, true);
+                    tenantId = affiliate.TenantId;
+                }
+                catch (NotFoundException)
+                {
+                    throw new UnauthorizedException("Affiliate", request.AffiliateId.Value);
+                }
                 var reportResponse = await _customerReportService.GetRegistration(new RegistrationByAffiliateRequest()
                 {
                     RegistrationUid = request.RegistrationUId,

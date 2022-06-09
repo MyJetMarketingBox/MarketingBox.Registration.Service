@@ -3,6 +3,7 @@ using System;
 using MarketingBox.Registration.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MarketingBox.Registration.Postgres.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20220606082831_add_offerId")]
+    partial class add_offerId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -119,9 +121,6 @@ namespace MarketingBox.Registration.Postgres.Migrations
                     b.Property<long?>("CampaignId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("CampaignName")
-                        .HasColumnType("text");
-
                     b.Property<DateTime?>("ConversionDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -175,9 +174,6 @@ namespace MarketingBox.Registration.Postgres.Migrations
 
                     b.Property<long?>("OfferId")
                         .HasColumnType("bigint");
-
-                    b.Property<string>("OfferName")
-                        .HasColumnType("text");
 
                     b.Property<string>("Password")
                         .HasColumnType("text");

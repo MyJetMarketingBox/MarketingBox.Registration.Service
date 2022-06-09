@@ -29,7 +29,7 @@ namespace MarketingBox.Registration.Service.Services
             _logger = logger;
         }
 
-        public async Task<List<CampaignRowMessage>> GetSuitableRoutes(long campaignId, int countryId)
+        public async Task<List<CampaignRowMessage>> GetSuitableRoutes(long campaignId, int countryId, string tenantId)
         {
             var date = DateTime.UtcNow;
             var campaignRows =
@@ -65,9 +65,9 @@ namespace MarketingBox.Registration.Service.Services
 
                 long currentCap = currentCampaignRow.CapType switch
                 {
-                    CapType.Lead => await _registrationRepository.GetCountForRegistrations(date,
+                    CapType.Lead => await _registrationRepository.GetCountForRegistrations(date, tenantId,
                         currentCampaignRow.BrandId, currentCampaignRow.CampaignId, RegistrationStatus.Registered),
-                    CapType.Ftds => await _registrationRepository.GetCountForDeposits(date, currentCampaignRow.BrandId,
+                    CapType.Ftds => await _registrationRepository.GetCountForDeposits(date, tenantId, currentCampaignRow.BrandId,
                         currentCampaignRow.CampaignId, RegistrationStatus.Approved),
                     _ => 0
                 };

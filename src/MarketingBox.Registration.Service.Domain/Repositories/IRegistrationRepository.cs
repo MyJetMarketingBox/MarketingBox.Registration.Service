@@ -10,11 +10,11 @@ namespace MarketingBox.Registration.Service.Domain.Repositories
     {
         Task SaveAsync(Models.Registrations.Registration registration);
         Task<long> GenerateRegistrationIdAsync(string tenantId, string generatorId);
-        Task<Models.Registrations.Registration> RestoreAsync(long registrationId);
+        Task<Models.Registrations.Registration> RestoreAsync(string tenantId, long registrationId);
         Task<Models.Registrations.Registration> GetLeadByCustomerIdAsync(string tenantId, string customerId);
         Task<Models.Registrations.Registration> GetRegistrationByIdAsync(string tenantId, long registrationId);
-        Task<int> GetCountForRegistrations(DateTime date, long brandId, long campaignId, RegistrationStatus registrationStatus);
-        Task<int> GetCountForDeposits(DateTime date, long brandId, long campaignId, RegistrationStatus registrationStatus);
+        Task<int> GetCountForRegistrations(DateTime date,string tenantId, long brandId, long campaignId, RegistrationStatus registrationStatus);
+        Task<int> GetCountForDeposits(DateTime date,string tenantId, long brandId, long campaignId, RegistrationStatus registrationStatus);
         Task SaveStatusChangeLogAsync(StatusChangeLog log);
         Task<List<StatusChangeLog>> GetStatusChangeLogAsync(GetStatusChangeLogRequest request);
     }

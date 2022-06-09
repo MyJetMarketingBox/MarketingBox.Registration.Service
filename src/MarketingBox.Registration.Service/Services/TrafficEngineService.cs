@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using MarketingBox.Affiliate.Service.Client.Interfaces;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
-using MarketingBox.Affiliate.Service.MyNoSql.Brands;
 using MarketingBox.Affiliate.Service.MyNoSql.Integrations;
 using MarketingBox.Integration.Service.Client;
 using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integration;
@@ -22,9 +22,6 @@ namespace MarketingBox.Registration.Service.Services
 {
     public class TrafficEngineService : ITrafficEngineService
     {
-        // todo: remove when multi-tenancy will be implemented
-        private const string TenantId = "default-tenant-id";
-
         private readonly IIntegrationService _service;
         private readonly ILogger<TrafficEngineService> _logger;
         private readonly IMyNoSqlServerDataReader<BrandCandidateNoSql> _brandCandidateNoSqlReader;
@@ -32,12 +29,12 @@ namespace MarketingBox.Registration.Service.Services
         private readonly IRouterFilterService _routerFilterService;
         private readonly IMapper _mapper;
         private readonly IMyNoSqlServerDataReader<IntegrationNoSql> _integrationNoSqlServerDataReader;
-        private readonly IMyNoSqlServerDataReader<BrandNoSql> _brandNoSqlServerDataReader;
+        private readonly IBrandClient _brandClient;
 
         private BrandCandidate GetBrandCandidate(CampaignRowMessage campaignRowMessage)
         {
             var brand = _brandCandidateNoSqlReader.Get(
-                BrandCandidateNoSql.GeneratePartitionKey(),
+                BrandCandidateNoSql.GeneratePartitionKey(campaignRowMessage.TenantId),
                 BrandCandidateNoSql.GenerateRowKey(campaignRowMessage.BrandId))?.BrandCandidate;
 
             var newBrand = new BrandCandidate
@@ -49,7 +46,8 @@ namespace MarketingBox.Registration.Service.Services
                 UpdatedAt = DateTime.Today.DayOfWeek,
                 SuccessfullySent = brand?.SuccessfullySent ?? false,
                 CountOfSent = brand?.UpdatedAt == DateTime.Today.DayOfWeek ? brand.CountOfSent : 0,
-                SentByWeight = brand?.UpdatedAt == DateTime.Today.DayOfWeek ? brand.SentByWeight : 0
+                SentByWeight = brand?.UpdatedAt == DateTime.Today.DayOfWeek ? brand.SentByWeight : 0,
+                TenantId = campaignRowMessage.TenantId
             };
             _brandCandidateNoSqlWriter
                 .InsertOrReplaceAsync(BrandCandidateNoSql.Create(newBrand))
@@ -59,10 +57,10 @@ namespace MarketingBox.Registration.Service.Services
             return newBrand;
         }
 
-        private async Task<List<Priority>> GetTrafficEngineTree(long campaignId, int countryId)
+        private async Task<List<Priority>> GetTrafficEngineTree(long campaignId, int countryId, string tenantId)
         {
             // filter campaignRows by criteria 
-            var campaignRows = await _routerFilterService.GetSuitableRoutes(campaignId, countryId);
+            var campaignRows = await _routerFilterService.GetSuitableRoutes(campaignId, countryId, tenantId);
 
             // create traffic engine data structure
             var lookup = campaignRows.ToLookup(
@@ -101,7 +99,7 @@ namespace MarketingBox.Registration.Service.Services
 
                     try
                     {
-                        var (brandNoSql, integrationNoSql) = GetFromNoSql(brandCandidate.BrandId);
+                        var (brandNoSql, integrationNoSql) = await GetFromNoSql(registration.TenantId, brandCandidate.BrandId);
 
                         registration.BrandId = brandCandidate.BrandId;
                         registration.IntegrationId = integrationNoSql.Id;
@@ -128,7 +126,7 @@ namespace MarketingBox.Registration.Service.Services
                     }
                     catch (Exception e)
                     {
-                        _logger.LogWarning("Integration service responded with error: {Error}", e.Message);
+                        _logger.LogWarning(e, "Registration to brand failed {BrandId}", brandCandidate.BrandId);
                         brandCandidate.SuccessfullySent = false;
                         await _brandCandidateNoSqlWriter.InsertOrReplaceAsync(
                             BrandCandidateNoSql.Create(brandCandidate));
@@ -144,26 +142,18 @@ namespace MarketingBox.Registration.Service.Services
             return false;
         }
 
-        private (BrandMessage brandNoSql, IntegrationMessage integrationNoSql) GetFromNoSql(long brandId)
+        private async Task<(BrandMessage brandNoSql, IntegrationMessage integrationNoSql)> GetFromNoSql(string tenantId, long brandId)
         {
-            var brandNoSql = _brandNoSqlServerDataReader.Get(
-                BrandNoSql.GeneratePartitionKey(TenantId),
-                BrandNoSql.GenerateRowKey(brandId))?.Brand;
-            if (brandNoSql is null)
-            {
-                _logger.LogError(
-                    $"{BrandCandidateNoSql.TableName} does not contain brand with id {brandId}");
-                throw new NotFoundException("Brand with id", brandId);
-            }
+            var brandNoSql = await _brandClient.GetBrandById(brandId, tenantId, true);
 
             var integrationNoSql = _integrationNoSqlServerDataReader.Get(
-                IntegrationNoSql.GeneratePartitionKey(TenantId),
+                IntegrationNoSql.GeneratePartitionKey(tenantId),
                 IntegrationNoSql.GenerateRowKey(brandNoSql.IntegrationId ?? default))?.Integration;
             if (integrationNoSql is null)
             {
                 _logger.LogError(
                     $"{IntegrationNoSql.TableName} does not contain integration with id {brandNoSql.IntegrationId}");
-                throw new NotFoundException("Brand with id", brandId);
+                throw new NotFoundException("Integration with id", brandNoSql.IntegrationId);
             }
 
             return (brandNoSql, integrationNoSql);
@@ -208,7 +198,7 @@ namespace MarketingBox.Registration.Service.Services
             IMyNoSqlServerDataWriter<BrandCandidateNoSql> brandCandidateNoSqlWriter,
             IMapper mapper,
             IMyNoSqlServerDataReader<IntegrationNoSql> integrationNoSqlServerDataReader,
-            IMyNoSqlServerDataReader<BrandNoSql> brandNoSqlServerDataReader)
+            IBrandClient brandClient)
         {
             _service = service;
             _logger = logger;
@@ -216,14 +206,14 @@ namespace MarketingBox.Registration.Service.Services
             _brandCandidateNoSqlReader = brandCandidateNoSqlReader;
             _brandCandidateNoSqlWriter = brandCandidateNoSqlWriter;
             _mapper = mapper;
+            _brandClient = brandClient;
             _integrationNoSqlServerDataReader = integrationNoSqlServerDataReader;
-            _brandNoSqlServerDataReader = brandNoSqlServerDataReader;
         }
 
         public async Task<bool> TryRegisterAsync(long campaignId, int countryId,
             Domain.Models.Registrations.Registration registration)
         {
-            var priorities = await GetTrafficEngineTree(campaignId, countryId);
+            var priorities = await GetTrafficEngineTree(campaignId, countryId, registration.TenantId);
 
             // run algorithm among all priorities
             foreach (var campaignPriority in priorities.OrderBy(x => x.PriorityValue))

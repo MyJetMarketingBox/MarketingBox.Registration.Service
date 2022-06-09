@@ -28,7 +28,7 @@ namespace MarketingBox.Registration.Service.Tests
             throw new NotImplementedException();
         }
 
-        public Task<Domain.Models.Registrations.Registration> RestoreAsync(long registrationId)
+        public Task<Domain.Models.Registrations.Registration> RestoreAsync(string tenantId, long registrationId)
         {
             throw new NotImplementedException();
         }
@@ -43,12 +43,12 @@ namespace MarketingBox.Registration.Service.Tests
             throw new NotImplementedException();
         }
 
-        public Task<int> GetCountForRegistrations(DateTime date, long brandId, long campaignId, RegistrationStatus registrationStatus)
+        public Task<int> GetCountForRegistrations(DateTime date, string tenantId, long brandId, long campaignId, RegistrationStatus registrationStatus)
         {
             return Task.FromResult(LeadCount);
         }
 
-        public Task<int> GetCountForDeposits(DateTime date, long brandId, long campaignId, RegistrationStatus registrationStatus)
+        public Task<int> GetCountForDeposits(DateTime date, string tenantId, long brandId, long campaignId, RegistrationStatus registrationStatus)
         {
             return Task.FromResult(FtdCount);
         }

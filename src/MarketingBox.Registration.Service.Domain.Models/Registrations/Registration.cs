@@ -48,5 +48,8 @@ namespace MarketingBox.Registration.Service.Domain.Models.Registrations
         [DataMember(Order = 39)] public string CustomerLoginUrl { get; set; }
         [DataMember(Order = 40)] public string CustomerBrand { get; set; }
         [DataMember(Order = 41)] public bool AutologinUsed { get; set; }
+        [DataMember(Order = 42)] public long? OfferId { get; set; }
+        [DataMember(Order = 43)] public string OfferName { get; set; }
+        [DataMember(Order = 44)] public string CampaignName { get; set; }
     }
 }

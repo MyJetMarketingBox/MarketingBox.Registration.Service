@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
+using MarketingBox.Affiliate.Service.Client.Interfaces;
 using MarketingBox.Affiliate.Service.Domain.Models.Brands;
 using MarketingBox.Affiliate.Service.Domain.Models.CampaignRows;
 using MarketingBox.Affiliate.Service.Domain.Models.Integrations;
@@ -13,6 +14,7 @@ using MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integ
 using MarketingBox.Registration.Service.MyNoSql.TrafficEngine;
 using MarketingBox.Registration.Service.Services;
 using MarketingBox.Registration.Service.Services.Interfaces;
+using MarketingBox.Sdk.Common.Exceptions;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using RegistrationIntegration =
     MarketingBox.Integration.Service.Grpc.Models.Registrations.Contracts.Integration.Registration;
@@ -28,7 +30,10 @@ namespace MarketingBox.Registration.Service.Tests
     {
         private AutoMocker _autoMocker;
         private TrafficEngineService _engine;
-        private readonly Domain.Models.Registrations.Registration _registration = new();
+        private readonly Domain.Models.Registrations.Registration _registration = new()
+        {
+            TenantId = TenantId
+        };
         private CampaignRowMessage _campaignRowNoSql1;
         private CampaignRowMessage _campaignRowNoSql2;
         private CampaignRowMessage _campaignRowNoSql3;
@@ -40,6 +45,7 @@ namespace MarketingBox.Registration.Service.Tests
         private const int CountryId = 1;
         private const int DailyCapValue = 100;
         private const int Priority = 1;
+        private const string TenantId = nameof(TenantId);
 
         private static CampaignRowMessage GetCampaignRowNoSql(long brandId,
             int dailyCap,
@@ -52,7 +58,8 @@ namespace MarketingBox.Registration.Service.Tests
                     BrandId = brandId,
                     Priority = priority,
                     Weight = weight,
-                    DailyCapValue = dailyCap
+                    DailyCapValue = dailyCap,
+                    TenantId = TenantId
                 };
         }
 
@@ -131,7 +138,7 @@ namespace MarketingBox.Registration.Service.Tests
             _autoMocker = new AutoMocker();
 
             _autoMocker.Setup<IRouterFilterService, Task<List<CampaignRowMessage>>>(
-                    x => x.GetSuitableRoutes(CampaignId, CountryId))
+                    x => x.GetSuitableRoutes(CampaignId, CountryId, TenantId))
                 .ReturnsAsync(() => new()
                 {
                     _campaignRowNoSql1,
@@ -144,16 +151,12 @@ namespace MarketingBox.Registration.Service.Tests
                 {
                     Integration = new IntegrationMessage()
                 });
-            _autoMocker.Setup<IMyNoSqlServerDataReader<BrandNoSql>, BrandNoSql>(
-                    x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(() => new BrandNoSql()
-                {
-                    Brand = new BrandMessage()
-                });
+            _autoMocker.Setup<IBrandClient, ValueTask<BrandMessage>>(
+                    x => x.GetBrandById(It.IsAny<long>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .ReturnsAsync(() => new BrandMessage());
             _autoMocker.Setup<IMapper, RegistrationRequest>(
                     x => x.Map<RegistrationRequest>(It.IsAny<Domain.Models.Registrations.Registration>()))
                 .Returns(() => new RegistrationRequest());
-
 
             brandCandidate = new FakeMyNoSqlReaderWriter<BrandCandidateNoSql>();
             _autoMocker.Use<IMyNoSqlServerDataReader<BrandCandidateNoSql>>(brandCandidate);
@@ -278,7 +281,7 @@ namespace MarketingBox.Registration.Service.Tests
         public async Task NoSuitableRoutesTest()
         {
             _autoMocker.Setup<IRouterFilterService, Task<List<CampaignRowMessage>>>(
-                    x => x.GetSuitableRoutes(CampaignId, CountryId))
+                    x => x.GetSuitableRoutes(CampaignId, CountryId, TenantId))
                 .ReturnsAsync(new List<CampaignRowMessage>());
 
             Assert.IsFalse(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
@@ -290,9 +293,9 @@ namespace MarketingBox.Registration.Service.Tests
         [Test]
         public async Task NoBrandFromNoSqlTest()
         {
-            _autoMocker.Setup<IMyNoSqlServerDataReader<BrandNoSql>, BrandNoSql>(
-                    x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns((BrandNoSql) null);
+            _autoMocker.Setup<IBrandClient, ValueTask<BrandMessage>>(
+                    x => x.GetBrandById(It.IsAny<long>(), It.IsAny<string>(), It.IsAny<bool>()))
+                .ThrowsAsync(new Exception());
 
             Assert.IsFalse(await _engine.TryRegisterAsync(CampaignId, CountryId, _registration));
         }
