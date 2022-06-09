@@ -16,7 +16,7 @@ namespace MarketingBox.Registration.Service.Modules
         {
             var noSqlClient = builder.CreateNoSqlClient(
                 Program.ReloadedSettings(e => e.MyNoSqlReaderHostPort).Invoke(),
-                new LoggerFactory());
+                Program.LogFactory);
 
             builder.RegisterMyNoSqlReader<CampaignNoSql>(noSqlClient, CampaignNoSql.TableName);
             builder.RegisterMyNoSqlReader<BrandNoSql>(noSqlClient, BrandNoSql.TableName);
