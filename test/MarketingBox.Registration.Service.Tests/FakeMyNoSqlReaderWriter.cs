@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MarketingBox.Affiliate.Service.MyNoSql.Brands;
-using MarketingBox.Registration.Service.Domain.Models.TrafficEngine;
 using MarketingBox.Registration.Service.MyNoSql.TrafficEngine;
 using MyNoSqlServer.Abstractions;
 
@@ -118,17 +116,17 @@ namespace MarketingBox.Registration.Service.Tests
             throw new NotImplementedException();
         }
 
-        public ValueTask BulkInsertOrReplaceAsync(IEnumerable<T> entity, DataSynchronizationPeriod dataSynchronizationPeriod = DataSynchronizationPeriod.Sec5)
+        public ValueTask BulkInsertOrReplaceAsync(IReadOnlyList<T> entity, DataSynchronizationPeriod dataSynchronizationPeriod = DataSynchronizationPeriod.Sec5)
         {
             throw new NotImplementedException();
         }
 
-        public ValueTask CleanAndBulkInsertAsync(IEnumerable<T> entity, DataSynchronizationPeriod dataSynchronizationPeriod = DataSynchronizationPeriod.Sec5)
+        public ValueTask CleanAndBulkInsertAsync(IReadOnlyList<T> entity, DataSynchronizationPeriod dataSynchronizationPeriod = DataSynchronizationPeriod.Sec5)
         {
             throw new NotImplementedException();
         }
 
-        public ValueTask CleanAndBulkInsertAsync(string partitionKey, IEnumerable<T> entity,
+        public ValueTask CleanAndBulkInsertAsync(string partitionKey, IReadOnlyList<T> entity,
             DataSynchronizationPeriod dataSynchronizationPeriod = DataSynchronizationPeriod.Sec5)
         {
             throw new NotImplementedException();
@@ -146,17 +144,12 @@ namespace MarketingBox.Registration.Service.Tests
             throw new NotImplementedException();
         }
 
-        public ValueTask<IEnumerable<T>> GetAsync()
+        ValueTask<List<T>> IMyNoSqlServerDataWriter<T>.GetAsync()
         {
             throw new NotImplementedException();
         }
 
-        public IAsyncEnumerable<T> GetAllAsync(int bulkRecordsCount)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ValueTask<IEnumerable<T>> GetAsync(string partitionKey)
+        ValueTask<List<T>> IMyNoSqlServerDataWriter<T>.GetAsync(string partitionKey)
         {
             throw new NotImplementedException();
         }
@@ -166,7 +159,7 @@ namespace MarketingBox.Registration.Service.Tests
             throw new NotImplementedException();
         }
 
-        public ValueTask<IReadOnlyList<T>> GetMultipleRowKeysAsync(string partitionKey, IEnumerable<string> rowKeys)
+        public ValueTask<List<T>> GetMultipleRowKeysAsync(string partitionKey, IReadOnlyList<string> rowKeys)
         {
             throw new NotImplementedException();
         }
@@ -184,16 +177,16 @@ namespace MarketingBox.Registration.Service.Tests
             return ValueTask.FromResult<T>(null);
         }
 
-        public ValueTask<IEnumerable<T>> QueryAsync(string query)
+        ValueTask<List<T>> IMyNoSqlServerDataWriter<T>.QueryAsync(string query)
         {
             throw new NotImplementedException();
         }
 
-        public ValueTask<IEnumerable<T>> GetHighestRowAndBelow(string partitionKey, string rowKeyFrom, int amount)
+        ValueTask<List<T>> IMyNoSqlServerDataWriter<T>.GetHighestRowAndBelow(string partitionKey, string rowKeyFrom, int amount)
         {
             throw new NotImplementedException();
         }
-
+        
         public ValueTask CleanAndKeepMaxPartitions(int maxAmount)
         {
             throw new NotImplementedException();
