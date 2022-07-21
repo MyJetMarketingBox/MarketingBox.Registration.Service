@@ -222,6 +222,11 @@ namespace MarketingBox.Registration.Service.Services
             {
                 affiliate = await _affiliateClient.GetAffiliateByApiKey(
                     apiKey, true);
+
+                if (affiliate.AffiliateId!=affiliateId)
+                {
+                    throw new BadRequestException($"Affiliate with id {affiliateId} has incorrect apikey.");
+                }
             }
             catch (NotFoundException)
             {
