@@ -14,6 +14,7 @@ using MarketingBox.Registration.Service.Domain.Repositories;
 using MarketingBox.Registration.Service.Extensions;
 using MarketingBox.Registration.Service.Grpc;
 using MarketingBox.Registration.Service.Grpc.Requests.Registration;
+using MarketingBox.Registration.Service.Messages.Registrations;
 using MarketingBox.Registration.Service.Services.Interfaces;
 using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
@@ -21,6 +22,7 @@ using MarketingBox.Sdk.Common.Extensions;
 using MarketingBox.Sdk.Common.Models;
 using MarketingBox.Sdk.Common.Models.Grpc;
 using Microsoft.Extensions.Logging;
+using MyJetWallet.Sdk.ServiceBus;
 
 namespace MarketingBox.Registration.Service.Services
 {
@@ -34,6 +36,7 @@ namespace MarketingBox.Registration.Service.Services
         private readonly ILogger<RegistrationService> _logger;
         private readonly IRegistrationRepository _repository;
         private readonly ITrafficEngineService _trafficEngineService;
+        private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisher;
         private readonly IMapper _mapper;
 
         public RegistrationService(ILogger<RegistrationService> logger,
@@ -42,7 +45,10 @@ namespace MarketingBox.Registration.Service.Services
             ICountryClient countryClient,
             IMapper mapper,
             ITrafficEngineService trafficEngineService,
-            IAffiliateClient affiliateClient, IOfferClient offerClient, ICampaignClient campaignClient)
+            IAffiliateClient affiliateClient,
+            IOfferClient offerClient,
+            ICampaignClient campaignClient, 
+            IServiceBusPublisher<RegistrationUpdateMessage> publisher)
         {
             _logger = logger;
             _repository = repository;
@@ -53,6 +59,7 @@ namespace MarketingBox.Registration.Service.Services
             _affiliateClient = affiliateClient;
             _offerClient = offerClient;
             _campaignClient = campaignClient;
+            _publisher = publisher;
         }
 
         public async Task<Response<Domain.Models.Registrations.Registration>> CreateAsync(
@@ -123,6 +130,10 @@ namespace MarketingBox.Registration.Service.Services
                 finally
                 {
                     await _repository.SaveAsync(registration);
+
+                    await _publisher
+                        .PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
+                    _logger.LogInformation("Sent registration to service bus {@context}", registration);
                 }
 
                 return new Response<Domain.Models.Registrations.Registration>
@@ -172,7 +183,10 @@ namespace MarketingBox.Registration.Service.Services
                 registration.Status = RegistrationStatus.Registered;
 
                 await _repository.SaveAsync(registration);
-                _logger.LogInformation("Sent original created registration to service bus {@context}", request);
+
+                await _publisher
+                    .PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
+                _logger.LogInformation("Sent registration to service bus {@context}", registration);
 
                 return new Response<Domain.Models.Registrations.Registration>
                 {

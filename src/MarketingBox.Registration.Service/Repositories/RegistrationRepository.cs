@@ -7,12 +7,10 @@ using MarketingBox.Registration.Postgres;
 using MarketingBox.Registration.Service.Domain.Models.Entities.Registration;
 using MarketingBox.Registration.Service.Domain.Models.Registrations.Deposit;
 using MarketingBox.Registration.Service.Domain.Repositories;
-using MarketingBox.Registration.Service.Messages.Registrations;
 using MarketingBox.Sdk.Common.Enums;
 using MarketingBox.Sdk.Common.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using MyJetWallet.Sdk.ServiceBus;
 
 namespace MarketingBox.Registration.Service.Repositories
 {
@@ -20,16 +18,13 @@ namespace MarketingBox.Registration.Service.Repositories
     {
         private const string UniqueViolation = "23505";
         private readonly DatabaseContextFactory _contextFactory;
-        private readonly IServiceBusPublisher<RegistrationUpdateMessage> _publisher;
         private readonly IMapper _mapper;
         private readonly ILogger<RegistrationRepository> _logger;
 
         public RegistrationRepository(DatabaseContextFactory contextFactory,
-            IServiceBusPublisher<RegistrationUpdateMessage> publisher,
             IMapper mapper, ILogger<RegistrationRepository> logger)
         {
             _contextFactory = contextFactory;
-            _publisher = publisher;
             _mapper = mapper;
             _logger = logger;
         }
@@ -54,9 +49,6 @@ namespace MarketingBox.Registration.Service.Repositories
 
                 throw;
             }
-
-            await _publisher
-                .PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
 
             if (rowsCount == 0)
             {

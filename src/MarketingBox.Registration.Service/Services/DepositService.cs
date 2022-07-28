@@ -93,6 +93,9 @@ namespace MarketingBox.Registration.Service.Services
                 UpdateStatus(registration, request.Mode.Value, request.NewStatus.Value);
 
                 await _registrationRepository.SaveAsync(registration);
+                
+                await _publisherLeadUpdated.PublishAsync(_mapper.Map<RegistrationUpdateMessage>(registration));
+                _logger.LogInformation("Sent deposit register to service bus {@context}", request);
 
                 var user = await _userClient.GetUser(request.UserId.Value, request.TenantId, true);
                 
